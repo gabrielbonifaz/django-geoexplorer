@@ -43788,25 +43788,31 @@ OpenLayers.Layer.WMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
  * @requires OpenLayers/Layer/Grid.js
  */
 
-/** 
+/**
  * Class: OpenLayers.Layer.XYZ
  * The XYZ class is designed to make it easier for people who have tiles
- * arranged by a standard XYZ grid. 
- * 
+ * arranged by a standard XYZ grid.
+ *
  * Inherits from:
  *  - <OpenLayers.Layer.Grid>
  */
 OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
-    
+
     /**
      * APIProperty: isBaseLayer
-     * Default is true, as this is designed to be a base tile source. 
+     * Default is true, as this is designed to be a base tile source.
      */
     isBaseLayer: true,
-    
+
+    /**
+     * Property: attribution
+     * {String} The layer attribution.
+     */
+    attribution: "&copy; ",
+
     /**
      * APIProperty: sphericalMercator
-     * Whether the tile extents should be set to the defaults for 
+     * Whether the tile extents should be set to the defaults for
      *    spherical mercator. Useful for things like OpenStreetMap.
      *    Default is false, except for the OSM subclass.
      */
@@ -43825,7 +43831,7 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
      *     of the server resolutions.
      */
     zoomOffset: 0,
-    
+
     /**
      * APIProperty: serverResolutions
      * {Array} A list of all resolutions available on the server.  Only set this
@@ -43861,19 +43867,19 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
             name || this.name, url || this.url, {}, options
         ]);
     },
-    
+
     /**
      * APIMethod: clone
      * Create a clone of this layer
      *
      * Parameters:
      * obj - {Object} Is this ever used?
-     * 
+     *
      * Returns:
      * {<OpenLayers.Layer.XYZ>} An exact clone of this OpenLayers.Layer.XYZ
      */
     clone: function (obj) {
-        
+
         if (obj == null) {
             obj = new OpenLayers.Layer.XYZ(this.name,
                                             this.url,
@@ -43884,7 +43890,7 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
         obj = OpenLayers.Layer.Grid.prototype.clone.apply(this, [obj]);
 
         return obj;
-    },    
+    },
 
     /**
      * Method: getURL
@@ -43904,10 +43910,10 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
             var s = '' + xyz.x + xyz.y + xyz.z;
             url = this.selectUrl(s, url);
         }
-        
+
         return OpenLayers.String.format(url, xyz);
     },
-    
+
     /**
      * Method: getXYZ
      * Calculates x, y and z for the given bounds.
@@ -43933,20 +43939,20 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
 
         return {'x': x, 'y': y, 'z': z};
     },
-    
+
     /* APIMethod: setMap
-     * When the layer is added to a map, then we can fetch our origin 
-     *    (if we don't have one.) 
-     * 
+     * When the layer is added to a map, then we can fetch our origin
+     *    (if we don't have one.)
+     *
      * Parameters:
      * map - {<OpenLayers.Map>}
      */
     setMap: function(map) {
         OpenLayers.Layer.Grid.prototype.setMap.apply(this, arguments);
-        if (!this.tileOrigin) { 
+        if (!this.tileOrigin) {
             this.tileOrigin = new OpenLayers.LonLat(this.maxExtent.left,
                                                 this.maxExtent.bottom);
-        }                                       
+        }
     },
 
     CLASS_NAME: "OpenLayers.Layer.XYZ"
@@ -78224,7 +78230,7 @@ Ext.preg(gxp.plugins.GoogleEarth.prototype.ptype, gxp.plugins.GoogleEarth);
 /** FILE: plugins/OLSource.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
- * 
+ *
  * Published under the GPL license.
  * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
  * of the license.
@@ -78278,10 +78284,10 @@ Ext.namespace("gxp.plugins");
  *
  */
 gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
-    
+
     /** api: ptype = gxp_olsource */
     ptype: "gxp_olsource",
-    
+
     /** api: method[createLayerRecord]
      *  :arg config:  ``Object``  The application config for this layer.
      *  :returns: ``GeoExt.data.LayerRecord``
@@ -78291,7 +78297,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
     createLayerRecord: function(config) {
 
         var record;
-        
+
         // get class based on type in config
         var Class = window;
         var parts = config.type.split(".");
@@ -78304,7 +78310,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
 
         // TODO: consider static method on OL classes to construct instance with args
         if (Class && Class.prototype && Class.prototype.initialize) {
-            
+
             // create a constructor for the given layer type
             var Constructor = function() {
                 // this only works for args that can be serialized as JSON
@@ -78319,15 +78325,20 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
             if ("visibility" in config) {
                 layer.visibility = config.visibility;
             }
-            
+
+            if ("attribution" in config) {
+                layer.attribution = config.attribution;
+            }
+
             // create a layer record for this layer
             var Record = GeoExt.data.LayerRecord.create([
                 {name: "name", type: "string"},
-                {name: "source", type: "string"}, 
+                {name: "source", type: "string"},
                 {name: "group", type: "string"},
                 {name: "fixed", type: "boolean"},
                 {name: "selected", type: "boolean"},
                 {name: "type", type: "string"},
+                {name: "attribution", type: "string"},
                 {name: "args"}
             ]);
             var data = {
@@ -78340,6 +78351,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 selected: ("selected" in config) ? config.selected : false,
                 type: config.type,
                 args: config.args,
+                attribution: ("attribution" in config) ? config.attribution : undefined,
                 properties: ("properties" in config) ? config.properties : undefined
             };
             record = new Record(data, layer.id);
@@ -78363,7 +78375,8 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
         var layer = record.getLayer();
         return Ext.apply(config, {
             type: record.get("type"),
-            args: record.get("args")
+            args: record.get("args"),
+            attribution: record.get("attribution")
         });
     }
 
