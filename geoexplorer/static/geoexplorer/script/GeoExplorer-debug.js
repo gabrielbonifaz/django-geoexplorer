@@ -77662,6 +77662,7 @@ gxp.plugins.GoogleSource = Ext.extend(gxp.plugins.LayerSource, {
 
     constructor: function(config) {
         this.config = config;
+        this.otherParams = '&key=' + config.apiKey;
         gxp.plugins.GoogleSource.superclass.constructor.apply(this, arguments);
     },
     
