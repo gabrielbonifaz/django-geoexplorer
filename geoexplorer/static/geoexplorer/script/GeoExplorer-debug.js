@@ -65303,14 +65303,16 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
     fileLabel: "Data",
     fieldEmptyText: "Browse for data archive...",
     uploadText: "Upload",
+    uploadFailedText: "Upload failed",
+    processingUploadText: "Processing upload...",
     waitMsgText: "Uploading your data...",
     invalidFileExtensionText: "File extension must be one of: ",
     optionsText: "Options",
     workspaceLabel: "Workspace",
     workspaceEmptyText: "Default workspace",
     dataStoreLabel: "Store",
-    dataStoreEmptyText: "Create new store",
-    defaultDataStoreEmptyText: "Default data store",
+    dataStoreEmptyText: "Choose a store",
+    dataStoreNewText: "Create new store",
     crsLabel: "CRS",
     crsEmptyText: "Coordinate Reference System ID",
     invalidCrsText: "CRS identifier should be an EPSG code (e.g. EPSG:4326)",
@@ -65332,7 +65334,7 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
      *  ``String``
      *  URL for GeoServer RESTConfig root.  E.g. "http://example.com/geoserver/rest".
      */
-    
+
     /** private: property[defaultDataStore]
      *  ``string``
      */
@@ -65389,6 +65391,7 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
             validator: this.fileNameValidator.createDelegate(this)
         }, {
             xtype: "fieldset",
+            ref: "optionsFieldset",
             title: this.optionsText,
             checkboxToggle: true,
             collapsed: true,
@@ -65431,10 +65434,10 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
                     if (fields.workspace) {
                         jsonData["import"].targetWorkspace = {workspace: {name: fields.workspace}};
                     }
-                    if (fields.store) {
-                        jsonData["import"].targetStore = {dataStore: {name: fields.store}}
-                    } else if (this.defaultDataStore) {
-                        jsonData["import"].targetStore = {dataStore: {name: this.defaultDataStore}}                        
+                    if (Ext.isEmpty(fields.store) && this.defaultDataStore) {
+                        jsonData["import"].targetStore = {dataStore: {name: this.defaultDataStore}};
+                    } else if (!Ext.isEmpty(fields.store) && fields.store !== this.dataStoreNewText) {
+                        jsonData["import"].targetStore = {dataStore: {name: fields.store}};
                     }
                     Ext.Ajax.request({
                         url: this.getUploadUrl(),
@@ -65442,8 +65445,9 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
                         jsonData: jsonData,
                         success: function(response) {
                             this._import = response.getResponseHeader("Location");
+                            this.optionsFieldset.expand();
                             form.submit({
-                                url: this._import + "/tasks",
+                                url: this._import + "/tasks?expand=all",
                                 waitMsg: this.waitMsgText,
                                 waitMsgTarget: true,
                                 reset: true,
@@ -65523,7 +65527,6 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
             name: "workspace",
             ref: "../workspace",
             fieldLabel: this.workspaceLabel,
-            emptyText: this.workspaceEmptyText,
             store: new Ext.data.JsonStore({
                 url: this.getWorkspacesUrl(),
                 autoLoad: true,
@@ -65535,7 +65538,7 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
             mode: "local",
             allowBlank: true,
             triggerAction: "all",
-            editable: false,
+            forceSelection: true,
             listeners: {
                 select: function(combo, record, index) {
                     this.getDefaultDataStore(record.get('name'));
@@ -65564,23 +65567,35 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
                 store.proxy = new Ext.data.HttpProxy({
                     url: workspaceUrl.split(".json").shift() + "/datastores.json"
                 });
+                store.proxy.on('loadexception', addDefault, this);
                 store.load();
             },
             scope: this
         });
 
+        var addDefault = function() {
+            var defaultData = {
+                name: this.dataStoreNewText
+            };
+            var r = new store.recordType(defaultData);
+            store.insert(0, r);
+            store.proxy && store.proxy.un('loadexception', addDefault, this);
+        };
+
+        store.on('load', addDefault, this);
+
         var combo = new Ext.form.ComboBox({
             name: "store",
             ref: "../dataStore",
-            fieldLabel: this.dataStoreLabel,
             emptyText: this.dataStoreEmptyText,
+            fieldLabel: this.dataStoreLabel,
             store: store,
             displayField: "name",
             valueField: "name",
             mode: "local",
             allowBlank: true,
             triggerAction: "all",
-            editable: false,
+            forceSelection: true,
             listeners: {
                 select: function(combo, record, index) {
                     this.fireEvent("datastoreselected", this, record);
@@ -65597,18 +65612,25 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
             url: this.url + '/workspaces/' + workspace + '/datastores/default.json',
             callback: function(options, success, response) {
                 this.defaultDataStore = null;
-                this.dataStore.emptyText = this.dataStoreEmptyText;
-                this.dataStore.setValue('');
                 if (response.status === 200) {
                     var json = Ext.decode(response.responseText);
+                    if (workspace === 'default' && json.dataStore && json.dataStore.workspace) {
+                        this.workspace.setValue(json.dataStore.workspace.name);
+                        var store = this.workspace.store;
+                        var data = {
+                            name: json.dataStore.workspace.name,
+                            href: json.dataStore.workspace.href
+                        };
+                        var r = new store.recordType(data);
+                        this.fireEvent("workspaceselected", this, r);
+                    }
                     //TODO Revisit this logic - currently we assume that stores
                     // with the substring "file" in the type are file based,
                     // and for file-based data stores we want to crate a new
                     // store.
                     if (json.dataStore && json.dataStore.enabled === true && !/file/i.test(json.dataStore.type)) {
                         this.defaultDataStore = json.dataStore.name;
-                        this.dataStore.emptyText = this.defaultDataStoreEmptyText;
-                        this.dataStore.setValue('');
+                        this.dataStore.setValue(this.defaultDataStore);
                     }
                 }
             },
@@ -65635,7 +65657,8 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
     handleUploadResponse: function(response) {
         var obj = this.parseResponseText(response.responseText),
             records, tasks, task, msg, i,
-            success = true;
+            formData = this.getForm().getFieldValues(),
+            success = !!obj;
         if (obj) {
             if (typeof obj === "string") {
                 success = false;
@@ -65651,11 +65674,12 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
                         if (!task) {
                             success = false;
                             msg = "Unknown upload error";
-                            break;
-                        } else if (task.state !== "READY") {
+                        } else if (task.state === 'NO_FORMAT') {
                             success = false;
-                            msg = "Source " + task.source.file + " is " + task.state;
-                            break;
+                            msg = "Upload contains no suitable files.";
+                        } else if (task.state === 'NO_CRS' && !formData.nativeCRS) {
+                            success = false;
+                            msg = "Coordinate Reference System (CRS) of source file " + task.data.file + " could not be determined. Please specify manually.";
                         }
                     }
                 }
@@ -65663,40 +65687,62 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
         }
         if (!success) {
             // mark the file field as invlid
-            records = [{data: {id: "file", msg: msg}}];
+            records = [{data: {id: "file", msg: msg || this.uploadFailedText}}];
         } else {
-            var formData = this.getForm().getFieldValues(),
-                // for now we only support a single item (items[0])
-                resource = task.items[0].resource,
-                itemModified = !!(formData.title || formData["abstract"] || formData.nativeCRS),
-                queue = [];
-            if (itemModified) {
-                var layer = resource.featureType ? "featureType" : "coverage",
-                    item = {resource: {}};
-                item.resource[layer] = {
+            var itemModified = !!(formData.title || formData["abstract"] || formData.nativeCRS);
+            // do not do this for coverages see https://github.com/boundlessgeo/suite/issues/184
+            if (itemModified && tasks[0].target.dataStore) {
+                this.waitMsg = new Ext.LoadMask((this.ownerCt || this).getEl(), {msg: this.processingUploadText});
+                this.waitMsg.show();
+                // for now we only support a single task
+                var payload = {
                     title: formData.title || undefined,
                     "abstract": formData["abstract"] || undefined,
-                    nativeCRS: formData.nativeCRS || undefined
+                    srs: formData.nativeCRS || undefined
                 };
                 Ext.Ajax.request({
                     method: "PUT",
-                    url: tasks[0].items[0].href,
-                    jsonData: {item: item},
-                    callback: this.finishUpload,
+                    url: tasks[0].layer.href,
+                    jsonData: payload,
+                    success: this.finishUpload,
+                    failure: function(response) {
+                        if (this.waitMsg) {
+                            this.waitMsg.hide();
+                        }
+                        var errors = [];
+                        try {
+                            var json = Ext.decode(response.responseText);
+                            if (json.errors) {
+                                for (var i=0, ii=json.errors.length; i<ii; ++i) {
+                                    errors.push({
+                                        id: ~json.errors[i].indexOf('SRS') ? 'nativeCRS' : 'file',
+                                        msg: json.errors[i]
+                                    });
+                                }
+                            }
+                        } catch(e) {
+                            errors.push({
+                                id: "file",
+                                msg: response.responseText
+                            });
+                        }
+                        this.getForm().markInvalid(errors);
+                    },
                     scope: this
                 });
             } else {
                 this.finishUpload();
             }
         }
-        return {success: success, records: records};
+        // always return unsuccessful - we manually reset the form in callbacks
+        return {success: false, records: records};
     },
     
     finishUpload: function() {
         Ext.Ajax.request({
             method: "POST",
             url: this._import,
-            //TODO error handling
+            failure: this.handleFailure,
             success: this.handleUploadSuccess,
             scope: this
         });
@@ -65732,14 +65778,36 @@ gxp.LayerUploadPanel = Ext.extend(Ext.FormPanel, {
     handleUploadSuccess: function(response) {
         Ext.Ajax.request({
             method: "GET",
-            url: this._import,
+            url: this._import + '?expand=all',
+            failure: this.handleFailure,
             success: function(response) {
+                if (this.waitMsg) {
+                    this.waitMsg.hide();
+                }
+                this.getForm().reset();
                 var details = Ext.decode(response.responseText);
-                this.fireEvent("uploadcomplete", this, details);
-                delete this._import;
+                // wait 250 ms for GeoServer to settle after the upload
+                window.setTimeout(function() {
+                  this.fireEvent("uploadcomplete", this, details);
+                  delete this._import;
+                }.bind(this), 250);
             },
             scope: this
         });
+    },
+    
+    /** private: method[handleFailure]
+     */
+    handleFailure: function(response) {
+        // see http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+        if (response && response.status === 1223) {
+            this.handleUploadSuccess(response);
+        } else {
+            if (this.waitMsg) {
+                this.waitMsg.hide();
+            }
+            this.getForm().markInvalid([{file: this.uploadFailedText}]);
+        }
     }
 
 });
@@ -65796,6 +65864,12 @@ gxp.FilterBuilder = Ext.extend(Ext.Container, {
      */
     allowBlank: false,
     
+    /** api: config[caseInsensitiveMatch]
+     *  ``Boolean``
+     *  Should Comparison Filters for Strings do case insensitive matching?  Default is ``"false"``.
+     */
+    caseInsensitiveMatch: false,
+
     /** api: config[preComboText]
      *  ``String``
      *  String to display before filter type combo.  Default is ``"Match"``.
@@ -66075,9 +66149,10 @@ gxp.FilterBuilder = Ext.extend(Ext.Container, {
         }
         return filter;
     },
-    
+
     createDefaultFilter: function() {
-        return new OpenLayers.Filter.Comparison();
+        return new OpenLayers.Filter.Comparison({
+                            matchCase: !this.caseInsensitiveMatch});
     },
     
     /** private: method[wrapFilter]
@@ -66125,6 +66200,7 @@ gxp.FilterBuilder = Ext.extend(Ext.Container, {
             attributes: this.attributes,
             allowBlank: group ? undefined : this.allowBlank,
             customizeFilterOnInit: group && false,
+            caseInsensitiveMatch: this.caseInsensitiveMatch,
             listeners: {
                 change: function() {
                     this.fireEvent("change", this);
@@ -66456,6 +66532,7 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
     /** i18n */
     aboutText: "About",
     titleText: "Title",
+    attributionText: "Attribution",
     nameText: "Name",
     descriptionText: "Description",
     displayText: "Display",
@@ -66466,7 +66543,7 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
     transparentText: "Transparent",
     cacheText: "Caching",
     cacheFieldText: "Use cached tiles",
-    stylesText: "Styles",
+    stylesText: "Available Styles",
     displayOptionsText: "Display options",
     queryText: "Limit with filters",
     scaleText: "Limit by scale",
@@ -66475,6 +66552,8 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
     switchToFilterBuilderText: "Switch back to filter builder",
     cqlPrefixText: "or ",
     cqlText: "use CQL filter instead",
+    singleTileText: "Single tile",
+    singleTileFieldText: "Use a single tile",
 
     initComponent: function() {
         this.cqlFormat = new OpenLayers.Format.CQL();
@@ -66608,35 +66687,7 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
         return Ext.apply(config, {
             title: this.stylesText,
             style: "padding: 10px",
-            editable: false,
-            listeners: Ext.apply(config.listeners, {
-                "beforerender": {
-                    fn: function(cmp) {
-                        var render = !this.editableStyles;
-                        if (!render) {
-                            if (typeof this.authorized == 'boolean') {
-                                cmp.editable = this.authorized;
-                                cmp.ownerCt.doLayout();
-                            } else {
-                                Ext.Ajax.request({
-                                    method: "PUT",
-                                    url: url + "/styles",
-                                    callback: function(options, success, response) {
-                                        // we expect a 405 error code here if we are dealing with
-                                        // GeoServer and have write access. Otherwise we will
-                                        // create the panel in readonly mode.
-                                        cmp.editable = (response.status == 405);
-                                        cmp.ownerCt.doLayout();
-                                    }
-                                });
-                            }
-                        }
-                        return render;
-                    },
-                    scope: this,
-                    single: true
-                }
-            })
+            editable: false
         });
     },
     
@@ -66674,6 +66725,22 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
                     anchor: "99%",
                     value: this.layerRecord.get("name"),
                     readOnly: true
+                }, {
+                    xtype: "textfield",
+                    fieldLabel: this.attributionText,
+                    anchor: "99%",
+                    listeners: {
+                        change: function(field) {
+                            var layer = this.layerRecord.getLayer();
+                            layer.attribution = field.getValue();
+                            layer.map.events.triggerEvent("changelayer", {
+                                layer: layer, property: "attribution"
+                            });
+                            this.fireEvent("change");
+                        },
+                        scope: this
+                    },
+                    value: this.layerRecord.getLayer().attribution
                 }]
             }, {
                 layout: "form",
@@ -66798,7 +66865,7 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
                                 layer.mergeNewParams({
                                     transparent: checked ? "true" : "false"
                                 });
-                                 this.fireEvent("change");
+                                this.fireEvent("change");
                             },
                             scope: this
                         }
@@ -66806,6 +66873,25 @@ gxp.WMSLayerPanel = Ext.extend(Ext.TabPanel, {
                         xtype: "label",
                         cls: "gxp-layerproperties-label",
                         text: this.transparentText
+                    }]
+                }, {
+                    xtype: "compositefield",
+                    fieldLabel: this.singleTileText,
+                    anchor: "99%",
+                    items: [{
+                        xtype: "checkbox",
+                        checked: this.layerRecord.get("layer").singleTile,
+                        listeners: {
+                            check: function(checkbox, checked) {
+                                layer.addOptions({singleTile: checked});
+                                this.fireEvent("change");
+                            },
+                            scope: this
+                        }
+                    }, {
+                        xtype: "label",
+                        cls: "gxp-layerproperties-label",
+                        text: this.singleTileFieldText
                     }]
                 }, {
                     xtype: "compositefield",
@@ -67720,7 +67806,6 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
      *  ``String``
      */
     saveErrorText: "Trouble saving: ",
-
     /** private: method[constructor]
      *  Construct the viewer.
      */
@@ -67737,7 +67822,6 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
              *  Fires before the portal is created by the Ext ComponentManager.
              */
             "beforecreateportal",
-
             /** api: event[portalready]
              *  Fires after the portal is initialized.
              */
@@ -67796,6 +67880,19 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
              */
             "beforesave",
 
+            /** api: event[beforedelete]
+             *  Fires before application deletes a map. If the listener returns
+             *  false, the delete is cancelled.
+             *
+             *  Listeners arguments:
+             *
+             *  * requestConfig - ``Object`` configuration object for the request,
+             *    which has the following properties: method and url.
+             *  * callback - ``Function`` Optional callback function which was
+             *    passed on to the deleteMap function.
+             */
+            "beforedelete",
+
             /** api: event[save]
              *  Fires when the map has been saved.
              *
@@ -67813,6 +67910,14 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
              *    window.location.hash
              */
             "beforehashchange"
+
+            /** api: event[delete]
+             *  Fires when the map has been deleted.
+             *
+             *  Listener arguments:
+             *  * id - ``Integer`` The identifier of the deleted map
+             */
+            "delete"
         );
 
         Ext.apply(this, {
@@ -67960,6 +68065,8 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
         var mapConfig = {};
         var baseLayerConfig = {
             wrapDateLine: config.wrapDateLine !== undefined ? config.wrapDateLine : true,
+            minZoomLevel: config.minZoomLevel,
+            maxZoomLevel: config.maxZoomLevel,
             maxResolution: config.maxResolution,
             numZoomLevels: config.numZoomLevels,
             displayInLayerSwitcher: false
@@ -68059,7 +68166,6 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
         }
 
         this.fireEvent("beforecreateportal");
-
         this.portal = Ext.ComponentMgr.create(Ext.applyIf(config, {
             layout: "fit",
             hideBorders: true,
@@ -68229,12 +68335,17 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
                 var id = record.get("source");
                 var source = this.layerSources[id];
                 if (!source) {
-                    throw new Error("Could not find source for record '" + record.get("name") + " and layer " + layer.name + "'");
-                }
-                // add layer
-                state.map.layers.push(source.getConfigForRecord(record));
-                if (!sources[id]) {
-                    sources[id] = source.getState();
+                    // Either the layer has no source (id=null) or this layer has a layerSources which isnt defined 
+                    // Provide a plugin source if the layer should be included in getState()
+                    if (window.console) {
+                        console.warn("Could not find source type (e.g gxp_wmssource) for layer '" + layer.name  + "' and layer id '" + layer.id + "'.");
+                    }
+                } else {
+                    // add layer
+                    state.map.layers.push(source.getConfigForRecord(record));
+                    if (!sources[id]) {
+                        sources[id] = source.getState();
+                    }
                 }
             }
         }, this);
@@ -68374,6 +68485,90 @@ gxp.Viewer = Ext.extend(Ext.util.Observable, {
                 this.doAuthorized(roles, callback, scope, true);
             };
             this.on("authorizationchange", this._authFn, this, {single: true});
+        }
+    },
+
+    /** private: method[save]
+     *
+     * Saves the map config and displays the URL in a window.
+     */
+    save: function(callback, scope) {
+        var configStr = Ext.util.JSON.encode(this.getState());
+        var method, url;
+        if (this.id) {
+            method = "PUT";
+            url = "../maps/" + this.id;
+        } else {
+            method = "POST";
+            url = "../maps/";
+        }
+        var requestConfig = {
+            method: method,
+            url: url,
+            data: configStr
+        };
+        if (this.fireEvent("beforesave", requestConfig, callback) !== false) {
+            OpenLayers.Request.issue(Ext.apply(requestConfig, {
+                callback: function(request) {
+                    this.handleSave(request);
+                    if (callback) {
+                        callback.call(scope || this, request);
+                    }
+                },
+                scope: this
+            }));
+        }
+    },
+
+    deleteMap: function(callback, scope) {
+        if (this.id) {
+            var method = "DELETE";
+            var url = "../maps/" + this.id;
+            var requestConfig = {
+                method: method,
+                url: url
+            };
+            if (this.fireEvent("beforedelete", requestConfig, callback) !== false) {
+                OpenLayers.Request.issue(Ext.apply(requestConfig, {
+                    callback: function(request) {
+                        this.handleSave(request, true);
+                        if (callback) {
+                            callback.call(scope || this, request);
+                        }
+                    },
+                    scope: this
+                }));
+            }
+        }
+    },
+
+    /** private: method[handleSave]
+     *  :arg: ``XMLHttpRequest``
+     */
+    handleSave: function(request, isDelete) {
+        if (request.status == 200) {
+            var config = Ext.util.JSON.decode(request.responseText);
+            var mapId = config.id;
+            if (mapId && !isDelete) {
+                this.id = mapId;
+                var hash = "#maps/" + mapId;
+                if (this.fireEvent("beforehashchange", hash) !== false) {
+                    window.location.hash = hash;
+                }
+                this.fireEvent("save", this.id);
+            }
+            if (isDelete) {
+                var id = this.id;
+                delete this.id;
+                if (this.fireEvent("beforehashchange", hash) !== false) {
+                    window.location.hash = '';
+                }
+                this.fireEvent("delete", id);
+            }
+        } else {
+            if (window.console) {
+                console.warn(this.saveErrorText + request.responseText);
+            }
         }
     },
 
@@ -68679,6 +68874,7 @@ Ext.reg('gxp_embedmapdialog', gxp.EmbedMapDialog);
  * @include widgets/LineSymbolizer.js
  * @include widgets/PointSymbolizer.js
  * @include widgets/FilterBuilder.js
+ * @include widgets/ClassificationPanel.js
  */
 
 /** api: (define)
@@ -68791,7 +68987,13 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
      *  are available to the <scaleSliderTemplate>.
      */
     modifyScaleTipContext: Ext.emptyFn,
-    
+
+    /** private: property[classifyEnabled]
+     *  ``Boolean`` Enable the ClassificationPanel widget
+     *  Default is false.
+     */
+    classifyEnabled: false,
+
     /** i18n */
     labelFeaturesText: "Label Features",
     labelsText: "Labels",
@@ -68904,7 +69106,7 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
             this.items = [{
                 title: this.basicText,
                 autoScroll: true,
-                items: [this.createHeaderPanel(), this.createSymbolizerPanel()]
+                items: [this.createHeaderPanel(), this.createSymbolizerPanel(), this.createClassificationPanel()]
             }, this.items[0], {
                 title: this.advancedText,
                 defaults: {
@@ -68957,6 +69159,7 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
                     xtype: "fieldset",
                     title: this.limitByConditionText,
                     checkboxToggle: true,
+                    hidden: this.classifyEnabled,
                     collapsed: !(this.rule && this.rule.filter),
                     autoHeight: true,
                     items: [this.filterBuilder],
@@ -68991,6 +69194,15 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
         this.on({
             tabchange: function(panel, tab) {
                 tab.doLayout();
+            },
+            afterRender: function() {
+                if (this.classifyEnabled) {
+                    var symbolizer = this.items.items[0].items.items[1];
+
+                    //Hide fill color
+                    var element = Ext.getCmp(Ext.get(symbolizer.id).child('[name=color]').id);
+                    element.setVisible(false);
+                }
             },
             scope: this
         });
@@ -69079,6 +69291,7 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
                     width: 150,
                     items: [{
                         xtype: "textfield",
+                        hidden: this.classifyEnabled,
                         fieldLabel: this.nameText,
                         anchor: "95%",
                         value: this.rule && (this.rule.title || this.rule.name || ""),
@@ -69155,6 +69368,29 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
         
     },
 
+    /** private: method[createClassificationPanel]
+     * Interface for specifying classification criteria,
+     * Only displays if GeoServer sldService community module
+     * is installed.
+     */
+    createClassificationPanel: function() {
+
+        if (this.classifyEnabled)  {
+            this.rule["classify"] = true;
+        }
+
+        return new gxp.ClassificationPanel({
+            bodyStyle: {padding: "10px"},
+            border: false,
+            labelWidth: 70,
+            defaults: {
+                labelWidth: 70
+            },
+            hidden: !this.classifyEnabled,
+            rulePanel: this
+        });
+    },
+
     /** private: method[getSymbolTypeFromRule]
      *  :arg rule: `OpenLayers.Rule`
      *  :return: `String` "Point", "Line" or "Polygon" (or undefined if none
@@ -69180,6 +69416,325 @@ gxp.RulePanel = Ext.extend(Ext.TabPanel, {
 /** api: xtype = gxp_rulepanel */
 Ext.reg('gxp_rulepanel', gxp.RulePanel); 
 
+/** FILE: widgets/ClassificationPanel.js **/
+/**
+ * Copyright (c) 2008-2011 The Open Planning Project
+ *
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+
+/**
+ * @require OpenLayers/Renderer.js
+ * @require
+ */
+
+
+/** api: (define)
+ *  module = gxp
+ *  class = ClassificationPanel
+ *  base_link = `Ext.TabPanel <http://extjs.com/deploy/dev/docs/?class=Ext.TabPanel>`_
+ */
+Ext.namespace("gxp");
+
+
+/** api: constructor
+ *  .. class:: ClassificationPanel(config)
+ *
+ *      Create a dialog for generating a classified styling for a layer,
+ *      with options for specifying the number of classes,
+ *      classification method, and choice of color ramps.
+ */
+gxp.ClassificationPanel = Ext.extend(Ext.Panel, {
+
+    hidden: false,
+    rulePanel: null,
+    customRamp: "Custom",
+
+    classNumberText: 'Classes',
+    classifyText: "Classify",
+    rampBlueText: "Blue",
+    rampRedText: "Red",
+    rampOrangeText: "Orange",
+    rampJetText: "Blue-Red",
+    rampGrayText: "Gray",
+    rampRandomText: "Random",
+    rampCustomText: "Custom",
+    selectColorText: "Select colors",
+    colorStartText: "Start Color",
+    colorEndText: "End Color",
+    colorRampText: 'Color Ramp',
+    methodText: "Method",
+    methodUniqueText: "Unique Values",
+    methodQuantileText: "Quantile",
+    methodEqualText: "Equal Intervals",
+    methodJenksText: "Jenks Natural Breaks",
+    selectMethodText: "Select method",
+    standardDeviationText: "Standard Deviations",
+    attributeText: "Attribute",
+    selectAttributeText: "Select attribute",
+    startColor: "#FEE5D9",
+    endColor: "#A50F15",
+    generateRulesText: "Apply",
+    reverseColorsText: "Reverse colors",
+
+
+    initComponent: function() {
+        var colorFieldPlugins;
+        if (this.rulePanel.colorManager) {
+            colorFieldPlugins = [new this.rulePanel.colorManager];
+        }
+
+        var colorPanel =    new Ext.Panel({
+            hidden: true,
+            layout: 'form',
+            bodyStyle: {padding: "10px"},
+            border: false,
+            labelWidth: 70,
+            defaults: {
+                labelWidth: 70
+            },
+            items: [
+                {
+                    xtype: "gxp_colorfield",
+                    id: "choropleth_color_start",
+                    name: "color_start",
+                    fieldLabel: this.colorStartText,
+                    emptyText: OpenLayers.Renderer.defaultSymbolizer.strokeColor,
+                    value: this.startColor,
+                    defaultBackground: this.startColor,
+                    plugins: colorFieldPlugins,
+                    listeners: {
+                        valid: function(field) {
+                            this.rulePanel.rule[field.name] = field.getValue();
+                        },
+                        scope: this
+                    }
+                },
+                {   xtype: "gxp_colorfield",
+                    id: "choropleth_color_end",
+                    name: "color_end",
+                    fieldLabel: this.colorEndText,
+                    emptyText: OpenLayers.Renderer.defaultSymbolizer.strokeColor,
+                    value: this.endColor,
+                    defaultBackground: this.endColor,
+                    plugins: colorFieldPlugins,
+                    listeners: {
+                        valid: function(field) {
+                            this.rulePanel.rule[field.name] = field.getValue();
+                        },
+                        scope: this
+                    }
+                }
+            ]
+        });
+
+        var classNumSelector = new Ext.ux.form.SpinnerField({
+            fieldLabel: this.classNumberText,
+            id: "choropleth_classes",
+            minValue: 2,
+            name: 'intervals',
+            defaultValue: 5,
+            width: 110,
+            listeners: {
+                'change':function(spinner, value){
+                    this.rulePanel.rule[classNumSelector.name] = value;
+                },
+                scope: this
+            }
+        });
+
+        this.rulePanel.rule[classNumSelector.name] = classNumSelector.defaultValue;
+
+        var colorDropdown = new Ext.form.ComboBox({
+            id: 'choropleth_colorramp',
+            name: 'ramp',
+            fieldLabel: this.colorRampText,
+            store:  new Ext.data.ArrayStore({
+                id: 0,
+                fields: [
+                    'colorramp',
+                    'label'
+                ],
+                data: [
+                    ['Blue',this.rampBlueText],
+                    ['Red', this.rampRedText],
+                    ['Orange', this.rampOrangeText],
+                    ['Jet', this.rampJetText],
+                    ['Gray', this.rampGrayText],
+                    ['Random', this.rampRandomText],
+                    ['Custom', this.rampCustomText]]
+            }),
+            mode: 'local',
+            width: 110,
+            displayField: "label",
+            valueField: "colorramp",
+            editable: false,
+            emptyText: this.selectColorText,
+            triggerAction: 'all',
+            disabled: false,
+            listeners: {
+                'select': function(cmb, data, idx) {
+                    //If Custom: display start, end, middle color picker;
+                    colorPanel.setVisible(cmb.value == this.customRamp);
+
+                    switch(cmb.value) {
+                        case "Blue":
+                            this.rulePanel.rule["color_start"] = "#f7fbff";
+                            this.rulePanel.rule["color_end"] = "#08306b";
+                            this.rulePanel.rule[cmb.name] = this.customRamp;
+                            break;
+                        case "Red":
+                            this.rulePanel.rule["color_start"] = "#fff5f0";
+                            this.rulePanel.rule["color_end"] = "#67000d";
+                            this.rulePanel.rule[cmb.name] = this.customRamp;
+                            break;
+                        case "Orange":
+                            this.rulePanel.rule["color_start"] = "#fff5eb";
+                            this.rulePanel.rule["color_end"] = "#f16913";
+                            this.rulePanel.rule[cmb.name] = this.customRamp;
+                            break;
+                        case "Jet":
+                            this.rulePanel.rule[cmb.name] = "Jet";
+                            break;
+                        default:
+                            this.rulePanel.rule["color_mid"] = "";
+                            this.rulePanel.rule[cmb.name] = cmb.value;
+                    }
+
+                },
+                scope: this
+            }
+        });
+
+        var methodDropdown = new Ext.form.ComboBox({
+            id: 'choropleth_method',
+            name: 'method',
+            fieldLabel: this.methodText,
+            store:  new Ext.data.ArrayStore({
+                id: 0,
+                mode: 'local',
+                autoDestroy: true,
+                storeId: 'method_array_store',
+                fields: [
+                    'value', 'label'
+                ],
+                data: [
+                    ['uniqueInterval', this.methodUniqueText],
+                    ['quantile', this.methodQuantileText],
+                    ['equalInterval', this.methodEqualText],
+                    ['jenks', this.methodJenksText]
+                ]
+            }),
+            displayField: 'label',
+            valueField: 'value',
+            mode: 'local',
+            width: 110,
+            editable: false,
+            emptyText: this.selectMethodText,
+            triggerAction: 'all',
+            disabled: false,
+            listeners: {
+                'select': function(cmb, data, idx) {
+
+                    //If uniqueInterval: disable # classes
+                    classNumSelector.setDisabled(cmb.value == "uniqueInterval");
+                    this.rulePanel.rule[cmb.name] = cmb.value;
+                },
+                scope: this
+            }
+        });
+
+        var attributeDropdown =  new Ext.form.ComboBox({
+            id: 'choropleth_attribute',
+            name: 'attribute',
+            fieldLabel: this.attributeText,
+            store: this.rulePanel.attributes,
+            displayField: 'name',
+            valueField: 'name',
+            triggerAction: 'all',
+            mode: 'local',
+            width: 110,
+            editable: false,
+            emptyText: this.selectAttributeText,
+            disabled: false,
+            listeners: {
+                'select': function(cmb, data, idx) {
+                    this.rulePanel.rule[cmb.name] = cmb.value;
+                    methodDropdown.clearValue();
+                    var methodStore =   methodDropdown.getStore();
+                    for (var i = 0, ii=methodStore.data.length; i <ii ; i++) {
+                        methodStore.getAt(i).disabled = (cmb.getStore().getAt(idx).get("type") == "xsd:string" ? methodStore.getAt(i).get("value") != "uniqueInterval": false);
+                    }
+                    methodStore.loadData(cmb.getStore().getAt(idx).get("type") == "xsd:string" ?
+                        [['uniqueInterval',this.methodUniqueText]]
+                        :[['uniqueInterval',this.methodUniqueText],
+                        ['quantile', this.methodQuantileText],
+                        ['equalInterval',this.methodEqualText],
+                        ['jenks', this.methodJenksText]]
+                    );
+                },
+                scope: this
+            }
+        });
+
+        this.items = [
+            {
+                xtype:"fieldset",
+                title:this.classifyText,
+                labelWidth:85,
+                style:"margin-bottom: 0;",
+                items: [
+                    //Dropdown: attributes
+                    attributeDropdown,
+                    //Dropdown: classification mode
+                    methodDropdown,
+                    //Classes, use http://dev.sencha.com/deploy/ext-3.4.0/examples/spinner/spinner.html
+                    classNumSelector,
+                    //Dropdown: color ramp
+                    colorDropdown,
+                    //Checkbox: Generate classification rules
+                    {
+                        xtype: 'checkbox',
+                        name: 'reverse',
+                        checked: false,
+                        ctCls: 'x-checkbox-inline',
+                        hideLabel: true,
+                        labelSeparator: '',
+                        labelStyle: 'display:inline;',
+                        boxLabel: this.reverseColorsText,
+                        handler: function(item, e)
+                        {
+                            this.rulePanel.rule['reverse'] = item.checked;
+                        },
+                        scope: this
+                    },
+                    //Text field /  Ext.menu.ColorMenu: start color
+                    colorPanel,
+                    {
+                        xtype: 'button',
+                        name: 'apply',
+                        text: this.generateRulesText,
+                        fieldLabel: '&nbsp;',
+                        style: 'margin-top:10px;',
+                        labelSeparator: '',
+                        handler: function (item, e) {
+                            this.rulePanel.fireEvent("change", this.rulePanel, this.rulePanel.rule);
+                        },
+                        scope: this
+                    }
+                ]
+            }
+        ]
+        gxp.ClassificationPanel.superclass.initComponent.call(this);
+    }
+
+});
+
+/** api: xtype = gxp_classificationpanel */
+Ext.reg('gxp_classificationpanel', gxp.ClassificationPanel);
 /** FILE: widgets/StylePropertiesDialog.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
@@ -69304,7 +69859,23 @@ Ext.reg('gxp_stylepropertiesdialog', gxp.StylePropertiesDialog);
  * @require GeoExt/data/AttributeStore.js
  * @require GeoExt/widgets/WMSLegend.js
  * @require GeoExt/widgets/VectorLegend.js
+ * @require OpenLayers/Format/Filter/v1_1_0.js
  */
+
+
+/**
+ * Override OpenLayers.Format.Filter.v1.readers.ogc.Literal
+ * to prevent numeric strings such as '005' from being
+ * truncated to just '5'
+ * @param node
+ * @param obj
+ * @constructor
+ */
+OpenLayers.Format.Filter.v1_1_0.prototype.readers.ogc.Literal = function(node, obj) {
+    obj.value = this.getChildValue(node);
+}
+
+
 
 /** api: (define)
  *  module = gxp
@@ -69335,6 +69906,10 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      addStyleTip: "Add a new style",
     /** api: config[chooseStyleText] (i18n) */    
     chooseStyleText: "Choose style",
+    /** api: config[classifyStyleText] (i18n) */
+    classifyStyleText:"Classify",
+    /** api: config[classifyStyleTip] (i18n) */
+    classifyStyleTip:"Classify the layer based on attributes",
     /** api: config[addStyleText] (i18n) */
      deleteStyleText: "Remove",
     /** api: config[addStyleTip] (i18n) */
@@ -69472,6 +70047,11 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      *  add the dialogue to a container.
      */
     dialogCls: Ext.Window,
+
+    /** private: config[classifyEnabled]
+     *  ``Boolean`` True to display classifier button, false to hide it.
+     */
+    classifyEnabled: false,
 
     /** private: method[initComponent]
      */
@@ -69686,7 +70266,8 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
                     ref: "../propertiesDialog",
                     userStyle: userStyle.clone(),
                     nameEditable: false,
-                    style: "padding: 10px;"
+                    style: "padding: 10px;",
+                    classifyEnabled: this.classifyEnabled && !this.isRaster && this.editable
                 }
             },
             listeners: {
@@ -69700,7 +70281,85 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         }));
         this.showDlg(styleProperties);
     },
-    
+
+    getAttributeStore: function() {
+        return new GeoExt.data.AttributeStore({
+                    url: this.layerDescription.owsURL,
+                    baseParams: {
+                        "SERVICE": this.layerDescription.owsType,
+                        "REQUEST": "DescribeFeatureType",
+                        "TYPENAME": this.layerDescription.typeName
+                    },
+                    method: "GET",
+                    disableCaching: false
+                });
+    },
+
+    /** api: method[classifyStyleRules]
+     *  Edit the currently selected style with classification options enabled.
+     */
+    classifyStyleRules:function () {
+        var userStyle = this.selectedStyle.get("userStyle");
+
+        var rule = userStyle.rules[0];
+        var origRules = [];
+        for (var i= 0, ii = userStyle.rules.length; i < ii; i++){
+            origRules[i] = userStyle.rules[i].clone();
+        }
+
+        var ruleDlg = new this.dialogCls({
+            title: String.format(this.ruleWindowTitle,
+                rule.title || rule.name || this.newRuleText),
+            shortTitle: rule.title || rule.name || this.newRuleText,
+            layout: "fit",
+            width: 320,
+            height: 450,
+            modal: true,
+            items: [{
+                xtype: "gxp_rulepanel",
+                ref: "rulePanel",
+                symbolType: this.symbolType,
+                rule: rule,
+                fonts:this.fonts,
+                classifyEnabled: true,
+                attributes: this.getAttributeStore(),
+                autoScroll: true,
+                border: false,
+                defaults: {
+                    autoHeight: true,
+                    hideMode: "offsets"
+                },
+                listeners: {
+                    "change": this.classifyRules,
+                    "tabchange": function() {
+                        if (ruleDlg instanceof Ext.Window) {
+                            ruleDlg.syncShadow();
+                        }
+                    },
+                    scope: this
+                }
+            }],
+            bbar:["->", {
+                text:this.cancelText,
+                iconCls:"cancel",
+                handler:function () {
+                    userStyle.rules = origRules;
+                    this.afterRuleChange();
+                    this.selectedStyle.set("userStyle", userStyle);
+                    ruleDlg.destroy();
+                },
+                scope:this
+            }, {
+                text: this.saveText,
+                iconCls: "save",
+                handler: function() { ruleDlg.destroy(); }
+            }]
+        });
+        this.showDlg(ruleDlg);
+    },
+
+
+
     /** api: method[createSLD]
      *  :arg options: ``Object``
      *  :return: ``String`` The current SLD for the NamedLayer.
@@ -69760,8 +70419,8 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      *  the last rule.
      */
     updateRuleRemoveButton: function() {
-        this.items.get(3).items.get(1).setDisabled(
-            !this.selectedRule || this.items.get(2).items.get(0).rules.length < 2
+        this.getComponent("rulestoolbar").items.get(1).setDisabled(
+            !this.selectedRule || this.getComponent("rulesfieldset").items.get(0).rules.length < 2
         );
     },
     
@@ -69790,6 +70449,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         var rulesToolbar = new Ext.Toolbar({
             style: "border-width: 0 1px 1px 1px;",
             hidden: true,
+            itemId: 'rulestoolbar',
             items: [
                 {
                     xtype: "button",
@@ -69837,7 +70497,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
     /** private: method[addRule]
      */
     addRule: function() {
-        var legend = this.items.get(2).items.get(0);
+        var legend = this.getComponent("rulesfieldset").items.get(0);
         this.selectedStyle.get("userStyle").rules.push(
             this.createRule()
         );
@@ -69851,7 +70511,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      */
     removeRule: function() {
         var selectedRule = this.selectedRule;
-        this.items.get(2).items.get(0).unselect();
+        this.getComponent("rulesfieldset").items.get(0).unselect();
         this.selectedStyle.get("userStyle").rules.remove(selectedRule);
         // mark the style as modified
         this.afterRuleChange();
@@ -69860,7 +70520,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
     /** private: method[duplicateRule]
      */
     duplicateRule: function() {
-        var legend = this.items.get(2).items.get(0);
+        var legend = this.getComponent("rulesfieldset").items.get(0);
         var newRule = this.selectedRule.clone();
         this.selectedStyle.get("userStyle").rules.push(
             newRule
@@ -69890,16 +70550,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
                 ref: "rulePanel",
                 symbolType: this.symbolType,
                 rule: rule,
-                attributes: new GeoExt.data.AttributeStore({
-                    url: this.layerDescription.owsURL,
-                    baseParams: {
-                        "SERVICE": this.layerDescription.owsType,
-                        "REQUEST": "DescribeFeatureType",
-                        "TYPENAME": this.layerDescription.typeName
-                    },
-                    method: "GET",
-                    disableCaching: false
-                }),
+                attributes: this.getAttributeStore(),
                 autoScroll: true,
                 border: false,
                 defaults: {
@@ -69933,13 +70584,75 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         this.showDlg(ruleDlg);
     },
     
+    /** private: method[classifyRules]
+     *  :arg cmp:
+     *  :arg rule: the template rule to classify and save to userStyle
+     */
+    classifyRules: function(cmp, rule) {
+        var style = this.selectedStyle;
+        var userStyle = style.get("userStyle");
+        var layer = this.layerRecord.getLayer();
+        var url = this.layerRecord.get("restUrl");
+        if (!url) {
+            url = layer.url.split("?").shift().replace(/\/(wms|ows)\/?$/, "/rest");
+        }
+
+        var is_valid = rule["attribute"] && rule["method"] && rule["intervals"] && rule["ramp"]
+            && (rule["ramp"] == "Custom" ? rule["color_start"] && rule["color_end"] : true);
+
+        if (is_valid) {
+            Ext.Ajax.request({
+                url: url + "/sldservice/" + layer.params["LAYERS"] + "/classify.xml",
+                params: {
+                    "attribute": rule["attribute"],
+                    "method": rule["method"],
+                    "intervals": rule["intervals"],
+                    "ramp": rule["ramp"],
+                    "startColor": rule["color_start"],
+                    "endColor": rule["color_end"],
+                    "reverse": rule["reverse"]
+                },
+                method: "GET",
+                disableCaching: false,
+                success: function (result) {
+                    var newRules = []
+                    var filterParser = new OpenLayers.Format.Filter.v1_1_0();
+                    var xmlParser = new OpenLayers.Format.XML();
+
+                    var xmlRules = xmlParser.getElementsByTagNameNS(xmlParser.read(result.responseText).documentElement, "*", "Rule");
+                    for (var i = 0, ii = xmlRules.length; i < ii; i++) {
+                        var new_rule = rule.clone();
+                        var ruleTitle =   xmlParser.getElementsByTagNameNS(xmlRules[i], "*", "Title")[0];
+                        new_rule.title = ruleTitle.textContent || ruleTitle.text;
+                        var new_css_parameter = xmlParser.getElementsByTagNameNS(xmlRules[i], "*", "CssParameter")[0];
+                        if (new_css_parameter.attributes.getNamedItem("name").value === "fill") {
+                            new_rule.symbolizers[0].fillColor = new_css_parameter.textContent || new_css_parameter.text;
+                        } else {
+                            new_rule.symbolizers[0].strokeColor = new_css_parameter.textContent || new_css_parameter.text;
+                        }
+
+                        new_rule.filter = filterParser.read(xmlParser.getElementsByTagNameNS(xmlRules[i], "*", "Filter")[0]);
+
+                        newRules.push(new_rule);
+                        this.afterRuleChange(new_rule);
+                    }
+                    userStyle.rules = newRules;
+                },
+                failure: function (result) {
+                },
+                callback: null,
+                scope: this
+            });
+        }
+    },
+
     /** private: method[saveRule]
      *  :arg cmp:
      *  :arg rule: the rule to save back to the userStyle
      */
     saveRule: function(cmp, rule) {
         var style = this.selectedStyle;
-        var legend = this.items.get(2).items.get(0);
+        var legend = this.getComponent("rulesfieldset").items.get(0);
         var userStyle = style.get("userStyle");
         var i = userStyle.rules.indexOf(this.selectedRule);
         userStyle.rules[i] = rule;
@@ -69953,7 +70666,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      *  selectedStyle after a rule was changed.
      */
     afterRuleChange: function(rule) {
-        var legend = this.items.get(2).items.get(0);
+        var legend = this.getComponent("rulesfieldset").items.get(0);
         this.selectedRule = rule;
         // mark the style as modified
         this.selectedStyle.store.afterEdit(this.selectedStyle);
@@ -69968,7 +70681,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         // the toolbar
         this.items.get(3).setVisible(visible && this.editable);
         // and the fieldset itself
-        this.items.get(2).setVisible(visible);
+        this.getComponent("rulesfieldset").setVisible(visible);
         this.doLayout();
     },
 
@@ -70014,7 +70727,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
             this.stylesStore.removeAll();
             this.selectedStyle = null;
             
-            var userStyle, record, index;
+            var userStyle, record, index, defaultStyle;
             for (var i=0, len=userStyles.length; i<len; ++i) {
                 userStyle = userStyles[i];
                 // remove existing record - this way we replace styles from
@@ -70034,6 +70747,14 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
                             (!initialStyle && userStyle.isDefault === true))) {
                     this.selectedStyle = record;
                 }
+                if (userStyle.isDefault === true) {
+                    defaultStyle = record;
+                }
+            }
+            // fallback to the default style, this can happen when the layer referenced
+            // a non-existing style as initialStyle
+            if (!this.selectedStyle) {
+                this.selectedStyle = defaultStyle;
             }
             
             this.addRulesFieldSet();
@@ -70041,8 +70762,18 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
             
             this.stylesStoreReady();
             layerParams.SLD_BODY && this.markModified();
+
+            if (this.editable) {
+                // check if service is available
+                this.enableClassification();
+            } else {
+                this.setupNonEditable();
+            }
         }
         catch(e) {
+            if (window.console) {
+                console.warn(e.message);
+            }
             this.setupNonEditable();
         }
     },
@@ -70070,7 +70801,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         rulesFieldSet.add(this.createLegendImage());
         this.doLayout();
         // disable rules toolbar
-        this.items.get(3).hide();
+        this.getComponent("rulestoolbar").hide();
         this.stylesStoreReady();
     },
     
@@ -70200,7 +70931,56 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
             this.setupNonEditable();
         }
     },
-    
+
+    enableClassification: function () {
+        if (this.isRaster) {
+            return;
+        }
+
+        var layer = this.layerRecord.getLayer();
+        var url = this.getLayerRestUrl(this.layerRecord);
+
+        Ext.Ajax.request({
+            url: url + "/sldservice/" + layer.params["LAYERS"] + "/attributes.xml",
+            method:"GET",
+            disableCaching:false,
+            success:function(response){
+                if (response.responseXML) {
+                    this.classifyEnabled = true;
+
+                    var classifyToolbar = new Ext.Toolbar({
+                        cls: "x-center-toolbar",
+                        buttonAlign: 'center',
+                        items:[
+                            {
+                                text: this.classifyStyleText,
+                                tooltip: this.classifyStyleTip,
+                                iconCls: "gradient",
+                                handler:function () {
+                                    var prevStyle = this.selectedStyle;
+
+                                    if (this.layerDescription) {
+                                        this.classifyStyleRules();
+                                    } else {
+                                        this.describeLayer(this.classifyStyleRules);
+                                    }
+                                },
+                                scope:this
+                            }
+                        ]
+                    });
+
+
+                    this.insert(2,classifyToolbar);
+                    this.doLayout();
+                }
+            },
+            failure:function(){},
+            scope:this
+        });
+    },
+
+
     /** private: method[describeLayer]
      *  :arg callback: ``Function`` function that will be called when the
      *      request result was returned.
@@ -70326,7 +71106,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      */
     changeStyle: function(record, options) {
         options = options || {};
-        var legend = this.items.get(2).items.get(0);
+        var legend = this.getComponent("rulesfieldset").items.get(0);
         this.selectedStyle = record;
         this.updateStyleRemoveButton();            
         var styleName = record.get("name");
@@ -70371,7 +71151,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
             }
             this.symbolType = typeHierarchy[highest];
         }
-        var legend = this.items.get(2).add({
+        var legend = this.getComponent("rulesfieldset").add({
             xtype: "gx_vectorlegend",
             showTitle: false,
             height: rules.length > 10 ? 250 : undefined,
@@ -70384,7 +71164,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
                 "ruleselected": function(cmp, rule) {
                     this.selectedRule = rule;
                     // enable the Remove, Edit and Duplicate buttons
-                    var tbItems = this.items.get(3).items;
+                    var tbItems = this.getComponent("rulestoolbar").items;
                     this.updateRuleRemoveButton();
                     tbItems.get(2).enable();
                     tbItems.get(3).enable();
@@ -70392,7 +71172,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
                 "ruleunselected": function(cmp, rule) {
                     this.selectedRule = null;
                     // disable the Remove, Edit and Duplicate buttons
-                    var tbItems = this.items.get(3).items;
+                    var tbItems = this.getComponent("rulestoolbar").items;
                     tbItems.get(1).disable();
                     tbItems.get(2).disable();
                     tbItems.get(3).disable();
@@ -70429,7 +71209,24 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      */
     showDlg: function(dlg) {
         dlg.show();
+    },
+
+    /** private: method[getLayerRestUrl]
+     *  :arg layerRecord ``Object``
+     *  :arg url ``String``
+     *  :return: ``String`` the layer's REST URL
+     */
+    getLayerRestUrl: function(layerRecord, url) {
+        if (!url) {
+            url = layerRecord.get("restUrl");
+        }
+        if (!url) {
+            var layer = layerRecord.getLayer();
+            url = layer.url.split("?").shift().replace(/\/(wms|ows)\/?$/, "/rest");
+        }
+        return url;
     }
+
     
 });
 
@@ -70446,12 +71243,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
  */
 gxp.WMSStylesDialog.createGeoServerStylerConfig = function(layerRecord, url) {
     var layer = layerRecord.getLayer();
-    if (!url) {
-        url = layerRecord.get("restUrl");
-    }
-    if (!url) {
-        url = layer.url.split("?").shift().replace(/\/(wms|ows)\/?$/, "/rest");
-    }
+    url = this.prototype.getLayerRestUrl(layerRecord, url);
     return {
         xtype: "gxp_wmsstylesdialog",
         layerRecord: layerRecord,
@@ -71091,6 +71883,85 @@ gxp.ScaleOverlay = Ext.extend(Ext.Panel, {
 /** api: xtype = gxp_scaleoverlay */
 Ext.reg('gxp_scaleoverlay', gxp.ScaleOverlay);
 
+/** FILE: plugins/SchemaAnnotations.js **/
+/** FILE: plugins/SchemaAnnotations.js **/
+/**
+ * Copyright (c) 2008-2012 The Open Planning Project
+ *
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = FormFieldHelp
+ */
+
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: SchemaAnnotations
+ *
+ *    Module for getting annotations from the WFS DescribeFeatureType schema.
+ *    This is currently used in gxp.plugins.FeatureEditorForm and
+ *    gxp.plugins.FeatureEditorGrid.
+ *
+ *    The WFS needs to provide xsd:annotation in the XML Schema which is
+ *    reported back on a WFS DescribeFeatureType request. An example is:
+ *
+ *    .. code-block:: xml
+ *
+ *      <xsd:element maxOccurs="1" minOccurs="0" name="PERSONS" nillable="true" type="xsd:double">
+ *        <xsd:annotation>
+ *          <xsd:appinfo>{"title":{"en":"Population"}}</xsd:appinfo>
+ *          <xsd:documentation xml:lang="en">
+ *            Number of persons living in the state
+ *          </xsd:documentation>
+ *        </xsd:annotation>
+ *      </xsd:element>
+ *
+ *    To use this module simply use Ext.override in your class, and use the
+ *    getAnnotationsFromSchema function on a record from the attribute store.
+ *
+ *    .. code-block:: javascript
+ *
+ *    Ext.override(gxp.plugins.YourPlugin, gxp.plugins.SchemaAnnotations);
+ *
+ */
+gxp.plugins.SchemaAnnotations = {
+
+    /** api: method[getAnnotationsFromSchema]
+     *
+     *  :arg r: ``Ext.data.Record`` a record from the AttributeStore
+     *  :returns: ``Object`` Object with label and helpText properties or
+     *  null if no annotation was found.
+     */
+    getAnnotationsFromSchema: function(r) {
+        var result = null;
+        var annotation = r.get('annotation');
+        if (annotation !== undefined) {
+            result = {};
+            var lang = GeoExt.Lang.locale.split("-").shift();
+            var i, ii;
+            for (i=0, ii=annotation.appinfo.length; i<ii; ++i) {
+                var json = Ext.decode(annotation.appinfo[i]);
+                if (json.title && json.title[lang]) {
+                    result.label = json.title[lang];
+                    break;
+                }
+            }
+            for (i=0, ii=annotation.documentation.length; i<ii; ++i) {
+                if (annotation.documentation[i].lang === lang) {
+                    result.helpText = annotation.documentation[i].textContent;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+};
+
 /** FILE: plugins/FeatureEditorGrid.js **/
 /**
  * Copyright (c) 2008-2012 The Open Planning Project
@@ -71102,6 +71973,7 @@ Ext.reg('gxp_scaleoverlay', gxp.ScaleOverlay);
 
 /**
  * @requires GeoExt/widgets/form.js
+ * @requires plugins/SchemaAnnotations.js
  */
 
 /** api: (define)
@@ -71121,6 +71993,9 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
 
     /** api: ptype = gxp_editorgrid */
     ptype: "gxp_editorgrid",
+
+    /** api: xtype = gxp_editorgrid */
+    xtype: "gxp_editorgrid",
 
     /** api: config[feature]
      *  ``OpenLayers.Feature.Vector`` The feature being edited/displayed.
@@ -71174,9 +72049,9 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
         if (!this.timeFormat) {
             this.timeFormat = Ext.form.TimeField.prototype.format;
         }
-        var customEditors = {},
-            customRenderers = {},
-            feature = this.feature,
+        this.customRenderers = this.customRenderers || {};
+        this.customEditors = this.customEditors || {};
+        var feature = this.feature,
             attributes;
         if (this.fields) {
             // determine the order of attributes
@@ -71208,6 +72083,11 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
                 }
                 var value = feature.attributes[name];
                 var fieldCfg = GeoExt.form.recordToField(r);
+                var annotations = this.getAnnotationsFromSchema(r);
+                if (annotations && annotations.label) {
+                    this.propertyNames = this.propertyNames || {};
+                    this.propertyNames[name] = annotations.label;
+                }
                 var listeners;
                 if (typeof value == "string") {
                     var format;
@@ -71236,7 +72116,7 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
                                     }
                                 }
                             };
-                            customRenderers[name] = (function() {
+                            this.customRenderers[name] = (function() {
                                 return function(value) {
                                     //TODO When http://trac.osgeo.org/openlayers/ticket/3131
                                     // is resolved, change the 5 lines below to
@@ -71260,7 +72140,7 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
                             break;
                     }
                 }
-                customEditors[name] = new Ext.grid.GridEditor({
+                this.customEditors[name] = new Ext.grid.GridEditor({
                     field: Ext.create(fieldCfg),
                     listeners: listeners
                 });
@@ -71269,8 +72149,6 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
             feature.attributes = attributes;
         }
         this.source = attributes;
-        this.customEditors = customEditors;
-        this.customRenderers = customRenderers;
         var ucExcludeFields = this.excludeFields.length ?
             this.excludeFields.join(",").toUpperCase().split(",") : [];
         this.viewConfig = {
@@ -71283,10 +72161,12 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
         };
         this.listeners = {
             "beforeedit": function() {
-                return this.featureEditor.editing;
+                return this.featureEditor && this.featureEditor.editing;
             },
             "propertychange": function() {
-                this.featureEditor.setFeatureState(this.featureEditor.getDirtyState());
+                if (this.featureEditor) {
+                    this.featureEditor.setFeatureState(this.featureEditor.getDirtyState());
+                }
             },
             scope: this
         };
@@ -71322,8 +72202,10 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
      *  Clean up.
      */
     destroy: function() {
-        this.featureEditor.un("canceledit", this.onCancelEdit, this);
-        this.featureEditor = null;
+        if (this.featureEditor) {
+            this.featureEditor.un("canceledit", this.onCancelEdit, this);
+            this.featureEditor = null;
+        }
         gxp.plugins.FeatureEditorGrid.superclass.destroy.call(this);
     },
 
@@ -71342,7 +72224,11 @@ gxp.plugins.FeatureEditorGrid = Ext.extend(Ext.grid.PropertyGrid, {
 
 });
 
+// use the schema annotations module
+Ext.override(gxp.plugins.FeatureEditorGrid, gxp.plugins.SchemaAnnotations);
+
 Ext.preg(gxp.plugins.FeatureEditorGrid.prototype.ptype, gxp.plugins.FeatureEditorGrid);
+Ext.reg(gxp.plugins.FeatureEditorGrid.prototype.xtype, gxp.plugins.FeatureEditorGrid);
 
 /** FILE: widgets/FeatureEditPopup.js **/
 /**
@@ -71714,18 +72600,8 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
 
             this.modifyControl = new OpenLayers.Control.ModifyFeature(
                 this.feature.layer,
-                {standalone: true, vertexRenderIntent: this.vertexRenderIntent,
-                handleKeypress: function(evt) {
-                    OpenLayers.Control.ModifyFeature.prototype.handleKeypress.apply(this, arguments);
-                    // don't go to previous page when back button is pressed
-                    //TODO consider calling OpenLayers.Event.stop in
-                    // OpenLayers.Control.ModifyFeature::handleKeypress
-                    if (this.feature && OpenLayers.Util.indexOf(this.deleteCodes, evt.keyCode) != -1) {
-                        OpenLayers.Event.stop(evt);
-                    }
-                }}
+                {standalone: true, vertexRenderIntent: this.vertexRenderIntent}
             );
-            this.modifyControl.deleteCodes = [8, 46, 68];
             this.feature.layer.map.addControl(this.modifyControl);
             this.modifyControl.activate();
             if (this.feature.geometry) {
@@ -71827,6 +72703,96 @@ gxp.FeatureEditPopup = Ext.extend(GeoExt.Popup, {
 /** api: xtype = gxp_featureeditpopup */
 Ext.reg('gxp_featureeditpopup', gxp.FeatureEditPopup);
 
+/** FILE: plugins/FormFieldHelp.js **/
+/** FILE: plugins/FormFieldHelp.js **/
+/**
+ * Copyright (c) 2008-2012 The Open Planning Project
+ *
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = FormFieldHelp
+ */
+
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: FormFieldHelp(config)
+ *
+ *    Plugin for showing a help text when hovering over a form field.
+ *    Uses an Ext.QuickTip.
+ */
+/** api: example
+ *    The code example below shows how to use this plugin with a form field:
+ *
+ *    .. code-block:: javascript
+ *
+ *      var field = new Ext.form.TextField({
+ *          name: 'foo',
+ *          value: 'bar',
+ *          plugins: [{
+ *              ptype: 'gxp_formfieldhelp',
+ *              helpText: 'This is the help text for my form field'
+ *          }]
+ *      });
+ */
+gxp.plugins.FormFieldHelp = Ext.extend(Object, {
+
+    /** api: ptype = gxp_formfieldhelp */
+    ptype: 'gxp_formfieldhelp',
+
+    /** api: config[helpText]
+     *  ``String`` The help text to show.
+     */
+    helpText: null,
+
+    /** api: config[dismissDelay]
+     *  ``Integer`` How long before the quick tip should disappear.
+     *  Defaults to 5 seconds.
+     */
+    dismissDelay: 5000,
+
+    /** private: method[constructor]
+     */
+    constructor: function(config) {
+        Ext.apply(this, config);
+    },
+
+    /** private: method[init]
+     *
+     *  :arg target: ``Ext.form.Field`` The form field initializing this
+     *  plugin.
+     */
+    init: function(target){
+        this.target = target;
+        target.on('render', this.showHelp, this);
+    },
+
+    /** private: method[showHelp]
+     *  Show the help popup for the field. Show it on the associated label if
+     *  present, with a fallback to the form element itself.
+     */
+    showHelp: function() {
+        var target;
+        if (this.target.label) {
+            target = this.target.label;
+        } else {
+            target = this.target.getEl();
+        }
+        Ext.QuickTips.register({
+            target: target,
+            dismissDelay: this.dismissDelay,
+            text: this.helpText
+        });
+    }
+});
+
+Ext.preg(gxp.plugins.FormFieldHelp.prototype.ptype, gxp.plugins.FormFieldHelp);
+
 /** FILE: widgets/TextSymbolizer.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
@@ -71840,6 +72806,7 @@ Ext.reg('gxp_featureeditpopup', gxp.FeatureEditPopup);
  * @include widgets/FillSymbolizer.js
  * @include widgets/PointSymbolizer.js
  * @include widgets/form/FontComboBox.js
+ * @requires plugins/FormFieldHelp.js
  */
 
 /** api: (define)
@@ -71910,6 +72877,13 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
     maxDisplacementText: "Maximum displacement",
     repeatText: "Repeat",
     forceLeftToRightText: "Force left to right",
+    groupText: "Grouping",
+    spaceAroundText: "Space around",
+    labelAllGroupText: "Label all segments in line group",
+    maxAngleDeltaText: "Maximum angle delta",
+    conflictResolutionText: "Conflict resolution",
+    goodnessOfFitText: "Goodness of fit",
+    polygonAlignText: "Polygon alignment",
     graphicResizeText: "Graphic resize",
     graphicMarginText: "Graphic margin",
     graphicTitle: "Graphic",
@@ -71925,7 +72899,14 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
     maxDisplacementHelp: "Maximum displacement in pixels if label position is busy",
     repeatHelp: "Repeat labels after a certain number of pixels",
     forceLeftToRightHelp: "Labels are usually flipped to make them readable. If the character happens to be a directional arrow then this is not desirable",
+    groupHelp: "Grouping works by collecting all features with the same label text, then choosing a representative geometry for the group. Road data is a classic example to show why grouping is useful. It is usually desirable to display only a single label for all of 'Main Street', not a label for every block of 'Main Street.'",
+    spaceAroundHelp: "Overlapping and Separating Labels. By default GeoServer will not render labels 'on top of each other'. By using the spaceAround option you can either allow labels to overlap, or add extra space around labels. The value supplied for the option is a positive or negative size in pixels. Using the default value of 0, the bounding box of a label cannot overlap the bounding box of another label.",
+    labelAllGroupHelp: "The labelAllGroup option makes sure that all of the segments in a line group are labeled instead of just the longest one.",
+    conflictResolutionHelp: "By default labels are subjected to conflict resolution, meaning the renderer will not allow any label to overlap with a label that has been drawn already. Setting this parameter to false pull the label out of the conflict resolution game, meaning the label will be drawn even if it overlaps with other labels, and other labels drawn after it won’t mind overlapping with it.",
+    goodnessOfFitHelp: "Geoserver will remove labels if they are a particularly bad fit for the geometry they are labeling. For Polygons: the label is sampled approximately at every letter. The distance from these points to the polygon is determined and each sample votes based on how close it is to the polygon. The default value is 0.5.",
     graphic_resizeHelp: "Specifies a mode for resizing label graphics (such as highway shields) to fit the text of the label. The default mode, ‘none’, never modifies the label graphic. In stretch mode, GeoServer will resize the graphic to exactly surround the label text, possibly modifying the image’s aspect ratio. In proportional mode, GeoServer will expand the image to be large enough to surround the text while preserving its original aspect ratio.",
+    maxAngleDeltaHelp: "Designed to use used in conjuection with followLine, the maxAngleDelta option sets the maximum angle, in degrees, between two subsequent characters in a curved label. Large angles create either visually disconnected words or overlapping characters. It is advised not to use angles larger than 30.",
+    polygonAlignHelp: "GeoServer normally tries to place horizontal labels within a polygon, and give up in case the label position is busy or if the label does not fit enough in the polygon. This options allows GeoServer to try alternate rotations for the labels. Possible options: the default value, only the rotation manually specified in the <Rotation> tag will be used (manual), If the label does not fit horizontally and the polygon is taller than wider the vertical alignement will also be tried (ortho), If the label does not fit horizontally the minimum bounding rectangle will be computed and a label aligned to it will be tried out as well (mbr).",
     graphic_marginHelp: "Similar to the margin shorthand property in CSS for HTML, its interpretation varies depending on how many margin values are provided: 1 = use that margin length on all sides of the label 2 = use the first for top & bottom margins and the second for left & right margins. 3 = use the first for the top margin, second for left & right margins, third for the bottom margin. 4 = use the first for the top margin, second for the right margin, third for the bottom margin, and fourth for the left margin.",
 
     initComponent: function() {
@@ -71941,6 +72922,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
 
         this.haloCache = {};
 
+        this.attributes.on('load', this.showHideGeometryOptions, this);
         this.attributes.load();
 
         var defAttributesComboConfig = {
@@ -72053,11 +73035,18 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             title: this.graphicTitle,
             checkboxToggle: true,
             hideMode: 'offsets',
-            collapsed: !(this.symbolizer.fillColor || this.symbolizer.fillOpacity),
+            collapsed: !(this.symbolizer.fillColor || this.symbolizer.fillOpacity || this.symbolizer.vendorOptions["graphic-resize"] || this.symbolizer.vendorOptions["graphic-margin"]),
             labelWidth: 70,
             items: [{
                 xtype: "gxp_pointsymbolizer",
                 symbolizer: this.symbolizer,
+                listeners: {
+                    "change": function(symbolizer) {
+                        symbolizer.graphic = !!symbolizer.graphicName || !!symbolizer.externalGraphic;
+                        this.fireEvent("change", this.symbolizer);
+                    },
+                    scope: this
+                },
                 border: false,
                 labelWidth: 70
             }, this.createVendorSpecificField({
@@ -72065,11 +73054,27 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 xtype: "combo",
                 store: ["none", "stretch", "proportional"],
                 mode: 'local',
+                listeners: {
+                    "select": function(combo, record) {
+                        if (combo.getValue() === "none") {
+                            this.graphicMargin.hide();
+                        } else {
+                            if (Ext.isEmpty(this.graphicMargin.getValue())) {
+                                this.graphicMargin.setValue(0);
+                                this.symbolizer.vendorOptions["graphic-margin"] = 0;
+                            }
+                            this.graphicMargin.show();
+                        }
+                    },
+                    scope: this
+                },
                 width: 100,
                 triggerAction: 'all',
                 fieldLabel: this.graphicResizeText
             }), this.createVendorSpecificField({
                 name: "graphic-margin",
+                ref: "../graphicMargin",
+                hidden: (this.symbolizer.vendorOptions["graphic-resize"] !== "stretch" && this.symbolizer.vendorOptions["graphic-resize"] !== "proportional"),
                 width: 100,
                 fieldLabel: this.graphicMarginText,
                 xtype: "textfield"
@@ -72188,16 +73193,17 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             }
         }, {
             xtype: "fieldset",
+            collapsed: !(this.symbolizer.labelAlign || this.symbolizer.vendorOptions['polygonAlign'] || this.symbolizer.labelXOffset || this.symbolizer.labelYOffset || this.symbolizer.labelPerpendicularOffset),
             title: this.positioningText,
             checkboxToggle: true,
-            collapsed: true,
             autoHeight: true,
             labelWidth: 75,
             defaults: {
                 width: 100
             },
-            items: [Ext.applyIf({
+            items: [this.createField(Ext.applyIf({
                 fieldLabel: this.anchorPointText,
+                geometryTypes: ["POINT"],
                 value: this.symbolizer.labelAlign || "lb",
                 store: [
                     ['lt', 'Left-top'], 
@@ -72219,8 +73225,9 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                     },
                     scope: this
                 }
-            }, this.attributesComboConfig), {
+            }, this.attributesComboConfig)), this.createField({
                 xtype: "numberfield",
+                geometryTypes: ["POINT"],
                 fieldLabel: this.displacementXText,
                 value: this.symbolizer.labelXOffset,
                 listeners: {
@@ -72230,8 +73237,9 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                     },
                     scope: this
                 }
-            }, {
+            }), this.createField({
                 xtype: "numberfield",
+                geometryTypes: ["POINT"],
                 fieldLabel: this.displacementYText,
                 value: this.symbolizer.labelYOffset,
                 listeners: {
@@ -72241,8 +73249,9 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                     },
                     scope: this
                 }
-            }, {
+            }), this.createField({
                 xtype: "numberfield",
+                geometryTypes: ["LINE"],
                 fieldLabel: this.perpendicularOffsetText,
                 value: this.symbolizer.labelPerpendicularOffset,
                 listeners: {
@@ -72256,12 +73265,22 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                     },
                     scope: this
                 }
-            }]
+            }),
+            this.createVendorSpecificField({
+                name: 'polygonAlign',
+                geometryTypes: ['POLYGON'],
+                xtype: "combo",
+                mode: 'local',
+                value: this.symbolizer.vendorOptions['polygonAlign'] || 'manual',
+                triggerAction: 'all',
+                store: ["manual", "ortho", "mbr"],
+                fieldLabel: this.polygonAlignText
+            })]
         }, {
             xtype: "fieldset",
             title: this.priorityText,
             checkboxToggle: true,
-            collapsed: true,
+            collapsed: !(this.symbolizer.priority),
             autoHeight: true,
             labelWidth: 50,
             items: [Ext.applyIf({
@@ -72269,12 +73288,16 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 value: this.symbolizer.priority && this.symbolizer.priority.replace(/^\${(.*)}$/, "$1"),
                 allowBlank: true,
                 name: 'priority',
+                plugins: [{
+                    ptype: 'gxp_formfieldhelp',
+                    dismissDelay: 20000,
+                    helpText: this.priorityHelp
+                }],
                 listeners: {
                     select: function(combo, record) {
                         this.symbolizer[combo.name] = "${" + record.get("name") + "}";
                         this.fireEvent("change", this.symbolizer);
                     },
-                    render: this.attachHelpToField,
                     scope: this
                 }
             }, this.attributesComboConfig)]
@@ -72282,7 +73305,7 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             xtype: "fieldset",
             title: this.labelOptionsText,
             checkboxToggle: true,
-            collapsed: true,
+            collapsed: !(this.symbolizer.vendorOptions['autoWrap'] || this.symbolizer.vendorOptions['followLine'] || this.symbolizer.vendorOptions['maxAngleDelta'] || this.symbolizer.vendorOptions['maxDisplacement'] || this.symbolizer.vendorOptions['repeat'] || this.symbolizer.vendorOptions['forceLeftToRight'] || this.symbolizer.vendorOptions['group'] || this.symbolizer.vendorOptions['spaceAround'] || this.symbolizer.vendorOptions['labelAllGroup'] || this.symbolizer.vendorOptions['conflictResolution'] || this.symbolizer.vendorOptions['goodnessOfFit'] || this.symbolizer.vendorOptions['polygonAlign']),
             autoHeight: true,
             labelWidth: 80,
             defaults: {
@@ -72296,8 +73319,26 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 }),
                 this.createVendorSpecificField({
                     name: 'followLine', 
+                    geometryTypes: ["LINE"],
                     xtype: 'checkbox', 
+                    listeners: {
+                        'check': function(cb, checked) {
+                            if (!checked) {
+                                this.maxAngleDelta.hide();
+                            } else {
+                                this.maxAngleDelta.show();
+                            }
+                        },
+                        scope: this
+                    },
                     fieldLabel: this.followLineText
+                }),
+                this.createVendorSpecificField({
+                    name: 'maxAngleDelta',
+                    ref: "../maxAngleDelta",
+                    hidden: (this.symbolizer.vendorOptions["followLine"] == null),
+                    geometryTypes: ["LINE"],
+                    fieldLabel: this.maxAngleDeltaText
                 }),
                 this.createVendorSpecificField({
                     name: 'maxDisplacement',
@@ -72305,12 +73346,67 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
                 }),
                 this.createVendorSpecificField({
                     name: 'repeat',
+                    geometryTypes: ["LINE"],
                     fieldLabel: this.repeatText
                 }),
                 this.createVendorSpecificField({
                     name: 'forceLeftToRight',
                     xtype: "checkbox",
+                    geometryTypes: ["LINE"],
                     fieldLabel: this.forceLeftToRightText
+                }),
+                this.createVendorSpecificField({
+                    name: 'group',
+                    listeners: {
+                        'check': function(cb, value) {
+                            if (this.geometryType === 'LINE') {
+                                if (value === false) {
+                                    this.labelAllGroup.hide();
+                                } else {
+                                    this.labelAllGroup.show();
+                                }
+                            }
+                        },
+                        scope: this
+                    },
+                    xtype: 'checkbox',
+                    yesno: true,
+                    fieldLabel: this.groupText
+                }),
+                this.createVendorSpecificField({
+                    name: 'labelAllGroup',
+                    ref: "../labelAllGroup",
+                    geometryTypes: ["LINE"],
+                    hidden: (this.symbolizer.vendorOptions['group'] !== 'yes'),
+                    xtype: "checkbox",
+                    fieldLabel: this.labelAllGroupText
+                }),
+                this.createVendorSpecificField({
+                    name: 'conflictResolution',
+                    xtype: "checkbox",
+                    listeners: {
+                        'check': function(cb, checked) {
+                            if (!checked) {
+                                this.spaceAround.hide();
+                            } else {
+                                this.spaceAround.show();
+                            }
+                        },
+                        scope: this
+                    },
+                    fieldLabel: this.conflictResolutionText
+                }),
+                this.createVendorSpecificField({
+                    name: 'spaceAround',
+                    hidden: (this.symbolizer.vendorOptions['conflictResolution'] !== true),
+                    allowNegative: true,
+                    ref: "../spaceAround",
+                    fieldLabel: this.spaceAroundText
+                }),
+                this.createVendorSpecificField({
+                    name: 'goodnessOfFit',
+                    geometryTypes: ['POLYGON'],
+                    fieldLabel: this.goodnessOfFitText
                 })
             ]
         }];
@@ -72331,6 +73427,18 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
         
     },
 
+    createField: function(config) {
+        var field = Ext.ComponentMgr.create(config);
+        if (config.geometryTypes) {
+            this.on('geometrytype', function(type) {
+                if (config.geometryTypes.indexOf(type) === -1) {
+                    field.hide();
+                }
+            });
+        }
+        return field;
+    },
+
     /**
      * private: method[createVendorSpecificField]
      *  :arg config: ``Object`` config object for the field to create
@@ -72343,38 +73451,62 @@ gxp.TextSymbolizer = Ext.extend(Ext.Panel, {
             if (Ext.isEmpty(value)) {
                 delete this.symbolizer.vendorOptions[config.name];
             } else {
-                this.symbolizer.vendorOptions[config.name] = value;
+               if (config.yesno === true) {
+                   this.symbolizer.vendorOptions[config.name] = (value == true) ? 'yes': 'no';
+               } else {
+                   this.symbolizer.vendorOptions[config.name] = value;
+               }
             }
             this.fireEvent("change", this.symbolizer);
         };
-        return Ext.applyIf(config, {
+        var field = Ext.ComponentMgr.create(Ext.applyIf(config, {
             xtype: "numberfield",
             allowNegative: false,
-            value: this.symbolizer.vendorOptions[config.name],
-            listeners: {
-                render: this.attachHelpToField,
-                change: listener,
-                check: listener,
-                scope: this
-            }
-        });
+            value: config.value || this.symbolizer.vendorOptions[config.name],
+            checked: (config.yesno === true) ? (this.symbolizer.vendorOptions[config.name] === 'yes') : this.symbolizer.vendorOptions[config.name],
+            plugins: [{
+                ptype: 'gxp_formfieldhelp',
+                dismissDelay: 20000,
+                helpText: this[config.name.replace(/-/g, '_') + 'Help']
+            }]
+        }));
+        field.on("change", listener, this);
+        field.on("check", listener, this);
+        if (config.geometryTypes) {
+            this.on('geometrytype', function(type) {
+                if (config.geometryTypes.indexOf(type) === -1) {
+                    field.hide();
+                }
+            });
+        }
+        return field;
     },
 
-    /**
-     * private: method[attachHelpToField]
-     *  :arg c: ``Ext.Component`` 
-     *
-     *  Attach a tooltip with extra information to the form field.
-     */
-    attachHelpToField: function(c) {
-        var key = c.name.replace(/-/g, '_') + 'Help';
-        Ext.QuickTips.register({
-            target: c.getEl(),
-            dismissDelay: 20000,
-            text: this[key]
-        });
+    showHideGeometryOptions: function() {
+        var geomRegex = /gml:((Multi)?(Point|Line|Polygon|Curve|Surface|Geometry)).*/;
+        var polygonRegex = /gml:((Multi)?(Polygon|Surface)).*/;
+        var pointRegex = /gml:((Multi)?(Point)).*/;
+        var lineRegex = /gml:((Multi)?(Line|Curve|Surface)).*/;
+        var geomType = null;
+        this.attributes.each(function(r) {
+            var type = r.get("type");
+            var match = geomRegex.exec(type);
+            if (match) {
+                if (polygonRegex.exec(type)) {
+                    geomType = "POLYGON";
+                } else if (pointRegex.exec(type)) {
+                    geomType = "POINT";
+                } else if (lineRegex.exec(type)) {
+                    geomType = "LINE";
+                }
+            }
+        }, this);
+        if (geomType !== null) {
+            this.geometryType = geomType;
+            this.fireEvent('geometrytype', geomType);
+        }
     }
-    
+
 });
 
 /** api: xtype = gxp_textsymbolizer */
@@ -72470,7 +73602,7 @@ gxp.FillSymbolizer = Ext.extend(Ext.FormPanel, {
 
         var sliderValue = 100;
         if (this.opacityProperty in this.symbolizer) {
-            sliderValue = this.symbolizer[this.opacityProperty];
+            sliderValue = this.symbolizer[this.opacityProperty]*100;
         }
         else if (OpenLayers.Renderer.defaultSymbolizer[this.opacityProperty]) {
             sliderValue = OpenLayers.Renderer.defaultSymbolizer[this.opacityProperty]*100;
@@ -73089,7 +74221,7 @@ gxp.PointSymbolizer = Ext.extend(Ext.Panel, {
             name: "url",
             fieldLabel: this.urlText,
             value: this.symbolizer["externalGraphic"],
-            hidden: true,
+            hidden: !this.external,
             listeners: {
                 change: function(field, value) {
                     this.symbolizer["externalGraphic"] = value;
@@ -73166,6 +74298,11 @@ gxp.PointSymbolizer = Ext.extend(Ext.Panel, {
                         }
                         if(!this.external) {
                             this.external = true;
+                            var urlValue = this.urlField.getValue();
+                            if (!Ext.isEmpty(urlValue)) {
+                                this.symbolizer["externalGraphic"] = urlValue;
+                            }
+                            delete this.symbolizer["graphicName"];
                             this.updateGraphicDisplay();
                         }
                     } else {
@@ -73281,6 +74418,12 @@ gxp.form.FilterField = Ext.extend(Ext.form.CompositeField, {
      */
     upperBoundaryTip: "upper boundary",
      
+    /** api: config[caseInsensitiveMatch]
+     *  ``Boolean``
+     *  Should Comparison Filters for Strings do case insensitive matching?  Default is ``"false"``.
+     */
+    caseInsensitiveMatch: false,
+
     /**
      * Property: filter
      * {OpenLayers.Filter} Optional non-logical filter provided in the initial
@@ -73408,10 +74551,10 @@ gxp.form.FilterField = Ext.extend(Ext.form.CompositeField, {
      * May be overridden to change the default filter.
      *
      * Returns:
-     * {OpenLayers.Filter} By default, returns a comarison filter.
+     * {OpenLayers.Filter} By default, returns a comparison filter.
      */
     createDefaultFilter: function() {
-        return new OpenLayers.Filter.Comparison();
+        return new OpenLayers.Filter.Comparison({matchCase: !this.caseInsensitiveMatch});
     },
     
     /**
@@ -74304,7 +75447,7 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
      *  ``String``
      *  Message to display when an invalid URL is entered (i18n).
      */
-    invalidURLText: "Enter a valid URL to a WMS endpoint (e.g. http://example.com/geoserver/wms)",
+    invalidURLText: "Enter a valid URL to a WMS/TMS/REST endpoint (e.g. http://example.com/geoserver/wms)",
 
     /** api: config[contactingServerText]
      *  ``String``
@@ -74324,8 +75467,8 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
     error: null,
 
     /** api: event[urlselected]
-     *  Fired with a reference to this instance and the URL that the user
-     *  provided as a parameters when the form is submitted.
+     *  Fired with a reference to this instance, the URL that the user
+     *  provided and the type of service  as a parameters when the form is submitted.
      */     
      
     /** private: method[initComponent]
@@ -74351,9 +75494,20 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
         });
 
         this.form = new Ext.form.FormPanel({
-            items: [
-                this.urlTextField
-            ],
+            items: [{
+                xtype: 'combo',
+                width: 240,
+                name: 'type',
+                fieldLabel: "Type",
+                value: 'WMS',
+                mode: 'local',
+                triggerAction: 'all',
+                store: [
+                    ['WMS', 'Web Map Service (WMS)'], 
+                    ['TMS', 'Tiled Map Service (TMS)'],
+                    ['REST', 'ArcGIS REST Service (REST)']    
+                ]
+            }, this.urlTextField],
             border: false,
             labelWidth: 30,
             bodyStyle: "padding: 5px",
@@ -74414,7 +75568,8 @@ gxp.NewSourceDialog = Ext.extend(Ext.Panel, {
         // Clear validation before trying again.
         this.error = null;
         if (this.urlTextField.validate()) {
-            this.fireEvent("urlselected", this, this.urlTextField.getValue());
+            this.fireEvent("urlselected", this, this.urlTextField.getValue(),
+                this.form.getForm().findField('type').getValue());
         }
     },
     
@@ -74935,7 +76090,8 @@ gxp.plugins.Tool = Ext.extend(Ext.util.Observable, {
         actions = actions || this.actions;
         if (!actions || this.actionTarget === null) {
             // add output immediately if we have no actions to trigger it
-            this.addOutput();
+            this.removeOutput();
+            this.addOutput(this.outputConfig);
             return;
         }
         
@@ -76277,8 +77433,6 @@ Ext.namespace("gxp");
  */
 gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
 
-    width: 400,
-
     /** private: property[border]
      *  ``Boolean``
      */
@@ -76324,6 +77478,7 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
      *  Initializes the catalogue search panel.
      */
     initComponent: function() {
+        var me = this;
         this.addEvents(
             /** api: event[addlayer]
              *  Fires when a layer needs to be added to the map.
@@ -76348,6 +77503,16 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
         if (sourceComboData.length > 1) {
             filterOptions.push(['csw', 'data source']);
         }
+        this.sources[this.selectedSource].store.on('loadexception', function(proxy, o, response, e) {
+            if (response.success()) {
+                Ext.Msg.show({
+                    title: e.message,
+                    msg: gxp.util.getOGCExceptionText(e.arg.exceptionReport),
+                    icon: Ext.MessageBox.ERROR,
+                    buttons: Ext.MessageBox.OK
+                });
+            }
+        });
         this.items = [{
             xtype: 'form',
             border: false,
@@ -76370,7 +77535,7 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
                          },
                          scope: this
                     },
-                    width: 300
+                    width: 250
                 }, {
                     xtype: "button",
                     text: this.searchButtonText,
@@ -76382,6 +77547,7 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
                 collapsible: true,
                 collapsed: true,
                 hideLabels: false,
+                hidden: true,
                 title: this.advancedTitle,
                 items: [{
                     xtype: 'gxp_cswfilterfield',
@@ -76512,6 +77678,34 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
                 border: false,
                 ref: "../grid",
                 bbar: new Ext.PagingToolbar({
+                    listeners: {
+                        'beforechange': function(tb, params) {
+                            var delta = me.sources[me.selectedSource].getPagingStart();
+                            if (params.startPosition) {
+                                params.startPosition += delta;
+                            }
+                        }
+                    },
+                    /* override to support having a different value than 0 for the start */
+                    onLoad : function(store, r, o) {
+                        var delta = me.sources[me.selectedSource].getPagingStart();
+                        if(!this.rendered){
+                            this.dsLoaded = [store, r, o];
+                            return;
+                        }
+                        var p = this.getParams();
+                        this.cursor = (o.params && o.params[p.start]) ? o.params[p.start]-delta : 0;
+                        var d = this.getPageData(), ap = d.activePage, ps = d.pages;
+                        this.afterTextItem.setText(String.format(this.afterPageText, d.pages));
+                        this.inputItem.setValue(ap);
+                        this.first.setDisabled(ap == 1);
+                        this.prev.setDisabled(ap == 1);
+                        this.next.setDisabled(ap == ps);
+                        this.last.setDisabled(ap == ps);
+                        this.refresh.enable();
+                        this.updateInfo();
+                        this.fireEvent('change', this, d);
+                    },
                     paramNames: this.sources[this.selectedSource].getPagingParamNames(),
                     store: this.sources[this.selectedSource].store,
                     pageSize: this.maxRecords
@@ -76528,7 +77722,12 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
                     xtype: "actioncolumn",
                     width: 30,
                     items: [{
-                        iconCls: "gxp-icon-addlayers",
+                        getClass: function(v, meta, rec) {
+                            if (this.findWMS(rec.get("URI")) !== false || 
+                                this.findWMS(rec.get("references")) !== false) {
+                                    return "gxp-icon-addlayers";
+                            }
+                        },
                         tooltip: this.addMapTooltip,
                         handler: function(grid, rowIndex, colIndex) {
                             var rec = this.grid.store.getAt(rowIndex);
@@ -76604,14 +77803,31 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
      *  preferably.
      */
     findWMS: function(links) {
-        var url = null, name = null;
-        for (var i=0, ii=links.length; i<ii; ++i) {
-            var link = links[i];
-            if (link && link.toLowerCase().indexOf('service=wms') > 0) {
-                var obj = OpenLayers.Util.createUrlObject(link);
-                url = obj.protocol + "//" + obj.host + ":" + obj.port + obj.pathname;
-                name = obj.args.layers;
+        var protocols = [
+            'OGC:WMS-1.1.1-HTTP-GET-MAP',
+            'OGC:WMS'
+        ];
+        var url = null, name = null, i, ii, link;
+        // search for a protocol that matches WMS
+        for (i=0, ii=links.length; i<ii; ++i) {
+            link = links[i];
+            if (link.protocol && protocols.indexOf(link.protocol.toUpperCase()) !== -1 && link.value && link.name) {
+                url = link.value;
+                name = link.name;
                 break;
+            }
+        }
+        // if not found by protocol, try by inspecting the url
+        if (url === null) {
+            for (i=0, ii=links.length; i<ii; ++i) {
+                link = links[i];
+                var value = link.value ? link.value : link;
+                if (value.toLowerCase().indexOf('service=wms') > 0) {
+                    var obj = OpenLayers.Util.createUrlObject(value);
+                    url = obj.protocol + "//" + obj.host + ":" + obj.port + obj.pathname;
+                    name = obj.args.layers;
+                    break;
+                }
             }
         }
         if (url !== null && name !== null) {
@@ -76650,7 +77866,8 @@ gxp.CatalogueSearchPanel = Ext.extend(Ext.Panel, {
             this.fireEvent("addlayer", this, this.selectedSource, Ext.apply({
                 title: record.get('title')[0],
                 bbox: [left, bottom, right, top],
-                srs: "EPSG:4326"
+                srs: "EPSG:4326",
+                projection: record.get('projection')
             }, wmsInfo));
         }
     }
@@ -76737,7 +77954,7 @@ gxp.plugins.Legend = Ext.extend(gxp.plugins.Tool, {
             tooltip: this.tooltip,
             handler: function() {
                 this.removeOutput();
-                this.addOutput();
+                this.addOutput(this.outputConfig);
             },
             scope: this
         }];
@@ -77424,6 +78641,368 @@ gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
 /** api: ptype = gxp_geoserverstylewriter */
 Ext.preg("gxp_geoserverstylewriter", gxp.plugins.GeoServerStyleWriter);
 
+/** FILE: plugins/WMSRasterStylesDialog.js **/
+/**
+ * Copyright (c) 2008-2011 The Open Planning Project
+ * 
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/**
+ * @requires util.js
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = WMSRasterStylesDialog
+ */
+
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: WMSRasterStyleDialog(config)
+ *
+ *    This plugins extends the :class:`gxp.WMSStylesDialog` to with basic
+ *    raster support, for single-band rasters only.
+ *
+ *    TODO replace this with true raster support instead of squeezing it into
+ *    a VectorLegend as if we were dealing with vector styles.
+ */   
+gxp.plugins.WMSRasterStylesDialog = {
+    
+    /** private: property[isRaster]
+     *  ``Boolean`` Are we dealing with a raster layer with RasterSymbolizer?
+     *  This is needed because we create pseudo rules from a RasterSymbolizer's
+     *  ColorMap, and for this we need special treatment in some places.
+     */
+    isRaster: null,
+    
+    init: function(target) {
+        Ext.apply(target, gxp.plugins.WMSRasterStylesDialog);
+    },
+
+    /** private: method[createRule]
+     */
+    createRule: function() {
+        var symbolizers = [
+            new OpenLayers.Symbolizer[this.isRaster ? "Raster" : this.symbolType]
+        ];
+        return new OpenLayers.Rule({symbolizers: symbolizers});
+    },
+    
+    /** private: method[addRule]
+     */
+    addRule: function() {
+        var legend = this.getComponent("rulesfieldset").items.get(0);
+        if (this.isRaster) {
+            legend.rules.push(this.createPseudoRule());
+            // we need either zero or at least two rules
+            legend.rules.length == 1 &&
+                legend.rules.push(this.createPseudoRule());
+            this.savePseudoRules();
+        } else {
+            this.selectedStyle.get("userStyle").rules.push(
+                this.createRule()
+            );
+            legend.update();
+            // mark the style as modified
+            this.selectedStyle.store.afterEdit(this.selectedStyle);
+        }
+        this.updateRuleRemoveButton();
+    },
+    
+    /** private: method[removeRule]
+     */
+    removeRule: function() {
+        if (this.isRaster) {
+            var legend = this.getComponent("rulesfieldset").items.get(0);
+            var rule = this.selectedRule;
+            legend.unselect();
+            legend.rules.remove(rule);
+            // we need either zero or at least two rules
+            legend.rules.length == 1 && legend.rules.remove(legend.rules[0]);
+            this.savePseudoRules();
+        } else {
+            gxp.WMSStylesDialog.prototype.removeRule.apply(this, arguments);
+        }
+    },
+    
+    /** private: method[duplicateRule]
+     */
+    duplicateRule: function() {
+        var legend = this.getComponent("rulesfieldset").items.get(0);
+        if (this.isRaster) {
+            legend.rules.push(this.createPseudoRule({
+                quantity: this.selectedRule.name,
+                label: this.selectedRule.title,
+                color: this.selectedRule.symbolizers[0].fillColor,
+                opacity: this.selectedRule.symbolizers[0].fillOpacity
+            }));
+            this.savePseudoRules();
+        } else {
+            var newRule = this.selectedRule.clone();
+            newRule.name = gxp.util.uniqueName(
+                (newRule.title || newRule.name) + " (copy)");
+            delete newRule.title;
+            this.selectedStyle.get("userStyle").rules.push(
+                newRule
+            );
+            legend.update();
+        }
+        this.updateRuleRemoveButton();
+    },
+    
+    editRule: function() {
+        this.isRaster ? this.editPseudoRule() :
+            gxp.WMSStylesDialog.prototype.editRule.apply(this, arguments);
+    },
+    
+    /** private: method[editPseudoRule]
+     *  Edit a pseudo rule of a RasterSymbolizer's ColorMap.
+     */
+    editPseudoRule: function() {
+        var me = this;
+        var rule = this.selectedRule;
+
+        var pseudoRuleDlg = new Ext.Window({
+            title: "Color Map Entry: " + rule.name,
+            width: 340,
+            autoHeight: true,
+            modal: true,
+            items: [{
+                bodyStyle: "padding-top: 5px",
+                border: false,
+                defaults: {
+                    autoHeight: true,
+                    hideMode: "offsets"
+                },
+                items: [{
+                    xtype: "form",
+                    border: false,
+                    labelAlign: "top",
+                    defaults: {border: false},
+                    style: {"padding": "0.3em 0 0 1em"},
+                    items: [{
+                        layout: "column",
+                        defaults: {
+                            border: false,
+                            style: {"padding-right": "1em"}
+                        },
+                        items: [{
+                            layout: "form",
+                            width: 70,
+                            items: [{
+                                xtype: "numberfield",
+                                anchor: "95%",
+                                value: rule.name,
+                                allowBlank: false,
+                                fieldLabel: "Quantity",
+                                validator: function(value) {
+                                    var rules = this.getComponent("rulesfieldset").items.get(0).rules;
+                                    for (var i=rules.length-1; i>=0; i--) {
+                                        if (rule !== rules[i] && rules[i].name == value) {
+                                            return "Quantity " + value + " is already defined";
+                                        }
+                                    }
+                                    return true;
+                                },
+                                listeners: {
+                                    valid: function(cmp) {
+                                        this.selectedRule.name = String(cmp.getValue());
+                                        this.savePseudoRules();
+                                    },
+                                    scope: this
+                                }
+                            }]
+                        }, {
+                            layout: "form",
+                            width: 130,
+                            items: [{
+                                xtype: "textfield",
+                                fieldLabel: "Label",
+                                anchor: "95%",
+                                value: rule.title,
+                                listeners: {
+                                    valid: function(cmp) {
+                                        this.selectedRule.title = cmp.getValue();
+                                        this.savePseudoRules();
+                                    },
+                                    scope: this
+                                }
+                            }]
+                        }, {
+                            layout: "form",
+                            width: 70,
+                            items: [new GeoExt.FeatureRenderer({
+                                symbolType: this.symbolType,
+                                symbolizers: [rule.symbolizers[0]],
+                                isFormField: true,
+                                fieldLabel: "Appearance"
+                            })]
+                        }]
+                    }]
+                }, {
+                    xtype: "gxp_polygonsymbolizer",
+                    symbolizer: rule.symbolizers[0],
+                    bodyStyle: {"padding": "10px"},
+                    border: false,
+                    labelWidth: 70,
+                    defaults: {
+                        labelWidth: 70
+                    },
+                    listeners: {
+                        change: function(symbolizer) {
+                            var symbolizerSwatch = pseudoRuleDlg.findByType(GeoExt.FeatureRenderer)[0];
+                            symbolizerSwatch.setSymbolizers(
+                                [symbolizer], {draw: symbolizerSwatch.rendered}
+                            );
+                            this.selectedRule.symbolizers[0] = symbolizer;
+                            this.savePseudoRules();
+                        },
+                        scope: this
+                    }
+                }]
+            }]
+        });
+        // remove stroke fieldset
+        var strokeSymbolizer = pseudoRuleDlg.findByType("gxp_strokesymbolizer")[0];
+        strokeSymbolizer.ownerCt.remove(strokeSymbolizer);
+        
+        pseudoRuleDlg.show();
+    },
+    
+    /** private: method[savePseudoRules]
+     *  Takes the pseudo rules from the legend and adds them as
+     *  RasterSymbolizer ColorMap back to the userStyle.
+     */
+    savePseudoRules: function() {
+        var style = this.selectedStyle;
+        var legend = this.getComponent("rulesfieldset").items.get(0);
+        var userStyle = style.get("userStyle");
+        
+        var pseudoRules = legend.rules;
+        pseudoRules.sort(function(a,b) {
+            var left = parseFloat(a.name);
+            var right = parseFloat(b.name);
+            return left === right ? 0 : (left < right ? -1 : 1);
+        });
+        
+        var symbolizer = userStyle.rules[0].symbolizers[0];
+        symbolizer.colorMap = pseudoRules.length > 0 ?
+            new Array(pseudoRules.length) : undefined;
+        var pseudoRule;
+        for (var i=0, len=pseudoRules.length; i<len; ++i) {
+            pseudoRule = pseudoRules[i];
+            symbolizer.colorMap[i] = {
+                quantity: parseFloat(pseudoRule.name),
+                label: pseudoRule.title || undefined,
+                color: pseudoRule.symbolizers[0].fillColor || undefined,
+                opacity: pseudoRule.symbolizers[0].fill == false ? 0 :
+                    pseudoRule.symbolizers[0].fillOpacity
+            };
+        }
+        this.afterRuleChange(this.selectedRule);
+    },
+    
+    /** private: method[createLegend]
+     *  :arg rules: ``Array``
+     *  :arg options:
+     */
+    createLegend: function(rules, options) {
+        var R = OpenLayers.Symbolizer.Raster;
+        if (R && rules[0] && rules[0].symbolizers[0] instanceof R) {
+            this.getComponent("rulesfieldset").setTitle("Color Map Entries");
+            this.isRaster = true;
+            this.addRasterLegend(rules, options);
+        } else {
+            this.isRaster = false;
+            this.addVectorLegend(rules);
+        }
+    },    
+
+    /** private: method[addRasterLegend]
+     *  :arg rules: ``Array``
+     *  :arg options: ``Object`` Additional options for this method.
+     *  :returns: ``GeoExt.VectorLegend`` the legend that was created
+     *
+     *  Creates the vector legend for the pseudo rules that are created from
+     *  the RasterSymbolizer of the first rule and adds it to the rules
+     *  fieldset.
+     *  
+     *  Supported options:
+     *
+     *  * selectedRuleIndex: ``Number`` The index of a pseudo rule to select
+     *    in the legend.
+     */  
+    addRasterLegend: function(rules, options) {
+        options = options || {};
+        //TODO raster styling support is currently limited to one rule, and
+        // we can only handle a color map. No band selection and other stuff.
+        var symbolizer = rules[0].symbolizers[0];
+        var colorMap = symbolizer.colorMap || [];
+        var pseudoRules = [];
+        var colorMapEntry;
+        for (var i=0, len=colorMap.length; i<len; i++) {
+            pseudoRules.push(this.createPseudoRule(colorMap[i]));
+        }
+        this.selectedRule = options.selectedRuleIndex != null ?
+            pseudoRules[options.selectedRuleIndex] : null;
+        return this.addVectorLegend(pseudoRules, {
+            symbolType: "Polygon",
+            enableDD: false
+        });
+    },
+    
+    /** private: method[createPseudoRule]
+     *  :arg colorMapEntry: ``Object``
+     *  
+     *  Creates a pseudo rule from a ColorMapEntry.
+     */
+    createPseudoRule: function(colorMapEntry) {
+        var quantity = -1;
+        if (!colorMapEntry) {
+            var fieldset = this.getComponent("rulesfieldset");
+            if (fieldset.items) {
+                rules = fieldset.items.get(0).rules;
+                for (var i=rules.length-1; i>=0; i--) {
+                    quantity = Math.max(quantity, parseFloat(rules[i].name));
+                }            
+            }
+        }
+        colorMapEntry = Ext.applyIf(colorMapEntry || {}, {
+            quantity: ++quantity,
+            color: "#000000",
+            opacity: 1
+        });
+        return new OpenLayers.Rule({
+            title: colorMapEntry.label,
+            name: String(colorMapEntry.quantity),
+            symbolizers: [new OpenLayers.Symbolizer.Polygon({
+                fillColor: colorMapEntry.color,
+                fillOpacity: colorMapEntry.opacity,
+                stroke: false,
+                fill: colorMapEntry.opacity !== 0
+            })]
+        });
+    },
+
+    /** private: method[updateRuleRemoveButton]
+     *  Enable/disable the "Remove" button to make sure that we don't delete
+     *  the last rule.
+     */
+    updateRuleRemoveButton: function() {
+        this.getComponent("rulestoolbar").items.get(1).setDisabled(!this.selectedRule ||
+            (this.isRaster === false &&
+                this.getComponent("rulesfieldset").items.get(0).rules.length <= 1));
+    }
+    
+};
+
+/** api: ptype = gxp_wmsrasterstylesdialog */
+Ext.preg("gxp_wmsrasterstylesdialog", gxp.plugins.WMSRasterStylesDialog);
+
 /** FILE: plugins/Styler.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
@@ -77437,6 +79016,7 @@ Ext.preg("gxp_geoserverstylewriter", gxp.plugins.GeoServerStyleWriter);
  * @requires plugins/Tool.js
  * @requires widgets/WMSStylesDialog.js
  * @requires plugins/GeoServerStyleWriter.js
+ * @requires plugins/WMSRasterStylesDialog.js
  */
 
 /** api: (define)
@@ -77727,7 +79307,7 @@ Ext.namespace("gxp.plugins");
  *  .. code-block:: javascript
  *
  *    "google": {
- *        ptype: "gxp_google"
+ *        ptype: "gxp_googlesource"
  *    }
  *
  *  A typical configuration for a layer from this source (in the ``layers``
@@ -77798,7 +79378,6 @@ gxp.plugins.GoogleSource = Ext.extend(gxp.plugins.LayerSource, {
 
     constructor: function(config) {
         this.config = config;
-        this.otherParams = '&key=' + config.apiKey;
         gxp.plugins.GoogleSource.superclass.constructor.apply(this, arguments);
     },
     
@@ -78012,7 +79591,7 @@ gxp.plugins.GoogleSource.loader = new (Ext.extend(Ext.util.Observable, {
         };
         
         var script = document.createElement("script");
-        script.src = "http://www.google.com/jsapi?" + Ext.urlEncode(params);
+        script.src = "//www.google.com/jsapi?" + Ext.urlEncode(params);
 
         // cancel loading if monitor is not ready within timeout
         var errback = options.errback || Ext.emptyFn;
@@ -78482,6 +80061,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 {name: "selected", type: "boolean"},
                 {name: "type", type: "string"},
                 {name: "attribution", type: "string"},
+                {name: "queryable", type: "boolean"},
                 {name: "args"}
             ]);
             var data = {
@@ -78492,6 +80072,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 group: config.group,
                 fixed: ("fixed" in config) ? config.fixed : false,
                 selected: ("selected" in config) ? config.selected : false,
+                queryable: ("queryable" in config) ? config.queryable : false,
                 type: config.type,
                 args: config.args,
                 attribution: ("attribution" in config) ? config.attribution : undefined,
@@ -78624,6 +80205,21 @@ Ext.namespace("gxp.plugins");
  *        group: "background"
  *    }
  *
+ * An optional 'getFeatureInfo' property can also be passed to
+ * customize the sort order, visibility, & labels for layer attributes.
+ * A sample 'getFeatureInfo' configuration would look like this:
+ *
+ *  .. code-block:: javascript
+ *
+ *    {
+ *        fields: ["twn_name","pop1990"]
+ *        propertyNames: {"pop1990": "1990 Population",  "twn_name": "Town"}
+ *    }
+ *
+ *  Within the 'getFeatureInfo' configuration, the 'fields' property determines sort
+ *  order & visibility (any attributes not included are not displayed) and
+ *  'propertyNames'  specifies the labels for the attributes.
+ *
  *  For initial programmatic layer configurations, to leverage lazy loading of
  *  the Capabilities document, it is recommended to configure layers with the
  *  fields listed in :obj:`requiredProperties`.
@@ -78731,8 +80327,12 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
      *  Reload the store when the authorization changes.
      */
     onAuthorizationChange: function() {
-        if (this.store && this.url.charAt(0) === "/") {
-            this.store.reload();
+        if (this.disabled !== true && this.store && this.url.charAt(0) === "/") {
+            var lastOptions = this.store.lastOptions || {params: {}};
+            Ext.apply(lastOptions.params, {
+                '_dc': Math.random()
+            });
+            this.store.reload(lastOptions);
         }
     },
 
@@ -78876,28 +80476,9 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
             }
         });
         if (lazy) {
-            this.lazy = true;
-            // ping server of lazy source with an incomplete request, to see if
-            // it is available
-            Ext.Ajax.request({
-                method: "GET",
-                url: this.url,
-                params: {SERVICE: "WMS"},
-                callback: function(options, success, response) {
-                    var status = response.status;
-                    // responseText should not be empty (OGCException)
-                    if (status >= 200 && status < 403 && response.responseText) {
-                        this.ready = true;
-                        this.fireEvent("ready", this);
-                    } else {
-                        this.fireEvent("failure", this,
-                            "Layer source not available.",
-                            "Unable to contact WMS service."
-                        );
-                    }
-                },
-                scope: this
-            });
+            this.lazy = lazy;
+            this.ready = true;
+            this.fireEvent("ready", this);
         }
     },
     
@@ -78957,13 +80538,42 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 cql_filter: config.cql_filter,
                 format: config.format
             }, {
-                projection: srs
+                projection: srs,
+                eventListeners: {
+                  tileloaded: this.countAlive,
+                  tileerror: this.countAlive,
+                  scope: this
+                }
             }
         ));
         record.json = config;
         return record;
     },
-     
+
+    countAlive: function(evt) {
+        if (!('_alive' in evt.object.metadata)) {
+            evt.object.metadata._alive = 0;
+            evt.object.events.register('loadend', this, this.removeDeadLayer);
+        }
+        evt.object.metadata._alive += (evt.type == 'tileerror' ? -1 : 1);
+    },
+
+    removeDeadLayer: function(evt) {
+        evt.object.events.un({
+            'tileloaded': this.countAlive,
+            'tileerror': this.countAlive,
+            'loadend': this.removeDeadLayer,
+            scope: this
+        });
+        if (evt.object.metadata._alive === 0) {
+            this.target.mapPanel.map.removeLayer(evt.object);
+            if (window.console) {
+              console.debug('Unavailable layer ' + evt.object.name + ' removed.');
+            }
+        }
+        delete evt.object.metadata._alive;
+    },
+
     /** api: method[createLayerRecord]
      *  :arg config:  ``Object``  The application config for this layer.
      *  :returns: ``GeoExt.data.LayerRecord`` or null when the source is lazy.
@@ -79003,32 +80613,34 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
             // compatible projection that equals the map projection. This helps
             // us in dealing with the different EPSG codes for web mercator.
             var layerProjection = this.getProjection(original);
+            if (layerProjection) {
+                layer.addOptions({projection: layerProjection});
+            }
 
             var projCode = (layerProjection || projection).getCode(),
                 bbox = original.get("bbox"), maxExtent;
+
+            // determine maxExtent in map projection
             if (bbox && bbox[projCode]){
-                layer.addOptions({projection: layerProjection});
                 maxExtent = OpenLayers.Bounds.fromArray(bbox[projCode].bbox, layer.reverseAxisOrder());
             } else {
                 var llbbox = original.get("llbbox");
                 if (llbbox) {
-                    var extent = OpenLayers.Bounds.fromArray(llbbox).transform("EPSG:4326", projection);
-                    // make sure maxExtent is valid (transform does not succeed for all llbbox)
-                    if ((1 / extent.getHeight() > 0) && (1 / extent.getWidth() > 0)) {
-                        // maxExtent has infinite or non-numeric width or height
-                        // in this case, the map maxExtent must be specified in the config
-                        maxExtent = extent;
-                    }
+                    llbbox[0] = Math.max(llbbox[0], -180);
+                    llbbox[1] = Math.max(llbbox[1], -90);
+                    llbbox[2] = Math.min(llbbox[2], 180);
+                    llbbox[3] = Math.min(llbbox[3], 90);
+                    maxExtent = OpenLayers.Bounds.fromArray(llbbox).transform("EPSG:4326", projection);
                 }
             }
             
             // update params from config
-            layer.mergeNewParams({
+            layer.mergeNewParams(Ext.applyIf({
                 STYLES: config.styles,
                 FORMAT: config.format,
                 TRANSPARENT: config.transparent,
                 CQL_FILTER: config.cql_filter
-            });
+            }, config.params));
             
             var singleTile = false;
             if ("tiled" in config) {
@@ -79042,7 +80654,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
 
             layer.setName(config.title || layer.name);
             layer.addOptions({
-                attribution: layer.attribution,
+                attribution: layer.attribution || config.attribution,
                 maxExtent: maxExtent,
                 restrictedExtent: maxExtent,
                 singleTile: singleTile,
@@ -79061,6 +80673,7 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 title: layer.name,
                 group: config.group,
                 infoFormat: config.infoFormat,
+                getFeatureInfo:  config.getFeatureInfo,
                 source: config.source,
                 properties: "gxp_wmslayerpanel",
                 fixed: config.fixed,
@@ -79077,7 +80690,8 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
                 {name: "fixed", type: "boolean"},
                 {name: "selected", type: "boolean"},
                 {name: "restUrl", type: "string"},
-                {name: "infoFormat", type: "string"}
+                {name: "infoFormat", type: "string"},
+                {name: "getFeatureInfo"}
             ];
             original.fields.each(function(field) {
                 fields.push(field);
@@ -79375,12 +80989,18 @@ gxp.plugins.WMSSource = Ext.extend(gxp.plugins.LayerSource, {
         return Ext.apply(config, {
             format: params.FORMAT,
             styles: params.STYLES,
+            tiled: !options.singleTile,
             transparent: params.TRANSPARENT,
             cql_filter: params.CQL_FILTER,
             minscale: options.minScale,
             maxscale: options.maxScale,
-            infoFormat: record.get("infoFormat")
+            infoFormat: record.get("infoFormat"),
+            attribution: layer.attribution
         });
+    },
+
+    disable: function() {
+        this.disabled = true;
     },
     
     /** private: method[getState] */
@@ -79427,6 +81047,13 @@ gxp.plugins.CatalogueSource = Ext.extend(gxp.plugins.WMSSource, {
      *  ``String`` Online resource of the catalogue service.
      */
     url: null,
+
+    /** api: config[yx]
+     *  ``Object`` Members in the yx object are used to determine if a CRS URN
+     *     corresponds to a CRS with y,x axis order.  Member names are CRS URNs
+     *     and values are boolean.
+     */
+    yx: null,
 
     /** api: config[title]
      *  ``String`` Optional title for this source.
@@ -79489,6 +81116,12 @@ gxp.plugins.CatalogueSource = Ext.extend(gxp.plugins.WMSSource, {
         this.store = null;
         gxp.plugins.CatalogueSource.superclass.destroy.apply(this, arguments);
     }
+
+    /** api: method[getPagingStart]
+     *  :return: ``Integer`` Where does paging start at?
+     *
+     *  To be implemented by subclasses
+     */
 
     /** api: method[getPagingParamNames]
      *  :return: ``Object`` with keys start and limit.
@@ -79574,6 +81207,13 @@ gxp.plugins.CSWCatalogueSource = Ext.extend(gxp.plugins.CatalogueSource, {
         gxp.plugins.LayerSource.prototype.createStore.apply(this, arguments);
     },
 
+    /** api: method[getPagingStart]
+     *  :return: ``Integer`` Where does paging start at?
+     */
+    getPagingStart: function() {
+        return 1;
+    },
+
     /** api: method[getPagingParamNames]
      *  :return: ``Object`` with keys start and limit.
      *
@@ -79655,6 +81295,11 @@ gxp.plugins.CSWCatalogueSource = Ext.extend(gxp.plugins.CatalogueSource, {
         }
         Ext.apply(this.store.baseParams, data);
         this.store.load();
+    },
+
+    createLayerRecord: function(layerConfig) {
+        layerConfig.queryable = true;
+        return gxp.plugins.CSWCatalogueSource.superclass.createLayerRecord.apply(this, arguments);
     }
 
 });
@@ -79783,7 +81428,13 @@ gxp.plugins.LayerTree = Ext.extend(gxp.plugins.Tool, {
      */
     addOutput: function(config) {
         config = Ext.apply(this.createOutputConfig(), config || {});
-        return gxp.plugins.LayerTree.superclass.addOutput.call(this, config);
+        var output = gxp.plugins.LayerTree.superclass.addOutput.call(this, config);
+        output.on({
+            contextmenu: this.handleTreeContextMenu,
+            beforemovenode: this.handleBeforeMoveNode,
+            scope: this
+        });
+        return output;
     },
     
     /** private: method[createOutputConfig]
@@ -79854,11 +81505,6 @@ gxp.plugins.LayerTree = Ext.extend(gxp.plugins.Tool, {
                     scope: this
                 }
             }),
-            listeners: {
-                contextmenu: this.handleTreeContextMenu,
-                beforemovenode: this.handleBeforeMoveNode,                
-                scope: this
-            },
             contextMenu: new Ext.menu.Menu({
                 items: []
             })
@@ -79879,7 +81525,7 @@ gxp.plugins.LayerTree = Ext.extend(gxp.plugins.Tool, {
             }));
             if (record) {
                 attr.qtip = record.get('abstract');
-                if (!record.get("queryable")) {
+                if (!record.get("queryable") && !attr.iconCls) {
                     attr.iconCls = "gxp-tree-rasterlayer-icon";
                 }
                 if (record.get("fixed")) {
@@ -80694,458 +82340,6 @@ gxp.plugins.ArcRestSource = Ext.extend(gxp.plugins.LayerSource, {
 
 Ext.preg(gxp.plugins.ArcRestSource.prototype.ptype, gxp.plugins.ArcRestSource);
 
-/** FILE: plugins/WMSRasterStylesDialog.js **/
-/**
- * Copyright (c) 2008-2011 The Open Planning Project
- * 
- * Published under the GPL license.
- * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
- * of the license.
- */
-
-/**
- * @requires util.js
- */
-
-/** api: (define)
- *  module = gxp.plugins
- *  class = WMSRasterStylesDialog
- */
-
-Ext.namespace("gxp.plugins");
-
-/** api: constructor
- *  .. class:: WMSRasterStyleDialog(config)
- *
- *    This plugins extends the :class:`gxp.WMSStylesDialog` to with basic
- *    raster support, for single-band rasters only.
- *
- *    TODO replace this with true raster support instead of squeezing it into
- *    a VectorLegend as if we were dealing with vector styles.
- */   
-gxp.plugins.WMSRasterStylesDialog = {
-    
-    /** private: property[isRaster]
-     *  ``Boolean`` Are we dealing with a raster layer with RasterSymbolizer?
-     *  This is needed because we create pseudo rules from a RasterSymbolizer's
-     *  ColorMap, and for this we need special treatment in some places.
-     */
-    isRaster: null,
-    
-    init: function(target) {
-        Ext.apply(target, gxp.plugins.WMSRasterStylesDialog);
-    },
-
-    /** private: method[createRule]
-     */
-    createRule: function() {
-        var symbolizers = [
-            new OpenLayers.Symbolizer[this.isRaster ? "Raster" : this.symbolType]
-        ];
-        return new OpenLayers.Rule({symbolizers: symbolizers});
-    },
-    
-    /** private: method[addRule]
-     */
-    addRule: function() {
-        var legend = this.items.get(2).items.get(0);
-        if (this.isRaster) {
-            legend.rules.push(this.createPseudoRule());
-            // we need either zero or at least two rules
-            legend.rules.length == 1 &&
-                legend.rules.push(this.createPseudoRule());
-            this.savePseudoRules();
-        } else {
-            this.selectedStyle.get("userStyle").rules.push(
-                this.createRule()
-            );
-            legend.update();
-            // mark the style as modified
-            this.selectedStyle.store.afterEdit(this.selectedStyle);
-        }
-        this.updateRuleRemoveButton();
-    },
-    
-    /** private: method[removeRule]
-     */
-    removeRule: function() {
-        if (this.isRaster) {
-            var legend = this.items.get(2).items.get(0);
-            var rule = this.selectedRule;
-            legend.unselect();
-            legend.rules.remove(rule);
-            // we need either zero or at least two rules
-            legend.rules.length == 1 && legend.rules.remove(legend.rules[0]);
-            this.savePseudoRules();
-        } else {
-            gxp.WMSStylesDialog.prototype.removeRule.apply(this, arguments);
-        }
-    },
-    
-    /** private: method[duplicateRule]
-     */
-    duplicateRule: function() {
-        var legend = this.items.get(2).items.get(0);
-        if (this.isRaster) {
-            legend.rules.push(this.createPseudoRule({
-                quantity: this.selectedRule.name,
-                label: this.selectedRule.title,
-                color: this.selectedRule.symbolizers[0].fillColor,
-                opacity: this.selectedRule.symbolizers[0].fillOpacity
-            }));
-            this.savePseudoRules();
-        } else {
-            var newRule = this.selectedRule.clone();
-            newRule.name = gxp.util.uniqueName(
-                (newRule.title || newRule.name) + " (copy)");
-            delete newRule.title;
-            this.selectedStyle.get("userStyle").rules.push(
-                newRule
-            );
-            legend.update();
-        }
-        this.updateRuleRemoveButton();
-    },
-    
-    editRule: function() {
-        this.isRaster ? this.editPseudoRule() :
-            gxp.WMSStylesDialog.prototype.editRule.apply(this, arguments);
-    },
-    
-    /** private: method[editPseudoRule]
-     *  Edit a pseudo rule of a RasterSymbolizer's ColorMap.
-     */
-    editPseudoRule: function() {
-        var me = this;
-        var rule = this.selectedRule;
-
-        var pseudoRuleDlg = new Ext.Window({
-            title: "Color Map Entry: " + rule.name,
-            width: 340,
-            autoHeight: true,
-            modal: true,
-            items: [{
-                bodyStyle: "padding-top: 5px",
-                border: false,
-                defaults: {
-                    autoHeight: true,
-                    hideMode: "offsets"
-                },
-                items: [{
-                    xtype: "form",
-                    border: false,
-                    labelAlign: "top",
-                    defaults: {border: false},
-                    style: {"padding": "0.3em 0 0 1em"},
-                    items: [{
-                        layout: "column",
-                        defaults: {
-                            border: false,
-                            style: {"padding-right": "1em"}
-                        },
-                        items: [{
-                            layout: "form",
-                            width: 70,
-                            items: [{
-                                xtype: "numberfield",
-                                anchor: "95%",
-                                value: rule.name,
-                                allowBlank: false,
-                                fieldLabel: "Quantity",
-                                validator: function(value) {
-                                    var rules = me.items.get(2).items.get(0).rules;
-                                    for (var i=rules.length-1; i>=0; i--) {
-                                        if (rule !== rules[i] && rules[i].name == value) {
-                                            return "Quantity " + value + " is already defined";
-                                        }
-                                    }
-                                    return true;
-                                },
-                                listeners: {
-                                    valid: function(cmp) {
-                                        this.selectedRule.name = String(cmp.getValue());
-                                        this.savePseudoRules();
-                                    },
-                                    scope: this
-                                }
-                            }]
-                        }, {
-                            layout: "form",
-                            width: 130,
-                            items: [{
-                                xtype: "textfield",
-                                fieldLabel: "Label",
-                                anchor: "95%",
-                                value: rule.title,
-                                listeners: {
-                                    valid: function(cmp) {
-                                        this.selectedRule.title = cmp.getValue();
-                                        this.savePseudoRules();
-                                    },
-                                    scope: this
-                                }
-                            }]
-                        }, {
-                            layout: "form",
-                            width: 70,
-                            items: [new GeoExt.FeatureRenderer({
-                                symbolType: this.symbolType,
-                                symbolizers: [rule.symbolizers[0]],
-                                isFormField: true,
-                                fieldLabel: "Appearance"
-                            })]
-                        }]
-                    }]
-                }, {
-                    xtype: "gxp_polygonsymbolizer",
-                    symbolizer: rule.symbolizers[0],
-                    bodyStyle: {"padding": "10px"},
-                    border: false,
-                    labelWidth: 70,
-                    defaults: {
-                        labelWidth: 70
-                    },
-                    listeners: {
-                        change: function(symbolizer) {
-                            var symbolizerSwatch = pseudoRuleDlg.findByType(GeoExt.FeatureRenderer)[0];
-                            symbolizerSwatch.setSymbolizers(
-                                [symbolizer], {draw: symbolizerSwatch.rendered}
-                            );
-                            this.selectedRule.symbolizers[0] = symbolizer;
-                            this.savePseudoRules();
-                        },
-                        scope: this
-                    }
-                }]
-            }]
-        });
-        // remove stroke fieldset
-        var strokeSymbolizer = pseudoRuleDlg.findByType("gxp_strokesymbolizer")[0];
-        strokeSymbolizer.ownerCt.remove(strokeSymbolizer);
-        
-        pseudoRuleDlg.show();
-    },
-    
-    /** private: method[savePseudoRules]
-     *  Takes the pseudo rules from the legend and adds them as
-     *  RasterSymbolizer ColorMap back to the userStyle.
-     */
-    savePseudoRules: function() {
-        var style = this.selectedStyle;
-        var legend = this.items.get(2).items.get(0);
-        var userStyle = style.get("userStyle");
-        
-        var pseudoRules = legend.rules;
-        pseudoRules.sort(function(a,b) {
-            var left = parseFloat(a.name);
-            var right = parseFloat(b.name);
-            return left === right ? 0 : (left < right ? -1 : 1);
-        });
-        
-        var symbolizer = userStyle.rules[0].symbolizers[0];
-        symbolizer.colorMap = pseudoRules.length > 0 ?
-            new Array(pseudoRules.length) : undefined;
-        var pseudoRule;
-        for (var i=0, len=pseudoRules.length; i<len; ++i) {
-            pseudoRule = pseudoRules[i];
-            symbolizer.colorMap[i] = {
-                quantity: parseFloat(pseudoRule.name),
-                label: pseudoRule.title || undefined,
-                color: pseudoRule.symbolizers[0].fillColor || undefined,
-                opacity: pseudoRule.symbolizers[0].fill == false ? 0 :
-                    pseudoRule.symbolizers[0].fillOpacity
-            };
-        }
-        this.afterRuleChange(this.selectedRule);
-    },
-    
-    /** private: method[createLegend]
-     *  :arg rules: ``Array``
-     *  :arg options:
-     */
-    createLegend: function(rules, options) {
-        var R = OpenLayers.Symbolizer.Raster;
-        if (R && rules[0] && rules[0].symbolizers[0] instanceof R) {
-            this.getComponent("rulesfieldset").setTitle("Color Map Entries");
-            this.isRaster = true;
-            this.addRasterLegend(rules, options);
-        } else {
-            this.isRaster = false;
-            this.addVectorLegend(rules);
-        }
-    },    
-
-    /** private: method[addRasterLegend]
-     *  :arg rules: ``Array``
-     *  :arg options: ``Object`` Additional options for this method.
-     *  :returns: ``GeoExt.VectorLegend`` the legend that was created
-     *
-     *  Creates the vector legend for the pseudo rules that are created from
-     *  the RasterSymbolizer of the first rule and adds it to the rules
-     *  fieldset.
-     *  
-     *  Supported options:
-     *
-     *  * selectedRuleIndex: ``Number`` The index of a pseudo rule to select
-     *    in the legend.
-     */  
-    addRasterLegend: function(rules, options) {
-        options = options || {};
-        //TODO raster styling support is currently limited to one rule, and
-        // we can only handle a color map. No band selection and other stuff.
-        var symbolizer = rules[0].symbolizers[0];
-        var colorMap = symbolizer.colorMap || [];
-        var pseudoRules = [];
-        var colorMapEntry;
-        for (var i=0, len=colorMap.length; i<len; i++) {
-            pseudoRules.push(this.createPseudoRule(colorMap[i]));
-        }
-        this.selectedRule = options.selectedRuleIndex != null ?
-            pseudoRules[options.selectedRuleIndex] : null;
-        return this.addVectorLegend(pseudoRules, {
-            symbolType: "Polygon",
-            enableDD: false
-        });
-    },
-    
-    /** private: method[createPseudoRule]
-     *  :arg colorMapEntry: ``Object``
-     *  
-     *  Creates a pseudo rule from a ColorMapEntry.
-     */
-    createPseudoRule: function(colorMapEntry) {
-        var quantity = -1;
-        if (!colorMapEntry) {
-            var fieldset = this.items.get(2);
-            if (fieldset.items) {
-                rules = fieldset.items.get(0).rules;
-                for (var i=rules.length-1; i>=0; i--) {
-                    quantity = Math.max(quantity, parseFloat(rules[i].name));
-                }            
-            }
-        }
-        colorMapEntry = Ext.applyIf(colorMapEntry || {}, {
-            quantity: ++quantity,
-            color: "#000000",
-            opacity: 1
-        });
-        return new OpenLayers.Rule({
-            title: colorMapEntry.label,
-            name: String(colorMapEntry.quantity),
-            symbolizers: [new OpenLayers.Symbolizer.Polygon({
-                fillColor: colorMapEntry.color,
-                fillOpacity: colorMapEntry.opacity,
-                stroke: false,
-                fill: colorMapEntry.opacity !== 0
-            })]
-        });
-    },
-
-    /** private: method[updateRuleRemoveButton]
-     *  Enable/disable the "Remove" button to make sure that we don't delete
-     *  the last rule.
-     */
-    updateRuleRemoveButton: function() {
-        this.items.get(3).items.get(1).setDisabled(!this.selectedRule ||
-            (this.isRaster === false &&
-            this.items.get(2).items.get(0).rules.length <= 1));
-    }
-    
-};
-
-/** api: ptype = gxp_wmsrasterstylesdialog */
-Ext.preg("gxp_wmsrasterstylesdialog", gxp.plugins.WMSRasterStylesDialog);
-
-/** FILE: plugins/FormFieldHelp.js **/
-/** FILE: plugins/FormFieldHelp.js **/
-/**
- * Copyright (c) 2008-2012 The Open Planning Project
- *
- * Published under the GPL license.
- * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
- * of the license.
- */
-
-/** api: (define)
- *  module = gxp.plugins
- *  class = FormFieldHelp
- */
-
-Ext.namespace("gxp.plugins");
-
-/** api: constructor
- *  .. class:: FormFieldHelp(config)
- *
- *    Plugin for showing a help text when hovering over a form field.
- *    Uses an Ext.QuickTip.
- */
-/** api: example
- *    The code example below shows how to use this plugin with a form field:
- *
- *    .. code-block:: javascript
- *
- *      var field = new Ext.form.TextField({
- *          name: 'foo',
- *          value: 'bar',
- *          plugins: [{
- *              ptype: 'gxp_formfieldhelp',
- *              helpText: 'This is the help text for my form field'
- *          }]
- *      });
- */
-gxp.plugins.FormFieldHelp = Ext.extend(Object, {
-
-    /** api: ptype = gxp_formfieldhelp */
-    ptype: 'gxp_formfieldhelp',
-
-    /** api: config[helpText]
-     *  ``String`` The help text to show.
-     */
-    helpText: null,
-
-    /** api: config[dismissDelay]
-     *  ``Integer`` How long before the quick tip should disappear.
-     *  Defaults to 5 seconds.
-     */
-    dismissDelay: 5000,
-
-    /** private: method[constructor]
-     */
-    constructor: function(config) {
-        Ext.apply(this, config);
-    },
-
-    /** private: method[init]
-     *
-     *  :arg target: ``Ext.form.Field`` The form field initializing this
-     *  plugin.
-     */
-    init: function(target){
-        this.target = target;
-        target.on('render', this.showHelp, this);
-    },
-
-    /** private: method[showHelp]
-     *  Show the help popup for the field. Show it on the associated label if
-     *  present, with a fallback to the form element itself.
-     */
-    showHelp: function() {
-        var target;
-        if (this.target.label) {
-            target = this.target.label;
-        } else {
-            target = this.target.getEl();
-        }
-        Ext.QuickTips.register({
-            target: target,
-            dismissDelay: this.dismissDelay,
-            text: this.helpText
-        });
-    }
-});
-
-Ext.preg(gxp.plugins.FormFieldHelp.prototype.ptype, gxp.plugins.FormFieldHelp);
-
 /** FILE: plugins/FeatureManager.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
@@ -81619,9 +82813,10 @@ gxp.plugins.FeatureManager = Ext.extend(gxp.plugins.Tool, {
         var change = this.fireEvent("beforelayerchange", this, layerRecord);
         if (change !== false) {
             if (layerRecord) {
-                // do not use getProjection here since we never want to use the 
-                // map's projection on the feature layer
-                this.featureLayer.projection = layerRecord.getLayer().projection;
+                // do not use getProjection here
+                var layerProj = layerRecord.getLayer().projection;
+                this.featureLayer.projection = (layerProj !== null) ? layerProj :
+                    this.target.mapPanel.map.getProjectionObject();
             }
             if (layerRecord !== this.layerRecord) {
                 this.clearFeatureStore();
@@ -82570,6 +83765,12 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
     
     /** api: ptype = gxp_featureeditor */
     ptype: "gxp_featureeditor",
+
+    /** api: config[commitMessage]
+     *  ``Boolean`` Should we prompt the user for a commit message?
+     *  Default is false.
+     */
+    commitMessage: false,
     
     /** api: config[splitButton]
      *  ``Boolean`` If set to true, the actions will be rendered as a single
@@ -82623,6 +83824,8 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
     lineText: "Line",
     polygonText: "Polygon",
     noGeometryText: "Event",
+    commitTitle: "Commit message",
+    commitText: "Please enter a commit message for this edit:",
 
     /** api: config[createFeatureActionTip]
      *  ``String``
@@ -82680,6 +83883,12 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
      *  modify tool, i.e. there is no option to add new features.
      */
     modifyOnly: false,
+
+    /** api: config[createOnly]
+     *  ``Boolean`` Set to true to use the FeatureEditor merely as a feature
+     *  creation tool, i.e. there is no option to modify existing features.
+     */
+    createOnly: false,
     
     /** api: config[showSelectedOnly]
      *  ``Boolean`` If set to true, only selected features will be displayed
@@ -82986,105 +84195,135 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
                         schema: this.schema,
                         allowDelete: true,
                         width: 200,
-                        height: 250,
-                        listeners: {
-                            "close": function() {
-                                if (this.readOnly === false) {
-                                    this.selectControl.activate();
+                        height: 250
+                    });
+                    popup.on({
+                        "close": function() {
+                            if (this.readOnly === false) {
+                                this.selectControl.activate();
+                            }
+                            if(feature.layer && feature.layer.selectedFeatures.indexOf(feature) !== -1) {
+                                this.selectControl.unselect(feature);
+                            }
+                            if (feature === this.autoLoadedFeature) {
+                                if (feature.layer) {
+                                    feature.layer.removeFeatures([evt.feature]);
                                 }
-                                if(feature.layer && feature.layer.selectedFeatures.indexOf(feature) !== -1) {
-                                    this.selectControl.unselect(feature);
-                                }
-                                if (feature === this.autoLoadedFeature) {
-                                    if (feature.layer) {
-                                        feature.layer.removeFeatures([evt.feature]);
-                                    }
-                                    this.autoLoadedFeature = null;
-                                }
-                            },
-                            "featuremodified": function(popup, feature) {
-                                featureStore.on({
-                                    beforesave: {
-                                        fn: function() {
-                                            if (popup && popup.isVisible()) {
-                                                popup.disable();
-                                            }
-                                        },
-                                        single: true
+                                this.autoLoadedFeature = null;
+                            }
+                        },
+                        "featuremodified": function(popup, feature) {
+                            featureStore.on({
+                                beforewrite: {
+                                    fn: function(store, action, rs, options) {
+                                        if (this.commitMessage === true) {
+                                            options.params.handle = this._commitMsg;
+                                            delete this._commitMsg;
+                                        }
                                     },
-                                    write: {
-                                        fn: function() {
-                                            if (popup) {
-                                                if (popup.isVisible()) {
-                                                    popup.enable();
-                                                }
-                                                if (this.closeOnSave) {
-                                                    popup.close();
-                                                }
+                                    single: true
+                                },
+                                beforesave: {
+                                    fn: function() {
+                                        if (popup && popup.isVisible()) {
+                                            popup.disable();
+                                        }
+                                        if (this.commitMessage === true) {
+                                            if (!this._commitMsg) {
+                                                var fn = arguments.callee;
+                                                Ext.Msg.show({
+                                                    prompt: true,
+                                                    title: this.commitTitle,
+                                                    msg: this.commitText,
+                                                    buttons: Ext.Msg.OK,
+                                                    fn: function(btn, text) {
+                                                        if (btn === 'ok') {
+                                                            this._commitMsg = text;
+                                                            featureStore.un('beforesave', fn, this);
+                                                            featureStore.save();
+                                                        }
+                                                    },
+                                                    scope: this,
+                                                    multiline: true
+                                                });
+                                                return false;
                                             }
-                                            var layer = featureManager.layerRecord;
-                                            this.target.fireEvent("featureedit", featureManager, {
-                                                name: layer.get("name"),
-                                                source: layer.get("source")
-                                            });
-                                        },
-                                        single: true
+                                        }
                                     },
-                                    exception: {
-                                        fn: function(proxy, type, action, options, response, records) {
-                                            var msg = this.exceptionText;
-                                            if (type === "remote") {
-                                                // response is service exception
-                                                if (response.exceptionReport) {
-                                                    msg = gxp.util.getOGCExceptionText(response.exceptionReport);
-                                                }
-                                            } else {
-                                                // non-200 response from server
-                                                msg = "Status: " + response.status;
-                                            }
-                                            // fire an event on the feature manager
-                                            featureManager.fireEvent("exception", featureManager, 
-                                                response.exceptionReport || {}, msg, records);
-                                            // only show dialog if there is no listener registered
-                                            if (featureManager.hasListener("exception") === false && 
-                                                featureStore.hasListener("exception") === false) {
-                                                    Ext.Msg.show({
-                                                        title: this.exceptionTitle,
-                                                        msg: msg,
-                                                        icon: Ext.MessageBox.ERROR,
-                                                        buttons: {ok: true}
-                                                    });
-                                            }
-                                            if (popup && popup.isVisible()) {
+                                    single: this.commitMessage !== true
+                                },
+                                write: {
+                                    fn: function() {
+                                        if (popup) {
+                                            if (popup.isVisible()) {
                                                 popup.enable();
-                                                popup.startEditing();
                                             }
-                                        },
-                                        single: true
+                                            if (this.closeOnSave) {
+                                                popup.close();
+                                            }
+                                        }
+                                        var layer = featureManager.layerRecord;
+                                        this.target.fireEvent("featureedit", featureManager, {
+                                            name: layer.get("name"),
+                                            source: layer.get("source")
+                                        });
                                     },
-                                    scope: this
-                                });                                
-                                if(feature.state === OpenLayers.State.DELETE) {                                    
-                                    /**
-                                     * If the feature state is delete, we need to
-                                     * remove it from the store (so it is collected
-                                     * in the store.removed list.  However, it should
-                                     * not be removed from the layer.  Until
-                                     * http://trac.geoext.org/ticket/141 is addressed
-                                     * we need to stop the store from removing the
-                                     * feature from the layer.
-                                     */
-                                    featureStore._removing = true; // TODO: remove after http://trac.geoext.org/ticket/141
-                                    featureStore.remove(featureStore.getRecordFromFeature(feature));
-                                    delete featureStore._removing; // TODO: remove after http://trac.geoext.org/ticket/141
-                                }
-                                featureStore.save();
-                            },
-                            "canceledit": function(popup, feature) {
-                                featureStore.commitChanges();
-                            },
-                            scope: this
-                        }
+                                    single: true
+                                },
+                                exception: {
+                                    fn: function(proxy, type, action, options, response, records) {
+                                        var msg = this.exceptionText;
+                                        if (type === "remote") {
+                                            // response is service exception
+                                            if (response.exceptionReport) {
+                                                msg = gxp.util.getOGCExceptionText(response.exceptionReport);
+                                            }
+                                        } else {
+                                            // non-200 response from server
+                                            msg = "Status: " + response.status;
+                                        }
+                                        // fire an event on the feature manager
+                                        featureManager.fireEvent("exception", featureManager, 
+                                            response.exceptionReport || {}, msg, records);
+                                        // only show dialog if there is no listener registered
+                                        if (featureManager.hasListener("exception") === false && 
+                                            featureStore.hasListener("exception") === false) {
+                                                Ext.Msg.show({
+                                                    title: this.exceptionTitle,
+                                                    msg: msg,
+                                                    icon: Ext.MessageBox.ERROR,
+                                                    buttons: {ok: true}
+                                                });
+                                        }
+                                        if (popup && popup.isVisible()) {
+                                            popup.enable();
+                                            popup.startEditing();
+                                        }
+                                    },
+                                    single: true
+                                },
+                                scope: this
+                            });                                
+                            if(feature.state === OpenLayers.State.DELETE) {
+                                /**
+                                 * If the feature state is delete, we need to
+                                 * remove it from the store (so it is collected
+                                 * in the store.removed list.  However, it should
+                                 * not be removed from the layer.  Until
+                                 * http://trac.geoext.org/ticket/141 is addressed
+                                 * we need to stop the store from removing the
+                                 * feature from the layer.
+                                 */
+                                featureStore._removing = true; // TODO: remove after http://trac.geoext.org/ticket/141
+                                featureStore.remove(featureStore.getRecordFromFeature(feature));
+                                delete featureStore._removing; // TODO: remove after http://trac.geoext.org/ticket/141
+                            }
+                            featureStore.save();
+                        },
+                        "canceledit": function(popup, feature) {
+                            featureStore.commitChanges();
+                        },
+                        scope: this
                     });
                     this.popup = popup;
                 }
@@ -83220,6 +84459,7 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
             //TODO Tool.js sets group, but this doesn't work for GeoExt.Action
             group: toggleGroup,
             groupClass: null,
+            hidden: this.createOnly,
             enableToggle: true,
             allowDepress: true,
             control: this.selectControl,
@@ -83373,13 +84613,13 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
             "Polygon": OpenLayers.Handler.Polygon,
             "Surface": OpenLayers.Handler.Polygon
         };
-        var simpleType = mgr.geometryType.replace("Multi", "");
-        var Handler = handlers[simpleType];
+        var simpleType = mgr.geometryType && mgr.geometryType.replace("Multi", "");
+        var Handler = simpleType && handlers[simpleType];
         if (Handler) {
             var multi = (simpleType != mgr.geometryType);
             this.setHandler(Handler, multi);
             button.enable();
-        } else if (this.supportAbstractGeometry === true && mgr.geometryType === 'Geometry') {
+        } else if (this.supportAbstractGeometry === true && mgr.geometryType && mgr.geometryType === 'Geometry') {
             button.enable();
         } else {
             button.disable();
@@ -83648,49 +84888,48 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
                 },
                 scope: this
             }] : [])),
-            listeners: {
-                "added": function(cmp, ownerCt) {
-                    function onClear() {
-                        this.displayTotalResults();
-                        this.selectOnMap && this.selectControl.deactivate();
-                        this.autoCollapse && typeof ownerCt.collapse == "function" &&
-                            ownerCt.collapse();
-                    }
-                    function onPopulate() {
-                        this.displayTotalResults();
-                        this.selectOnMap && this.selectControl.activate();
-                        this.autoExpand && typeof ownerCt.expand == "function" &&
-                            ownerCt.expand();
-                    }
-                    featureManager.on({
-                        "query": function(tool, store) {
-                            if (store && store.getCount()) {
-                                onPopulate.call(this);
-                            } else {
-                                onClear.call(this);
-                            }
-                        },
-                        "layerchange": onClear,
-                        "clearfeatures": onClear,
-                        scope: this
-                    });
-                },
-                contextmenu: function(event) {
-                    if (featureGrid.contextMenu.items.getCount() > 0) {
-                        var rowIndex = featureGrid.getView().findRowIndex(event.getTarget());
-                        if (rowIndex !== false) {
-                            featureGrid.getSelectionModel().selectRow(rowIndex);
-                            featureGrid.contextMenu.showAt(event.getXY());
-                            event.stopEvent();
-                        }
-                    }
-                },
-                scope: this
-            },
             contextMenu: new Ext.menu.Menu({items: []})
         }, config || {});
         var featureGrid = gxp.plugins.FeatureGrid.superclass.addOutput.call(this, config);
-        
+        featureGrid.on({
+            "added": function(cmp, ownerCt) {
+                function onClear() {
+                    this.displayTotalResults();
+                    this.selectOnMap && this.selectControl.deactivate();
+                    this.autoCollapse && typeof ownerCt.collapse == "function" &&
+                        ownerCt.collapse();
+                }
+                function onPopulate() {
+                    this.displayTotalResults();
+                    this.selectOnMap && this.selectControl.activate();
+                    this.autoExpand && typeof ownerCt.expand == "function" &&
+                        ownerCt.expand();
+                }
+                featureManager.on({
+                    "query": function(tool, store) {
+                        if (store && store.getCount()) {
+                            onPopulate.call(this);
+                        } else {
+                            onClear.call(this);
+                        }
+                    },
+                    "layerchange": onClear,
+                    "clearfeatures": onClear,
+                    scope: this
+                });
+            },
+            contextmenu: function(event) {
+                if (featureGrid.contextMenu.items.getCount() > 0) {
+                    var rowIndex = featureGrid.getView().findRowIndex(event.getTarget());
+                    if (rowIndex !== false) {
+                        featureGrid.getSelectionModel().selectRow(rowIndex);
+                        featureGrid.contextMenu.showAt(event.getXY());
+                        event.stopEvent();
+                    }
+                }
+            },
+            scope: this
+        });
         if (this.alwaysDisplayOnMap || (this.selectOnMap === true && this.displayMode === "selected")) {
             featureManager.showLayer(this.id, this.displayMode);
         }        
@@ -83723,11 +84962,13 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
             featureGrid.setStore(featureManager.featureStore, schema);
             if (!featureManager.featureStore) {
                 // not a feature layer, reset toolbar
-                featureGrid.lastPageButton.disable();
-                featureGrid.nextPageButton.disable();
-                featureGrid.firstPageButton.disable();
-                featureGrid.prevPageButton.disable();
-                featureGrid.zoomToPageButton.disable();
+                if (featureManager.paging) {
+                    featureGrid.lastPageButton.disable();
+                    featureGrid.nextPageButton.disable();
+                    featureGrid.firstPageButton.disable();
+                    featureGrid.prevPageButton.disable();
+                    featureGrid.zoomToPageButton.disable();
+                }
                 this.displayTotalResults();
             }
         }
@@ -83743,85 +84984,6 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
 });
 
 Ext.preg(gxp.plugins.FeatureGrid.prototype.ptype, gxp.plugins.FeatureGrid);
-
-/** FILE: plugins/SchemaAnnotations.js **/
-/** FILE: plugins/SchemaAnnotations.js **/
-/**
- * Copyright (c) 2008-2012 The Open Planning Project
- *
- * Published under the GPL license.
- * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
- * of the license.
- */
-
-/** api: (define)
- *  module = gxp.plugins
- *  class = FormFieldHelp
- */
-
-Ext.namespace("gxp.plugins");
-
-/** api: constructor
- *  .. class:: SchemaAnnotations
- *
- *    Module for getting annotations from the WFS DescribeFeatureType schema.
- *    This is currently used in gxp.plugins.FeatureEditorForm and
- *    gxp.plugins.FeatureEditorGrid.
- *
- *    The WFS needs to provide xsd:annotation in the XML Schema which is
- *    reported back on a WFS DescribeFeatureType request. An example is:
- *
- *    .. code-block:: xml
- *
- *      <xsd:element maxOccurs="1" minOccurs="0" name="PERSONS" nillable="true" type="xsd:double">
- *        <xsd:annotation>
- *          <xsd:appinfo>{"title":{"en":"Population"}}</xsd:appinfo>
- *          <xsd:documentation xml:lang="en">
- *            Number of persons living in the state
- *          </xsd:documentation>
- *        </xsd:annotation>
- *      </xsd:element>
- *
- *    To use this module simply use Ext.override in your class, and use the
- *    getAnnotationsFromSchema function on a record from the attribute store.
- *
- *    .. code-block:: javascript
- *
- *    Ext.override(gxp.plugins.YourPlugin, gxp.plugins.SchemaAnnotations);
- *
- */
-gxp.plugins.SchemaAnnotations = {
-
-    /** api: method[getAnnotationsFromSchema]
-     *
-     *  :arg r: ``Ext.data.Record`` a record from the AttributeStore
-     *  :returns: ``Object`` Object with label and helpText properties or
-     *  null if no annotation was found.
-     */
-    getAnnotationsFromSchema: function(r) {
-        var result = null;
-        var annotation = r.get('annotation');
-        if (annotation !== undefined) {
-            result = {};
-            var lang = GeoExt.Lang.locale.split("-").shift();
-            var i, ii;
-            for (i=0, ii=annotation.appinfo.length; i<ii; ++i) {
-                var json = Ext.decode(annotation.appinfo[i]);
-                if (json.title && json.title[lang]) {
-                    result.label = json.title[lang];
-                    break;
-                }
-            }
-            for (i=0, ii=annotation.documentation.length; i<ii; ++i) {
-                if (annotation.documentation[i].lang === lang) {
-                    result.helpText = annotation.documentation[i].textContent;
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-};
 
 /** FILE: plugins/BingSource.js **/
 /**
@@ -83914,13 +85076,22 @@ gxp.plugins.BingSource = Ext.extend(gxp.plugins.LayerSource, {
      *  ``String``
      *  API key generated from http://bingmapsportal.com/ for your domain.
      */
-    apiKey: "AqTGBsziZHIJYYxgivLBf0hVdrAk9mWO5cQcb8Yux8sW5M8c8opEC2lZqKR1ZZXf",
+    apiKey: null,
     
     /** api: method[createStore]
      *
      *  Creates a store of layer records.  Fires "ready" when store is loaded.
      */
     createStore: function() {
+
+        if (!this.apiKey) {
+          this.fireEvent(
+            "failure",
+            this,
+            "No apiKey configured for the Bing source."
+          );
+          throw new Error("You need to provide an apiKey for the Bing source to work.");
+        }
         
         var layers = [
             new OpenLayers.Layer.Bing({
@@ -84115,9 +85286,9 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
             new OpenLayers.Layer.OSM(
                 "OpenStreetMap",
                 [
-                    "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
-                    "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
-                    "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
+                    "//a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "//b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "//c.tile.openstreetmap.org/${z}/${x}/${y}.png"
                 ],
                 OpenLayers.Util.applyDefaults({                
                     attribution: this.mapnikAttribution,
@@ -84547,10 +85718,10 @@ gxp.plugins.MapBoxSource = Ext.extend(gxp.plugins.LayerSource, {
             layers[i] = new OpenLayers.Layer.TMS(
                 this[OpenLayers.String.camelize(config.name) + "Title"],
                 [
-                    "http://a.tiles.mapbox.com/mapbox/",
-                    "http://b.tiles.mapbox.com/mapbox/",
-                    "http://c.tiles.mapbox.com/mapbox/",
-                    "http://d.tiles.mapbox.com/mapbox/"
+                    "//a.tiles.mapbox.com/mapbox/",
+                    "//b.tiles.mapbox.com/mapbox/",
+                    "//c.tiles.mapbox.com/mapbox/",
+                    "//d.tiles.mapbox.com/mapbox/"
                 ],
                 OpenLayers.Util.applyDefaults({
                     attribution: /^world/.test(name) ?
@@ -84744,10 +85915,10 @@ gxp.plugins.MapQuestSource = Ext.extend(gxp.plugins.LayerSource, {
             new OpenLayers.Layer.OSM(
                 this.osmTitle,
                 [
-                    "http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile2.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile3.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png",
-                    "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.png"
+                    "http://otile1.mqcdn.com/tiles/1.0.0/map/${z}/${x}/${y}.png",
+                    "http://otile2.mqcdn.com/tiles/1.0.0/map/${z}/${x}/${y}.png",
+                    "http://otile3.mqcdn.com/tiles/1.0.0/map/${z}/${x}/${y}.png",
+                    "http://otile4.mqcdn.com/tiles/1.0.0/map/${z}/${x}/${y}.png"
                 ],
                 OpenLayers.Util.applyDefaults({                
                     attribution: this.osmAttribution,
@@ -84757,10 +85928,10 @@ gxp.plugins.MapQuestSource = Ext.extend(gxp.plugins.LayerSource, {
             new OpenLayers.Layer.OSM(
                 this.naipTitle,
                 [
-                    "http://oatile1.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile2.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile3.mqcdn.com/naip/${z}/${x}/${y}.png",
-                    "http://oatile4.mqcdn.com/naip/${z}/${x}/${y}.png"
+                    "http://otile1.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png",
+                    "http://otile2.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png",
+                    "http://otile3.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png",
+                    "http://otile4.mqcdn.com/tiles/1.0.0/sat/${z}/${x}/${y}.png"
                 ],
                 OpenLayers.Util.applyDefaults({
                     attribution: this.naipAttribution,
@@ -85728,6 +86899,7 @@ Ext.preg(gxp.plugins.Zoom.prototype.ptype, gxp.plugins.Zoom);
  * @requires OpenLayers/StyleMap.js
  * @requires OpenLayers/Rule.js
  * @requires OpenLayers/Control/Measure.js
+ * @requires OpenLayers/Layer/Vector.js
  * @requires OpenLayers/Handler/Path.js
  * @requires OpenLayers/Handler/Polygon.js
  * @requires OpenLayers/Renderer/SVG.js
@@ -86014,8 +87186,10 @@ Ext.preg(gxp.plugins.Measure.prototype.ptype, gxp.plugins.Measure);
 
 /**
  * @requires plugins/Tool.js
+ * @requires plugins/FeatureEditorGrid.js
  * @requires GeoExt/widgets/Popup.js
  * @requires OpenLayers/Control/WMSGetFeatureInfo.js
+ * @requires OpenLayers/Format/GeoJSON.js
  * @requires OpenLayers/Format/WMSGetFeatureInfo.js
  */
 
@@ -86100,6 +87274,13 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
      *      html: text, // responseText from server - only for "html" format
      */
 
+    /** private: method[constructor]
+     */
+    constructor: function(config) {
+        this.geoJSONFormat = new OpenLayers.Format.GeoJSON();
+        gxp.plugins.WMSGetFeatureInfo.superclass.constructor.apply(this, arguments);
+    },
+
     /** api: method[addActions]
      */
     addActions: function() {
@@ -86171,7 +87352,12 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                             } else if (infoFormat == "text/plain") {
                                 this.displayPopup(evt, title, '<pre>' + evt.text + '</pre>');
                             } else if (evt.features && evt.features.length > 0) {
-                                this.displayPopup(evt, title);
+                                this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
+                            } else if (infoFormat === 'application/json' && evt.text) {
+                                evt.features = this.geoJSONFormat.read(evt.text);
+                                if (evt.features && evt.features.length > 0) {
+                                    this.displayPopup(evt, title, null,  x.get("getFeatureInfo"));
+                                }
                             }
                         },
                         scope: this
@@ -86200,10 +87386,10 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
      *     reporting the info to the user
      * :arg text: ``String`` Body text.
      */
-    displayPopup: function(evt, title, text) {
+    displayPopup: function(evt, title, text, featureinfo) {
         var popup;
         var popupKey = evt.xy.x + "." + evt.xy.y;
-
+        featureinfo = featureinfo || {};
         if (!(popupKey in this.popupCache)) {
             popup = this.addOutput({
                 xtype: "gx_popup",
@@ -86221,15 +87407,15 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
                     autoHeight: true,
                     autoWidth: true,
                     collapsible: true
-                },
-                listeners: {
-                    close: (function(key) {
-                        return function(panel){
-                            delete this.popupCache[key];
-                        };
-                    })(popupKey),
-                    scope: this
                 }
+            });
+            popup.on({                    
+                close: (function(key) {
+                    return function(panel){
+                        delete this.popupCache[key];
+                    };
+                })(popupKey),
+                scope: this
             });
             this.popupCache[popupKey] = popup;
         } else {
@@ -86242,14 +87428,17 @@ gxp.plugins.WMSGetFeatureInfo = Ext.extend(gxp.plugins.Tool, {
             for (var i=0,ii=features.length; i<ii; ++i) {
                 feature = features[i];
                 config.push(Ext.apply({
-                    xtype: "propertygrid",
+                    xtype: "gxp_editorgrid",
+                    readOnly: true,
                     listeners: {
-                        'beforeedit': function (e) { 
-                            return false; 
-                        } 
+                        'beforeedit': function (e) {
+                            return false;
+                        }
                     },
                     title: feature.fid ? feature.fid : title,
-                    source: feature.attributes
+                    feature: feature,
+                    fields: featureinfo.fields,
+                    propertyNames: featureinfo.propertyNames
                 }, this.itemConfig));
             }
         } else if (text) {
@@ -86468,6 +87657,7 @@ gxp.plugins.LayerManager = Ext.extend(gxp.plugins.LayerTree, {
                     // TODO these baseParams were only tested with GeoServer,
                     // so maybe they should be configurable - and they are
                     // only relevant for gx_wmslegend.
+                    hidden: !attr.layer.getVisibility(),
                     baseParams: Ext.apply({
                         transparent: true,
                         format: "image/png",
@@ -86499,6 +87689,11 @@ Ext.preg(gxp.plugins.LayerManager.prototype.ptype, gxp.plugins.LayerManager);
 /**
  * @requires plugins/Tool.js
  * @requires widgets/NewSourceDialog.js
+ * @requires widgets/FeedSourceDialog.js
+ * @requires plugins/GeoNodeCatalogueSource.js
+ * @requires widgets/CatalogueSearchPanel.js
+ * @requires plugins/TMSSource.js
+ * @requires plugins/ArcRestSource.js
  */
 
 /** api: (define)
@@ -86534,6 +87729,12 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      */
     findActionMenuText: "Find layers",
 
+    /** api: config[addActionMenuText]
+     *  ``String``
+     *  Text for add feed menu item (i18n).
+     */
+    addFeedActionMenuText: "Add feeds",
+
     /** api: config[addActionTip]
      *  ``String``
      *  Text for add action tooltip (i18n).
@@ -86567,7 +87768,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      *  ``String``
      *  Text for an error message when WMS GetCapabilities retrieval fails (i18n).
      */
-    addLayerSourceErrorText: "Error getting WMS capabilities ({msg}).\nPlease check the url and try again.",
+    addLayerSourceErrorText: "Error getting {type} capabilities ({msg}).\nPlease check the url and try again.",
 
     /** api: config[availableLayersText]
      *  ``String``
@@ -86575,19 +87776,25 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      */
     availableLayersText: "Available Layers",
 
-    /** api: config[availableLayersText]
+    /** api: config[searchText]
+     *  ``String``
+     *  Text for the search dialog title (i18n).
+     */
+    searchText: "Search for layers",
+
+    /** api: config[expanderTemplateText]
      *  ``String``
      *  Text for the grid expander (i18n).
      */
     expanderTemplateText: "<p><b>Abstract:</b> {abstract}</p>",
     
-    /** api: config[availableLayersText]
+    /** api: config[panelTitleText]
      *  ``String``
      *  Text for the layer title (i18n).
      */
     panelTitleText: "Title",
 
-    /** api: config[availableLayersText]
+    /** api: config[layerSelectionText]
      *  ``String``
      *  Text for the layer selection (i18n).
      */
@@ -86610,6 +87817,13 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
      *  If provided, a :class:`gxp.CatalogueSearchPanel` will be added as a
      *  menu option. This panel will be constructed using the provided config.
      *  By default, no search functionality is provided.
+     */
+
+    /** api: config[feeds]
+     *  ``Object | Boolean``
+     *  If provided, a :class:`gxp.FeedSourceDialog` will be added as a
+     *  menu option. This panel will be constructed using the provided config.
+     *  By default, no feed functionality is provided.
      */
 
     /** api: config[upload]
@@ -86730,11 +87944,32 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 handler: this.showCapabilitiesGrid, 
                 scope: this
             })];
-            if (this.initialConfig.search) {
-                items.push(new Ext.menu.Item({
-                    iconCls: 'gxp-icon-addlayers', 
+            if (this.initialConfig.search && this.initialConfig.search.selectedSource &&
+              this.target.sources[this.initialConfig.search.selectedSource]) {
+                var search = new Ext.menu.Item({
+                    iconCls: 'gxp-icon-addlayers',
                     text: this.findActionMenuText,
                     handler: this.showCatalogueSearch,
+                    scope: this
+                });
+                items.push(search);
+                Ext.Ajax.request({
+                    method: "GET",
+                    url: this.target.sources[this.initialConfig.search.selectedSource].url,
+                    callback: function(options, success, response) {
+                        if (success === false) {
+                            this.target.layerSources[this.initialConfig.search.selectedSource].disable();
+                            search.hide();
+                        }
+                    },
+                    scope: this
+                });
+            }
+            if (this.initialConfig.feeds) {
+                items.push(new Ext.menu.Item({
+                    iconCls: 'gxp-icon-addlayers',
+                    text: this.addFeedActionMenuText,
+                    handler: this.showFeedDialog,
                     scope: this
                 }));
             }
@@ -86782,34 +88017,50 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
     showCatalogueSearch: function() {
         var selectedSource = this.initialConfig.search.selectedSource;
         var sources = {};
+        var found = false;
         for (var key in this.target.layerSources) {
             var source = this.target.layerSources[key];
             if (source instanceof gxp.plugins.CatalogueSource) {
                 var obj = {};
                 obj[key] = source;
                 Ext.apply(sources, obj);
+                found = true;
             }
+        }
+        if (found === false) {
+            if (window.console) {
+                window.console.debug('No catalogue source specified');
+            }
+            return;
         }
         var output = gxp.plugins.AddLayers.superclass.addOutput.apply(this, [{
             sources: sources,
+            title: this.searchText,
+            height: 300,
+            width: 315,
             selectedSource: selectedSource,
             xtype: 'gxp_cataloguesearchpanel',
-            map: this.target.mapPanel.map,
-            listeners: {
-                'addlayer': function(cmp, sourceKey, layerConfig) {
-                    var source = this.target.layerSources[sourceKey];
-                    var bounds = OpenLayers.Bounds.fromArray(layerConfig.bbox);
-                    var mapProjection = this.target.mapPanel.map.getProjection();
-                    var bbox = bounds.transform(layerConfig.srs, mapProjection);
-                    layerConfig.srs = mapProjection;
-                    layerConfig.bbox = bbox.toArray();
-                    layerConfig.source = this.catalogSourceKey || sourceKey;
-                    var record = source.createLayerRecord(layerConfig);
-                    this.target.mapPanel.layers.add(record);
-                },
-                scope: this
-            }
+            map: this.target.mapPanel.map
         }]);
+        output.on({
+            'addlayer': function(cmp, sourceKey, layerConfig) {
+                var source = this.target.layerSources[sourceKey];
+                var bounds = OpenLayers.Bounds.fromArray(layerConfig.bbox,
+                    (source.yx && source.yx[layerConfig.projection] === true));
+                var mapProjection = this.target.mapPanel.map.getProjection();
+                var bbox = bounds.transform(layerConfig.srs, mapProjection);
+                layerConfig.srs = mapProjection;
+                layerConfig.bbox = bbox.toArray();
+                layerConfig.source = this.initialConfig.catalogSourceKey !== null ?
+                    this.initialConfig.catalogSourceKey : sourceKey;
+                var record = source.createLayerRecord(layerConfig);
+                this.target.mapPanel.layers.add(record);
+                if (bbox) {
+                    this.target.mapPanel.map.zoomToExtent(bbox);
+                }
+            },
+            scope: this
+        });
         var popup = output.findParentByType('window');
         popup && popup.center();
         return output;
@@ -86825,6 +88076,45 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
             this.addOutput(this.capGrid);
         }
         this.capGrid.show();
+    },
+
+    /** api: method[showFeedDialog]
+     * Shows the window with a dialog for adding feeds.
+     */
+    showFeedDialog: function() {
+        if(!this.feedDialog) {
+            var Cls = this.outputTarget ? Ext.Panel : Ext.Window;
+            this.feedDialog = new Cls(Ext.apply({
+                closeAction: "hide",
+                autoScroll: true,
+                title: this.addFeedActionMenuText,
+                items: [{
+                    xtype: "gxp_feedsourcedialog",
+                    target: this.target,
+                    listeners: {
+                        'addfeed':function (ptype, config) {
+                            var sourceConfig = {"config":{"ptype":ptype}};
+                            if (config.url) {
+                                sourceConfig.config["url"] = config.url;
+                            }
+                            var source = this.target.addLayerSource(sourceConfig);
+                            config.source = source.id;
+                            var feedRecord = source.createLayerRecord(config);
+                            this.target.mapPanel.layers.add([feedRecord]);
+                            this.feedDialog.hide();
+                        },
+                        scope: this
+                    }
+                }]
+            }, this.initialConfig.outputConfig));
+            if (Cls === Ext.Panel) {
+                this.addOutput(this.feedDialog);
+            }
+        }
+        if (!(this.feedDialog instanceof Ext.Window)) {
+            this.addOutput(this.feedDialog);
+        }
+        this.feedDialog.show();
     },
 
     /**
@@ -86900,7 +88190,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
         });
         
         var sourceComboBox = new Ext.form.ComboBox({
-            ref: "../sourceComboBox",
+            ref: "../../sourceComboBox",
             width: 165,
             store: sources,
             valueField: "id",
@@ -86941,15 +88231,19 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                 scope: this
             }
         });
-        
-        var capGridToolbar = null;
+
+        var capGridToolbar = null,
+            container;
+
         if (this.target.proxy || data.length > 1) {
-            capGridToolbar = [
-                new Ext.Toolbar.TextItem({
-                    text: this.layerSelectionText
-                }),
-                sourceComboBox
-            ];
+            container = new Ext.Container({
+                cls: 'gxp-addlayers-sourceselect',
+                items: [
+                    new Ext.Toolbar.TextItem({text: this.layerSelectionText}),
+                    sourceComboBox
+                ]
+            });
+            capGridToolbar = [container];
         }
         
         if (this.target.proxy) {
@@ -86966,10 +88260,21 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                         cmp.ownerCt.hide();
                     }
                 },
-                "urlselected": function(newSourceDialog, url) {
+                "urlselected": function(newSourceDialog, url, type) {
                     newSourceDialog.setLoading();
+                    var ptype;
+                    switch (type) {
+                    	case 'TMS':
+                    		ptype = "gxp_tmssource";
+                    		break;
+                    	case 'REST':
+                    		ptype = 'gxp_arcrestsource';
+                    		break;
+                    	default:
+                    		ptype = 'gxp_wmscsource';
+                    }
                     this.target.addLayerSource({
-                        config: {url: url}, // assumes default of gx_wmssource
+                        config: {url: url, ptype: ptype},
                         callback: function(id) {
                             // add to combo and select
                             var record = new sources.recordType({
@@ -86982,7 +88287,7 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                         },
                         fallback: function(source, msg) {
                             newSourceDialog.setError(
-                                new Ext.Template(this.addLayerSourceErrorText).apply({msg: msg})
+                                new Ext.Template(this.addLayerSourceErrorText).apply({type: type, msg: msg})
                             );
                         },
                         scope: this
@@ -87200,19 +88505,24 @@ gxp.plugins.AddLayers = Ext.extend(gxp.plugins.Tool, {
                             },
                             listeners: {
                                 uploadcomplete: function(panel, detail) {
-                                    var layers = detail["import"].tasks[0].items;
+                                    var layers = detail["import"].tasks;
                                     var item, names = {}, resource, layer;
                                     for (var i=0, len=layers.length; i<len; ++i) {
                                         item = layers[i];
                                         if (item.state === "ERROR") {
-                                            Ext.Msg.alert(item.originalName, item.errorMessage);
+                                            Ext.Msg.alert(item.layer.originalName, item.errorMessage);
                                             return;
                                         }
-                                        resource = item.resource;
-                                        layer = resource.featureType || resource.coverage;
-                                        names[layer.namespace.name + ":" + layer.name] = true;
+                                        var ws;
+                                        if (item.target.dataStore) {
+                                            ws = item.target.dataStore.workspace.name;
+                                        } else if (item.target.coverageStore) {
+                                            ws = item.target.coverageStore.workspace.name;
+                                        }
+                                        names[ws + ":" + item.layer.name] = true;
                                     }
                                     this.selectedSource.store.load({
+                                        params: {"_dc": Math.random()},
                                         callback: function(records, options, success) {
                                             var gridPanel, sel;
                                             if (this.capGrid && this.capGrid.isVisible()) {
@@ -87544,7 +88854,7 @@ gxp.plugins.LayerProperties = Ext.extend(gxp.plugins.Tool, {
         if (panelConfig && panelConfig[xtype]) {
             Ext.apply(config, panelConfig[xtype]);
         }
-        return gxp.plugins.LayerProperties.superclass.addOutput.call(this, Ext.apply({
+        var output = gxp.plugins.LayerProperties.superclass.addOutput.call(this, Ext.apply({
             xtype: xtype,
             authorized: this.target.isAuthorized(),
             layerRecord: record,
@@ -87552,18 +88862,19 @@ gxp.plugins.LayerProperties = Ext.extend(gxp.plugins.Tool, {
             defaults: {
                 style: "padding: 10px",
                 autoHeight: this.outputConfig.autoHeight
-            },
-            listeners: {
-                added: function(cmp) {
-                    if (!this.outputTarget) {
-                        cmp.on("afterrender", function() {
-                            cmp.ownerCt.ownerCt.center();
-                        }, this, {single: true});
-                    }
-                },
-                scope: this
             }
         }, config));
+        output.on({
+            added: function(cmp) {
+                if (!this.outputTarget) {
+                    cmp.on("afterrender", function() {
+                        cmp.ownerCt.ownerCt.center();
+                    }, this, {single: true});
+                }
+            },
+            scope: this
+        });
+        return output;
     }
         
 });
@@ -90601,7 +91912,9 @@ GeoExt.Lang.add("ca", {
         panelTitleText: "Títol",
         layerSelectionText: "Veure dades disponibles de:",
         doneText: "Fet",
-        uploadText: "Puja dades"
+        uploadText: "Puja dades",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -90616,7 +91929,9 @@ GeoExt.Lang.add("ca", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Crea nou element",
-        editFeatureActionTip: "Edita element existent"
+        editFeatureActionTip: "Edita element existent",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -90889,6 +92204,7 @@ GeoExt.Lang.add("ca", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "Quant a",
         titleText: "Títol",
         nameText: "Nom",
@@ -90899,9 +92215,19 @@ GeoExt.Lang.add("ca", {
         transparentText: "Transparent",
         cacheText: "Caché",
         cacheFieldText: "Utiliza la versió en caché",
-        stylesText: "Estils",
+        stylesText: "Estils disponibles",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Select a format"
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -90939,7 +92265,10 @@ GeoExt.Lang.add("ca", {
         styleWindowTitle: "Estil: {0}",
         ruleWindowTitle: "Regla: {0}",
         stylesFieldsetTitle: "Estils",
-        rulesFieldsetTitle: "Regles"
+        rulesFieldsetTitle: "Regles",
+        classifyStyleText: "Classify",
+        classifyStyleTip: "Classify the layer based on attributes"
+
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -90950,6 +92279,8 @@ GeoExt.Lang.add("ca", {
         fileLabel: "Dades",
         fieldEmptyText: "Navegueu per les dades...",
         uploadText: "Puja",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Pugeu les vostres dades...",
         invalidFileExtensionText: "L'extensió del fitxer ha de ser alguna d'aquestes: ",
         optionsText: "Opcions",
@@ -90970,6 +92301,23 @@ GeoExt.Lang.add("ca", {
 
     "gxp.ScaleOverlay.prototype": {
         zoomLevelText: "Escala"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Problemes desant: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Font",
+        addPicasaText: "Picasa fotos",
+        addYouTubeText: "YouTube Videos",
+        addRSSText: "Feed GeoRSS Un altre",
+        addFeedText: "Afegeix a Mapa",
+        addTitleText: "Títol",
+        keywordText: "Paraula clau",
+        doneText: "Fet",
+        titleText: "Afegir Feeds",
+        maxResultsText: "Productes Max"
     }
 
 });
@@ -90997,7 +92345,9 @@ GeoExt.Lang.add("de", {
         panelTitleText: "Titel",
         layerSelectionText: "Verfügbare Daten anzeigen von:",
         doneText: "Fertig",
-        uploadText: "Daten hochladen"
+        uploadText: "Daten hochladen",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -91012,7 +92362,9 @@ GeoExt.Lang.add("de", {
         createFeatureActionText: "Erzeugen",
         editFeatureActionText: "Bearbeiten",
         createFeatureActionTip: "neues Objekt erstellen",
-        editFeatureActionTip: "bestehendes Objekt bearbeiten"
+        editFeatureActionTip: "bestehendes Objekt bearbeiten",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -91097,8 +92449,8 @@ GeoExt.Lang.add("de", {
     "gxp.plugins.NavigationHistory.prototype": {
         previousMenuText: "Kartenausschnitt zurück",
         nextMenuText: "Kartenausschnitt vorwärts",
-        previousTooltip: "Kartenausschnitt zurück",
-        nextTooltip: "Kartenausschnitt vorwärts"
+        previousTooltip: "Vorherigen Kartenausschnitt anzeigen",
+        nextTooltip: "Nächsten Kartenausschnit anzeigen"
     },
 
     "gxp.plugins.OSMSource.prototype": {
@@ -91157,14 +92509,14 @@ GeoExt.Lang.add("de", {
         zoomMenuText: "Zoom Box",
         zoomInMenuText: "Vergrössern",
         zoomOutMenuText: "Verkleinern",
-        zoomTooltip: "Zoom durch Aufziehen einer Box",
+        zoomTooltip: "Box aufziehen zum Zoomen",
         zoomInTooltip: "Vergrössern",
         zoomOutTooltip: "Verkleinern"
     },
     
     "gxp.plugins.ZoomToExtent.prototype": {
         menuText: "Maximale Ausdehnung",
-        tooltip: "Maximale Ausdehnung"
+        tooltip: "Maximale Ausdehnung anzeigen"
     },
     
     "gxp.plugins.ZoomToDataExtent.prototype": {
@@ -91286,6 +92638,7 @@ GeoExt.Lang.add("de", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "Über",
         titleText: "Titel",
         nameText: "Name",
@@ -91296,9 +92649,19 @@ GeoExt.Lang.add("de", {
         transparentText: "transparent",
         cacheText: "Cache",
         cacheFieldText: "Version aus dem Cache benützen",
-        stylesText: "Styles",
+        stylesText: "Verfügbare Styles",
         infoFormatText: "Info Format",
-        infoFormatEmptyText: "Format auswählen"
+        infoFormatEmptyText: "Format auswählen",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -91336,7 +92699,9 @@ GeoExt.Lang.add("de", {
          styleWindowTitle: "User Style: {0}",
          ruleWindowTitle: "Style Regel: {0}",
          stylesFieldsetTitle: "Styles",
-         rulesFieldsetTitle: "Regeln"
+         rulesFieldsetTitle: "Regeln",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -91347,6 +92712,8 @@ GeoExt.Lang.add("de", {
         fileLabel: "Daten",
         fieldEmptyText: "Datenarchiv durchsuchen...",
         uploadText: "Hochladen",
+        uploadFailedText: "Hochladen fehlgeschlagen",
+        processingUploadText: "Upload wird bearbeitet",
         waitMsgText: "Ihre Daten werden hochgeladen...",
         invalidFileExtensionText: "Dateierweiterung muss eine sein von: ",
         optionsText: "Optionen",
@@ -91367,6 +92734,23 @@ GeoExt.Lang.add("de", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Zoomstufe"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Beim Speichern ist ein Problem aufgetreten: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Source",
+        addPicasaText: "Picasa Fotos",
+        addYouTubeText: "YouTube Videos",
+        addRSSText: "Andere GeoRSS Feed",
+        addFeedText: "zur Karte hinzufügen",
+        addTitleText: "Titel",
+        keywordText: "Keyword",
+        doneText: "Fertig",
+        titleText: "Add-Feeds",
+        maxResultsText: "Max Items"
     }
 
 });
@@ -91391,7 +92775,9 @@ GeoExt.Lang.add("el", {
         panelTitleText: "Τίτλος",
         layerSelectionText: "Δείτε διαθέσιμα δεδομένα από:",
         doneText: "Ολοκληρώθηκε",
-        uploadText: "Ανεβάστε Δεδομένα"
+        uploadText: "Ανεβάστε Δεδομένα",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -91406,7 +92792,9 @@ GeoExt.Lang.add("el", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Δημιουργήστε ένα νέο χαρακτηριστικό",
-        editFeatureActionTip: "Τροποποιήστε υπάρχον χαρακτηριστικό"
+        editFeatureActionTip: "Τροποποιήστε υπάρχον χαρακτηριστικό",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -91686,7 +93074,19 @@ GeoExt.Lang.add("el", {
         transparentText: "Διαφανές",
         cacheText: "Cache",
         cacheFieldText: "Χρησιμοποίησε την cached έκδοση",
-        stylesText: "Στυλ"
+        stylesText: "Διαθέσιμες Στυλ",
+        infoFormatText: "Info format",
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -91724,7 +93124,9 @@ GeoExt.Lang.add("el", {
          styleWindowTitle: "Στυλ Χρήστη: {0}",
          ruleWindowTitle: "Κανόνες Στυλ: {0}",
          stylesFieldsetTitle: "Στυλ",
-         rulesFieldsetTitle: "Κανόνες"
+         rulesFieldsetTitle: "Κανόνες",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -91735,6 +93137,8 @@ GeoExt.Lang.add("el", {
         fileLabel: "Δεδομένα",
         fieldEmptyText: "Βρείτε το μονοπάτι για ένα αρχείο δεδομένων...",
         uploadText: "Ανέβασμα",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Τα δεδομένα σας ανεβαίνουν...",
         invalidFileExtensionText: "Ο τύπος αρχείου πρέπει να είναι ένας από τους: ",
         optionsText: "Επιλογές",
@@ -91755,6 +93159,52 @@ GeoExt.Lang.add("el", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Επίπεδο ζουμ"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Trouble saving: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Πηγή",
+        addPicasaText: "Φωτογραφίες Picasa",
+        addYouTubeText: "YouTube βίντεο",
+        addRSSText: "Άλλα Feed GeoRSS",
+        addFeedText: "Προσθήκη στο χάρτη",
+        addTitleText: "Τίτλος",
+        keywordText: "Λέξη-κλειδί",
+        doneText: "Done",
+        titleText: "Προσθήκη ροής",
+        maxResultsText: "Max Είδη"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -91782,7 +93232,9 @@ GeoExt.Lang.add("en", {
         panelTitleText: "Title",
         layerSelectionText: "View available data from:",
         doneText: "Done",
-        uploadText: "Upload layers"
+        uploadText: "Upload layers",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -91797,7 +93249,9 @@ GeoExt.Lang.add("en", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Create a new feature",
-        editFeatureActionTip: "Edit existing feature"
+        editFeatureActionTip: "Edit existing feature",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -91833,6 +93287,10 @@ GeoExt.Lang.add("en", {
         rootNodeText: "Layers",
         overlayNodeText: "Overlays",
         baseNodeText: "Base Layers"
+    },
+
+    "gxp.plugins.LayerManager.prototype": {
+        baseNodeText: "Base Maps"
     },
 
     "gxp.plugins.Legend.prototype": {
@@ -92067,6 +93525,7 @@ GeoExt.Lang.add("en", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "About",
         titleText: "Title",
         nameText: "Name",
@@ -92077,9 +93536,19 @@ GeoExt.Lang.add("en", {
         transparentText: "Transparent",
         cacheText: "Cache",
         cacheFieldText: "Use cached version",
-        stylesText: "Styles",
+        stylesText: "Available Styles",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Select a format"
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -92117,7 +93586,9 @@ GeoExt.Lang.add("en", {
          styleWindowTitle: "User Style: {0}",
          ruleWindowTitle: "Style Rule: {0}",
          stylesFieldsetTitle: "Styles",
-         rulesFieldsetTitle: "Rules"
+         rulesFieldsetTitle: "Rules",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -92128,14 +93599,19 @@ GeoExt.Lang.add("en", {
         fileLabel: "Data",
         fieldEmptyText: "Browse for data archive...",
         uploadText: "Upload",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Uploading your data...",
         invalidFileExtensionText: "File extension must be one of: ",
         optionsText: "Options",
         workspaceLabel: "Workspace",
         workspaceEmptyText: "Default workspace",
         dataStoreLabel: "Store",
-        dataStoreEmptyText: "Create new store",
-        defaultDataStoreEmptyText: "Default data store"
+        dataStoreEmptyText: "Choose a store",
+        dataStoreNewText: "Create new store",
+        crsLabel: "CRS",
+        crsEmptyText: "Coordinate Reference System ID",
+        invalidCrsText: "CRS identifier should be an EPSG code (e.g. EPSG:4326)"
     },
     
     "gxp.NewSourceDialog.prototype": {
@@ -92148,6 +93624,52 @@ GeoExt.Lang.add("en", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Zoom level"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Trouble saving: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Source",
+        addPicasaText: "Picasa Photos",
+        addYouTubeText: "YouTube Videos",
+        addRSSText: "Other GeoRSS Feed",
+        addFeedText: "Add to Map",
+        addTitleText: "Title",
+        keywordText: "Keyword",
+        doneText: "Done",
+        titleText: "Add Feeds",
+        maxResultsText: "Max Items"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -92175,7 +93697,9 @@ GeoExt.Lang.add("es", {
         panelTitleText: "Título",
         layerSelectionText: "Ver datos disponibles de:",
         doneText: "Hecho",
-        uploadText: "Subir Datos"
+        uploadText: "Subir Datos",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -92190,7 +93714,9 @@ GeoExt.Lang.add("es", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Crear nuevo elemento",
-        editFeatureActionTip: "Editar elemento existente"
+        editFeatureActionTip: "Editar elemento existente",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -92463,6 +93989,7 @@ GeoExt.Lang.add("es", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "Acerca de",
         titleText: "Título",
         nameText: "Nombre",
@@ -92473,9 +94000,19 @@ GeoExt.Lang.add("es", {
         transparentText: "Transparente",
         cacheText: "Caché",
         cacheFieldText: "Usar la versión en caché",
-        stylesText: "Estilos",
+        stylesText: "Estilos disponibles",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Select a format"
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -92513,7 +94050,9 @@ GeoExt.Lang.add("es", {
         styleWindowTitle: "Estilo: {0}",
         ruleWindowTitle: "Regla: {0}",
         stylesFieldsetTitle: "Estilos",
-        rulesFieldsetTitle: "Reglas"
+        rulesFieldsetTitle: "Reglas",
+        classifyStyleText: "Classify",
+        classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -92524,6 +94063,8 @@ GeoExt.Lang.add("es", {
         fileLabel: "Datos",
         fieldEmptyText: "Navegue por los datos...",
         uploadText: "Subir",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Suba sus datos data...",
         invalidFileExtensionText: "El fichero debe tener alguna de estas extensiones: ",
         optionsText: "Opciones",
@@ -92544,6 +94085,52 @@ GeoExt.Lang.add("es", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Escala"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Problemas guardando: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Fuente",
+        addPicasaText: "Picasa fotos",
+        addYouTubeText: "YouTube Videos",
+        addRSSText: "Feed GeoRSS Otro",
+        addFeedText: "Agregar al Mapa",
+        addTitleText: "Título",
+        keywordText: "Palabra clave",
+        doneText: "Hecho",
+        titleText: "Agregar Feeds",
+        maxResultsText: "Productos Max"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -92563,7 +94150,9 @@ GeoExt.Lang.add("fr", {
         addLayerSourceErrorText: "Impossible d'obtenir les capacités WMS ({msg}).\nVeuillez vérifier l'URL et essayez à nouveau.",
         availableLayersText: "Couches disponibles",
         doneText: "Terminé",
-        uploadText: "Télécharger des données"
+        uploadText: "Télécharger des données",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -92578,7 +94167,9 @@ GeoExt.Lang.add("fr", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Créer un nouvel objet",
-        editFeatureActionTip: "Modifier un objet existant"
+        editFeatureActionTip: "Modifier un objet existant",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -92606,7 +94197,7 @@ GeoExt.Lang.add("fr", {
 
     "gxp.plugins.LayerProperties.prototype": {
         menuText: "Propriétés de la couche",
-        toolTip: "Propriétés de la couche"
+        toolTip: "Afficher les propriétés de la couche"
     },
     
     "gxp.plugins.LayerTree.prototype": {
@@ -92622,28 +94213,28 @@ GeoExt.Lang.add("fr", {
 
     "gxp.plugins.Legend.prototype": { 
         menuText: "Légende",
-        tooltip: "Légende"
+        tooltip: "Afficher la légende"
     },
 
     "gxp.plugins.Measure.prototype": {
         buttonText: "Mesure",
         lengthMenuText: "Longueur",
         areaMenuText: "Surface",
-        lengthTooltip: "Mesure de longueur",
-        areaTooltip: "Mesure de surface",
-        measureTooltip: "Mesure"
+        lengthTooltip: "Mesurer une longueur",
+        areaTooltip: "Mesurer une surface",
+        measureTooltip: "Mesurer"
     },
 
     "gxp.plugins.Navigation.prototype": {
-        menuText: "Panner la carte",
-        tooltip: "Panner la carte"
+        menuText: "Panner",
+        tooltip: "Faire glisser la carte"
     },
 
     "gxp.plugins.NavigationHistory.prototype": {
         previousMenuText: "Position précédente",
         nextMenuText: "Position suivante",
-        previousTooltip: "Position précédente",
-        nextTooltip: "Position suivante"
+        previousTooltip: "Retourner à la position précédente",
+        nextTooltip: "Aller à la position suivante"
     },
 
     "gxp.plugins.LoadingIndicator.prototype": {
@@ -92713,9 +94304,9 @@ GeoExt.Lang.add("fr", {
         zoomMenuText: "Zoom Box",
         zoomInMenuText: "Zoom avant",
         zoomOutMenuText: "Zoom arrière",
-        zoomTooltip: "Zoom by dragging a box",
-        zoomInTooltip: "Zoom avant",
-        zoomOutTooltip: "Zoom arrière"
+        zoomTooltip: "Zoomer en dessinant un rectangle",
+        zoomInTooltip: "Zoomer",
+        zoomOutTooltip: "Dézoomer"
     },
     
     "gxp.plugins.ZoomToExtent.prototype": {
@@ -92821,6 +94412,7 @@ GeoExt.Lang.add("fr", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "A propos",
         titleText: "Titre",
         nameText: "Nom",
@@ -92831,8 +94423,19 @@ GeoExt.Lang.add("fr", {
         transparentText: "Transparent",
         cacheText: "Cache",
         cacheFieldText: "Utiliser la version mise en cache",
+        stylesText: "Available styles",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Choisissez un format"
+        infoFormatEmptyText: "Choisissez un format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -92846,6 +94449,35 @@ GeoExt.Lang.add("fr", {
         largeSizeLabel: 'Large'
     },
 
+    "gxp.WMSStylesDialog.prototype": {
+         addStyleText: "Add",
+         addStyleTip: "Add a new style",
+         chooseStyleText: "Choose style",
+         deleteStyleText: "Remove",
+         deleteStyleTip: "Delete the selected style",
+         editStyleText: "Edit",
+         editStyleTip: "Edit the selected style",
+         duplicateStyleText: "Duplicate",
+         duplicateStyleTip: "Duplicate the selected style",
+         addRuleText: "Add",
+         addRuleTip: "Add a new rule",
+         newRuleText: "New Rule",
+         deleteRuleText: "Remove",
+         deleteRuleTip: "Delete the selected rule",
+         editRuleText: "Edit",
+         editRuleTip: "Edit the selected rule",
+         duplicateRuleText: "Duplicate",
+         duplicateRuleTip: "Duplicate the selected rule",
+         cancelText: "Cancel",
+         saveText: "Save",
+         styleWindowTitle: "User Style: {0}",
+         ruleWindowTitle: "Style Rule: {0}",
+         stylesFieldsetTitle: "Styles",
+         rulesFieldsetTitle: "Rules",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
+    },
+
     "gxp.LayerUploadPanel.prototype": {
         titleLabel: "Titre",
         titleEmptyText: "Titre de la couche",
@@ -92854,6 +94486,8 @@ GeoExt.Lang.add("fr", {
         fileLabel: "Données",
         fieldEmptyText: "Parcourir pour ...",
         uploadText: "Upload",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Transfert de vos données ...",
         invalidFileExtensionText: "L'extension du fichier doit être : ",
         optionsText: "Options",
@@ -92874,6 +94508,52 @@ GeoExt.Lang.add("fr", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Niveau de zoom"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Sauver Trouble: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Source",
+        addPicasaText: "Picasa Photos",
+        addYouTubeText: "YouTube Vidéos",
+        addRSSText: "GeoRSS Autre",
+        addFeedText: "Ajouter à la carte",
+        addTitleText: "Titre",
+        keywordText: "Mot-clé",
+        doneText: "Terminé",
+        titletext:  "Ajouter RSS",
+        maxResultsText: "Articles Max"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -92901,7 +94581,9 @@ GeoExt.Lang.add("id", {
         panelTitleText: "Title",
         layerSelectionText: "View available data from:",
         doneText: "Selesai",
-        uploadText: "Unggah data"
+        uploadText: "Unggah data",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -92916,7 +94598,9 @@ GeoExt.Lang.add("id", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Membuat sebuah fitur",
-        editFeatureActionTip: "Edit fitur"
+        editFeatureActionTip: "Edit fitur",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -93190,6 +94874,7 @@ GeoExt.Lang.add("id", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "Tentang Program",
         titleText: "Judul",
         nameText: "Nama",
@@ -93200,9 +94885,19 @@ GeoExt.Lang.add("id", {
         transparentText: "Transparent",
         cacheText: "Cache",
         cacheFieldText: "Menggunakan versi cached",
-        stylesText: "Styles",
+        stylesText: "Styles tersedia",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Select a format"
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -93240,7 +94935,9 @@ GeoExt.Lang.add("id", {
          styleWindowTitle: "User Style: {0}",
          ruleWindowTitle: "Style Rule: {0}",
          stylesFieldsetTitle: "Styles",
-         rulesFieldsetTitle: "Rules"
+         rulesFieldsetTitle: "Rules",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -93251,6 +94948,8 @@ GeoExt.Lang.add("id", {
         fileLabel: "Data",
         fieldEmptyText: "Pencarian arsip data...",
         uploadText: "Pengisian",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Mengisi Data anda...",
         invalidFileExtensionText: "Ekstensi file harus salah satu: ",
         optionsText: "Pilihan",
@@ -93271,6 +94970,52 @@ GeoExt.Lang.add("id", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Zoom level"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Trouble saving: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Sumber",
+        addPicasaText: "Picasa Foto",
+        addYouTubeText: "YouTube Video",
+        addRSSText: "GeoRSS Pakan lain",
+        addFeedText: "Tambah ke Peta",
+        addTitleText: "Judul",
+        keywordText: "Kata Kunci",
+        doneText: "Selesai",
+        titleText: "Tambah Blog",
+        maxResultsText: "Produk Max"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -93289,7 +95034,9 @@ GeoExt.Lang.add("nl", {
         untitledText: "Onbekend",
         addLayerSourceErrorText: "Probleem bij het ophalen van de Error WMS GetCapabilities ({msg}).\nControleer de URL en probeer opnieuw.",
         availableLayersText: "Beschikbare kaartlagen",
-        doneText: "Klaar"
+        doneText: "Klaar",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Zoek naar kaartlagen"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -93301,7 +95048,9 @@ GeoExt.Lang.add("nl", {
 
     "gxp.plugins.FeatureEditor.prototype": {
         createFeatureActionTip: "Maak een nieuw object",
-        editFeatureActionTip: "Wijzig een bestand object"
+        editFeatureActionTip: "Wijzig een bestand object",
+        commitTitle: "Wijzingsbeschrijving",
+        commitText: "Voor a.u.b. een beschrijving in voor de wijziging:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -93551,6 +95300,7 @@ GeoExt.Lang.add("nl", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Bronvermelding",
         aboutText: "Informatie",
         titleText: "Titel",
         nameText: "Naam",
@@ -93561,9 +95311,19 @@ GeoExt.Lang.add("nl", {
         transparentText: "Transparant",
         cacheText: "Cache",
         cacheFieldText: "Gebruik de versie vanuit de cache",
-        stylesText: "Stijlen",
+        stylesText: "Beschikbare Stijlen",
         infoFormatText: "Info formaat",
-        infoFormatEmptyText: "Selecteer een formaat"
+        infoFormatEmptyText: "Selecteer een formaat",
+        displayOptionsText: "Weergave opties",
+        queryText: "Begrens d.m.v. query",
+        scaleText: "Bregens d.m.v. schaal",
+        minScaleText: "Minimum schaal",
+        maxScaleText: "Maximum schaal",
+        switchToFilterBuilderText: "Terug naar de querybuilder",
+        cqlPrefixText: "of ",
+        cqlText: "gebruik een CQL filter",
+        singleTileText: "Enkele kaarttegel",
+        singleTileFieldText: "Gebruik 1 kaarttegel"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -93598,7 +95358,9 @@ GeoExt.Lang.add("nl", {
          styleWindowTitle: "Kaartstijl: {0}",
          ruleWindowTitle: "Klasse: {0}",
          stylesFieldsetTitle: "Kaartstijlen",
-         rulesFieldsetTitle: "Klassen"
+         rulesFieldsetTitle: "Klassen",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -93609,6 +95371,8 @@ GeoExt.Lang.add("nl", {
         fileLabel: "Data",
         fieldEmptyText: "Kies data archief...",
         uploadText: "Upload",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
         waitMsgText: "Bezig met uploaden van de data...",
         invalidFileExtensionText: "Bestandsextensie is een van: ",
         optionsText: "Opties",
@@ -93629,6 +95393,52 @@ GeoExt.Lang.add("nl", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Zoom niveau"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Problemen bij het opslaan: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+    	feedTypeText: "Bron",
+        addPicasaText: "Picasa Foto's",
+        addYouTubeText: "YouTube video's",
+        addRSSText: "Andere GeoRSS Feed",
+        addFeedText: "Voeg toe aan Map",
+        addTitleText: "Titel",
+        keywordText: "Trefwoord",
+        doneText: "Klaar",
+        titleText: "Voeg Feeds",
+        maxResultsText: "Max Items"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
@@ -93656,7 +95466,9 @@ GeoExt.Lang.add("pl", {
         panelTitleText: "Tytuł",
         layerSelectionText: "Pokaż dostępne warstwy z:",
         doneText: "Gotowe",
-        uploadText: "Wyślij dane"
+        uploadText: "Wyślij dane",
+        addFeedActionMenuText: "Add feeds",
+        searchText: "Search for layers"
     },
     
     "gxp.plugins.BingSource.prototype": {
@@ -93671,7 +95483,9 @@ GeoExt.Lang.add("pl", {
         createFeatureActionText: "Create",
         editFeatureActionText: "Modify",
         createFeatureActionTip: "Utwórz nowy obiekt",
-        editFeatureActionTip: "Edytuj istniejący obiekt"
+        editFeatureActionTip: "Edytuj istniejący obiekt",
+        commitTitle: "Commit message",
+        commitText: "Please enter a commit message for this edit:"
     },
     
     "gxp.plugins.FeatureGrid.prototype": {
@@ -93923,6 +95737,7 @@ GeoExt.Lang.add("pl", {
     },
     
     "gxp.WMSLayerPanel.prototype": {
+        attributionText: "Attribution",
         aboutText: "O",
         titleText: "Tytuł",
         nameText: "Nazwa",
@@ -93933,9 +95748,19 @@ GeoExt.Lang.add("pl", {
         transparentText: "Przeźr.",
         cacheText: "Cache",
         cacheFieldText: "Użyj wersji cache",
-        stylesText: "Style",
+        stylesText: "Dostępne Style",
         infoFormatText: "Info format",
-        infoFormatEmptyText: "Select a format"
+        infoFormatEmptyText: "Select a format",
+        displayOptionsText: "Display options",
+        queryText: "Limit with filters",
+        scaleText: "Limit by scale",
+        minScaleText: "Min scale",
+        maxScaleText: "Max scale",
+        switchToFilterBuilderText: "Switch back to filter builder",
+        cqlPrefixText: "or ",
+        cqlText: "use CQL filter instead",
+        singleTileText: "Single tile",
+        singleTileFieldText: "Use a single tile"
     },
 
     "gxp.EmbedMapDialog.prototype": {
@@ -93973,7 +95798,9 @@ GeoExt.Lang.add("pl", {
          styleWindowTitle: "Styl użytkownika: {0}",
          ruleWindowTitle: "Reguła stylu: {0}",
          stylesFieldsetTitle: "Style",
-         rulesFieldsetTitle: "Reguły"
+         rulesFieldsetTitle: "Reguły",
+         classifyStyleText: "Classify",
+         classifyStyleTip: "Classify the layer based on attributes"
     },
 
     "gxp.LayerUploadPanel.prototype": {
@@ -93984,6 +95811,9 @@ GeoExt.Lang.add("pl", {
         fileLabel: "Dane",
         fieldEmptyText: "Wskaż lokalizację danych...",
         uploadText: "Prześlij",
+        uploadFailedText: "Upload failed",
+        processingUploadText: "Processing upload...",
+        importText: "Importing upload...",
         waitMsgText: "Przesyłanie danych...",
         invalidFileExtensionText: "Typ pliku musi być jednym z poniższych: ",
         optionsText: "Opcje",
@@ -94004,6 +95834,52 @@ GeoExt.Lang.add("pl", {
 
     "gxp.ScaleOverlay.prototype": { 
         zoomLevelText: "Poziom powiększenia"
+    },
+
+    "gxp.Viewer.prototype": {
+        saveErrorText: "Trouble saving: "
+    },
+
+    "gxp.FeedSourceDialog.prototype": {
+        feedTypeText: "Źródło",
+        addPicasaText: "Picasa zdjęcia",
+        addYouTubeText: "YouTube Videos",
+        addRSSText: "Inne GeoRSS",
+        addFeedText: "Dodaj do mapy",
+        addTitleText: "Tytuł",
+        keywordText: "Słowo",
+        doneText: "Gotowe",
+        titleText: "Dodaj kanały",
+        maxResultsText: "Rzeczy Max"
+    },
+
+    "gxp.ClassificationPanel.prototype": {
+        classNumberText: 'Classes',
+        classifyText: "Classify",
+        rampBlueText: "Blue",
+        rampRedText: "Red",
+        rampOrangeText: "Orange",
+        rampJetText: "Blue-Red",
+        rampGrayText: "Gray",
+        rampRandomText: "Random",
+        rampCustomText: "Custom",
+        selectColorText: "Select colors",
+        colorStartText: "Start Color",
+        colorEndText: "End Color",
+        colorRampText: 'Color Ramp',
+        methodText: "Method",
+        methodUniqueText: "Unique Values",
+        methodQuantileText: "Quantile",
+        methodEqualText: "Equal Intervals",
+        methodJenksText: "Jenks Natural Breaks",
+        selectMethodText: "Select method",
+        standardDeviationText: "Standard Deviations",
+        attributeText: "Attribute",
+        selectAttributeText: "Select attribute",
+        startColor: "#FEE5D9",
+        endColor: "#A50F15",
+        generateRulesText: "Apply",
+        reverseColorsText: "Reverse colors"
     }
 
 });
