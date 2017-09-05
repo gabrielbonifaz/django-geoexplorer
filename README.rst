@@ -46,6 +46,20 @@ DEVELOPERS
     git push origin master
     python setup.py sdist upload
 
+
+===================
+GeoExplorer Sources
+===================
+
+::
+
+    git clone https://github.com/geosolutions-it/geoexplorer.git
+    cd geoexplorer
+    git checkout geonode-geoexplorer
+    ant war
+    cp -R suite/geoexplorer/target/geoexplorer/WEB-INF/app/static/* django-geoexplorer/geoexplorer/static/
+
+
 =======
 LICENSE
 =======
