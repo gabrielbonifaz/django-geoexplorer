@@ -71097,10 +71097,14 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
 
         var is_valid = rule["attribute"] && rule["method"] && rule["intervals"] && rule["ramp"]
             && (rule["ramp"] == "Custom" ? rule["color_start"] && rule["color_end"] : true);
+        var layerName = layer.params["LAYERS"];
+        if (layerName.indexOf(':') >= 0) {
+            layerName = layerName.split(':')[1]
+        }
 
         if (is_valid) {
             Ext.Ajax.request({
-                url: url + "/sldservice/" + layer.params["LAYERS"] + "/classify.xml",
+                url: url + "/sldservice/" + layerName + "/classify.xml",
                 params: {
                     "attribute": rule["attribute"],
                     "method": rule["method"],
@@ -71187,7 +71191,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
      *  :arg response: ``Object``
      *  :arg options: ``Object``
      *
-     *  Success handler for the GetStyles response. Includes a fallback
+     *  Success handler for the GetF response. Includes a fallback
      *  to GetLegendGraphic if no valid SLD is returned.
      */
     parseSLD: function(response, options) {
@@ -78937,7 +78941,7 @@ gxp.plugins.StyleWriter = Ext.extend(Ext.util.Observable, {
 /** FILE: plugins/GeoServerStyleWriter.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
- * 
+ *
  * Published under the GPL license.
  * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
  * of the license.
@@ -78961,7 +78965,7 @@ Ext.namespace("gxp.plugins");
 
 /** api: constructor
  *  .. class:: GeoServerStyleWriter(config)
- *   
+ *
  *      Save styles from :class:`gxp.WMSStylesDialog` or similar classes that
  *      have a ``layerRecord`` and a ``stylesStore`` with a ``userStyle``
  *      field. The plugin provides a save method, which will use the GeoServer
@@ -78970,28 +78974,28 @@ Ext.namespace("gxp.plugins");
  *      ``layerRecord``.
  */
 gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
-    
+
     /** api: config[baseUrl]
      *  ``String``
      *  The base url for the GeoServer REST API. Default is "/geoserver/rest".
      */
     baseUrl: "/geoserver/rest",
-    
+
     /** private: method[constructor]
      */
     constructor: function(config) {
         this.initialConfig = config;
         Ext.apply(this, config);
-        
+
         gxp.plugins.GeoServerStyleWriter.superclass.constructor.apply(this, arguments);
     },
-    
+
     /** api: method[write]
      *  :arg options: ``Object``
      *
      *  Saves the styles of the target's ``layerRecord`` using GeoServer's
      *  RESTconfig API.
-     *  
+     *
      *  Supported options:
      *
      *  * defaultStyle - ``String`` If set, the default style will be set.
@@ -79033,25 +79037,29 @@ gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
             this.assignStyles(options.defaultStyle, success);
         }
     },
-    
-    /** private: method[writeStyle] 
+
+    /** private: method[writeStyle]
      *  :arg styleRec: ``Ext.data.Record`` the record from the target's
      *      ``stylesStore`` to write
      *  :arg dispatchQueue: ``Array(Function)`` the dispatch queue the write
      *      function is added to.
-     * 
+     *
      *  This method does not actually write styles, it just adds a function to
      *  the provided ``dispatchQueue`` that will do so.
      */
     writeStyle: function(styleRec, dispatchQueue) {
         var styleName = styleRec.get("userStyle").name;
+        var layerName = this.target.layerRecord.get("name");
+        if (layerName.indexOf(':') >= 0) {
+            layerName = layerName.split(':')[1]
+        }
         dispatchQueue.push(function(callback, storage) {
             Ext.Ajax.request({
                 method: styleRec.phantom === true ? "POST" : "PUT",
                 url: this.baseUrl + "/styles" + (styleRec.phantom === true ?
                     "" : "/" + styleName + ".xml"),
                 headers: {
-                    "Content-Type": "application/vnd.ogc.sld+xml; charset=UTF-8"
+                    "Content-Type": "application/vnd.ogc.sld+xml"
                 },
                 xmlData: this.target.createSLD({
                     userStyles: [styleName]
@@ -79063,8 +79071,7 @@ gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
                 success: styleRec.phantom === true ? function(){
                     Ext.Ajax.request({
                         method: "POST",
-                        url: this.baseUrl + "/layers/" +
-                            this.target.layerRecord.get("name") + "/styles.json",
+                        url: this.baseUrl + "/layers/" + layerName + "/styles.json",
                         jsonData: {
                             "style": {
                                 "name": styleName
@@ -79122,7 +79129,7 @@ gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
             scope: this
         });
     },
-    
+
     /** private: method[deleteStyles]
      *  Deletes styles that are no longer assigned to the layer.
      */
