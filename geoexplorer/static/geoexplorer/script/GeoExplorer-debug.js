@@ -59446,10 +59446,15 @@ GeoExt.data.PrintProviderBase = Ext.extend(Ext.util.Observable, {
             var legend = options.legend;
             var rendered = legend.rendered;
             if (!rendered && legend) {
-                legend = legend.cloneConfig({
-                    renderTo: document.body,
-                    hidden: true
-                });
+                try {
+                    legend = legend.cloneConfig({
+                        renderTo: document.body,
+                        hidden: true
+                    });
+                } catch(err) {
+                    console.log(err);
+                    debugger;
+                }
             }
             if (legend.items) {
                 legend.items.each(function(cmp) {
@@ -59461,8 +59466,13 @@ GeoExt.data.PrintProviderBase = Ext.extend(Ext.util.Observable, {
                     }
                 }, this);
             }
-            if (!rendered) {
-                legend.destroy();
+            if (!rendered && legend) {
+                try {
+                    legend.destroy();
+                } catch(err) {
+                    console.log(err);
+                    debugger;
+                }
             }
         }
         this.requestPrint(map, pages, encodedLayers, encodedOverviewLayers, encodedLegends, callback);
@@ -79057,7 +79067,7 @@ gxp.plugins.GeoServerStyleWriter = Ext.extend(gxp.plugins.StyleWriter, {
             Ext.Ajax.request({
                 method: styleRec.phantom === true ? "POST" : "PUT",
                 url: this.baseUrl + "/styles" + (styleRec.phantom === true ?
-                    "" : "/" + styleName + ".xml"),
+                    "" : "/" + styleName + ".xml?raw=true"),
                 headers: {
                     "Content-Type": "application/vnd.ogc.sld+xml"
                 },
