@@ -1,5 +1,5 @@
 /** FILE: OpenLayers/SingleFile.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -8,7 +8,7 @@ var OpenLayers = {
     /**
      * Constant: VERSION_NUMBER
      */
-    VERSION_NUMBER: "Release 2.13.1",
+    VERSION_NUMBER: "Release 2.14 dev",
 
     /**
      * Constant: singleFile
@@ -79,7 +79,7 @@ var OpenLayers = {
 };
 
 /** FILE: OpenLayers/BaseTypes.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -418,12 +418,12 @@ OpenLayers.Function = {
      */
     bind: function(func, object) {
         // create a reference to all arguments past the second one
-        var args = Array.prototype.slice.apply(arguments, [2]);
+        var args = Array.prototype.slice.call(arguments, 2);
         return function() {
             // Push on any additional arguments from the actual function call.
             // These will come after those sent to the bind call.
             var newArgs = args.concat(
-                Array.prototype.slice.apply(arguments, [0])
+                Array.prototype.slice.call(arguments, 0)
             );
             return func.apply(object, newArgs);
         };
@@ -544,7 +544,7 @@ OpenLayers.Array = {
 };
 
 /** FILE: OpenLayers/BaseTypes/Class.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -667,7 +667,7 @@ OpenLayers.Util.extend = function(destination, source) {
 };
 
 /** FILE: OpenLayers/BaseTypes/Date.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -792,7 +792,7 @@ OpenLayers.Date = {
 };
 
 /** FILE: OpenLayers/BaseTypes/Bounds.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -958,7 +958,7 @@ OpenLayers.Bounds = OpenLayers.Class({
      * Returns a boundingbox-string representation of the bounds object.
      * 
      * Parameters:
-     * decimal - {Integer} How many significant digits in the bbox coords?
+     * decimal - {Integer} How many decimal places in the bbox coords?
      *                     Default is 6
      * reverseAxisOrder - {Boolean} Should we reverse the axis order?
      * 
@@ -1631,7 +1631,7 @@ OpenLayers.Bounds.oppositeQuadrant = function(quadrant) {
 };
 
 /** FILE: OpenLayers/BaseTypes/LonLat.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -1848,7 +1848,7 @@ OpenLayers.LonLat.fromArray = function(arr) {
 };
 
 /** FILE: OpenLayers/BaseTypes/Pixel.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -1993,7 +1993,7 @@ OpenLayers.Pixel = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/BaseTypes/Size.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -2084,7 +2084,7 @@ OpenLayers.Size = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Console.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -2102,7 +2102,7 @@ OpenLayers.Size = OpenLayers.Class({
  * cross-browser debugging Firebug style.
  *
  * Note:
- * Note that behavior will differ with the Firebug extention and Firebug Lite.
+ * Note that behavior will differ with the Firebug extension and Firebug Lite.
  * Most notably, the Firebug Lite console does not currently allow for
  * hyperlinks to code or for clicking on object to explore their properties.
  * 
@@ -2336,7 +2336,7 @@ OpenLayers.Console = {
 })();
 
 /** FILE: OpenLayers/Lang.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -2472,7 +2472,7 @@ OpenLayers.Lang = {
 OpenLayers.i18n = OpenLayers.Lang.translate;
 
 /** FILE: OpenLayers/Util.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -2982,7 +2982,7 @@ OpenLayers.Util.applyDefaults = function (to, from) {
  *          http parameter notation. 
  *          (ex. <i>"key1=value1&key2=value2&key3=value3"</i>)
  *          If a parameter is actually a list, that parameter will then
- *          be set to a comma-seperated list of values (foo,bar) instead
+ *          be set to a comma-separated list of values (foo,bar) instead
  *          of being URL escaped (foo%3Abar). 
  */
 OpenLayers.Util.getParameterString = function(params) {
@@ -4245,9 +4245,35 @@ OpenLayers.Util.getFormattedLonLat = function(coordinate, axis, dmsOption) {
     return str;
 };
 
+/**
+ * Function: getConstructor
+ * Take an OpenLayers style CLASS_NAME and return a constructor.
+ *
+ * Parameters:
+ * className - {String} The dot delimited class name (e.g. 'OpenLayers.Foo').
+ * 
+ * Returns:
+ * {Function} The constructor.
+ */
+OpenLayers.Util.getConstructor = function(className) {
+    var Constructor;
+    var parts = className.split('.');
+    if (parts[0] === "OpenLayers") {
+        Constructor = OpenLayers;
+    } else {
+        // someone extended our base class and used their own namespace
+        // this will not work when the library is evaluated in a closure
+        // but it is the best we can do (until we ourselves provide a global)
+        Constructor = window[parts[0]];
+    }
+    for (var i = 1, ii = parts.length; i < ii; ++i) {
+        Constructor = Constructor[parts[i]];
+    }
+    return Constructor;
+};
 
 /** FILE: OpenLayers/BaseTypes/Element.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -4438,7 +4464,7 @@ OpenLayers.Element = {
 };
 
 /** FILE: OpenLayers/Util/vendorPrefix.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -4570,7 +4596,7 @@ OpenLayers.Util.vendorPrefix = (function() {
     };
 }());
 /** FILE: OpenLayers/Events.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -4694,6 +4720,23 @@ OpenLayers.Event = {
      */
     isMultiTouch: function(event) {
         return event.touches && event.touches.length > 1;
+    },
+
+    /**
+     * Method: isTouchEvent
+     * Determine whether the event was triggered by a touch
+     * 
+     * Parameters:
+     * evt - {Event}
+     * 
+     * Returns:
+     * {Boolean}
+     */
+    isTouchEvent: function(evt) {
+        return ("" + evt.type).indexOf("touch") === 0 || (
+                "pointerType" in evt && (
+                     evt.pointerType === evt.MSPOINTER_TYPE_TOUCH /*IE10 pointer*/ ||
+                     evt.pointerType === "touch" /*W3C pointer*/));
     },
 
     /**
@@ -4979,6 +5022,24 @@ OpenLayers.Events = OpenLayers.Class({
         "touchstart", "touchmove", "touchend",
         "keydown"
     ],
+    
+    /**
+     * Constant: standard pointer model
+     * {string}
+     */
+    TOUCH_MODEL_POINTER: "pointer",
+
+    /**
+     * Constant: prefixed pointer model (IE10)
+     * {string}
+     */
+    TOUCH_MODEL_MSPOINTER: "MSPointer",
+
+    /**
+     * Constant: legacy touch model
+     * {string}
+     */
+    TOUCH_MODEL_TOUCH: "touch",
 
     /** 
      * Property: listeners 
@@ -5138,7 +5199,7 @@ OpenLayers.Events = OpenLayers.Class({
         this.listeners  = {};
         this.extensions = {};
         this.extensionCount = {};
-        this._msTouches = [];
+        this._pointerTouches = [];
         
         // if a dom element is specified, add a listeners list 
         // for browser events on the element and register them
@@ -5205,15 +5266,17 @@ OpenLayers.Events = OpenLayers.Class({
             );
         }
         this.element = element;
-        var msTouch = !!window.navigator.msMaxTouchPoints;
+        var touchModel = this.getTouchModel();
         var type;
         for (var i = 0, len = this.BROWSER_EVENTS.length; i < len; i++) {
             type = this.BROWSER_EVENTS[i];
             // register the event cross-browser
-            OpenLayers.Event.observe(element, type, this.eventHandler
-            );
-            if (msTouch && type.indexOf('touch') === 0) {
-                this.addMsTouchListener(element, type, this.eventHandler);
+            if ((touchModel === this.TOUCH_MODEL_POINTER ||
+                    touchModel === this.TOUCH_MODEL_MSPOINTER) &&
+                    type.indexOf('touch') === 0) {
+                this.addPointerTouchListener(element, type, this.eventHandler);
+            } else {
+                OpenLayers.Event.observe(element, type, this.eventHandler);
             }
         }
         // disable dragstart in IE so that mousedown/move/up works normally
@@ -5470,7 +5533,7 @@ OpenLayers.Events = OpenLayers.Class({
     handleBrowserEvent: function (evt) {
         var type = evt.type, listeners = this.listeners[type];
         if(!listeners || listeners.length == 0) {
-            // noone's listening, bail out
+            // no one's listening, bail out
             return;
         }
         // add clientX & clientY to all events - corresponds to average x, y
@@ -5593,18 +5656,38 @@ OpenLayers.Events = OpenLayers.Class({
     },
 
     /**
-     * Method: addMsTouchListener
+     * Method: getTouchModel
+     * Get the touch model currently in use.
+     * 
+     * This is cached on OpenLayers.Events as _TOUCH_MODEL 
+     * 
+     * Returns:
+     * {string} The current touch model (TOUCH_MODEL_xxx), null if none
+     */
+    getTouchModel: function() {
+        if (!("_TOUCH_MODEL" in OpenLayers.Events)) {
+            OpenLayers.Events._TOUCH_MODEL =
+                    (window.PointerEvent && "pointer") ||
+                    (window.MSPointerEvent && "MSPointer") ||
+                    (("ontouchdown" in document) && "touch") ||
+                    null;
+        }
+        return OpenLayers.Events._TOUCH_MODEL;
+    },
+
+    /**
+     * Method: addPointerTouchListener
      *
      * Parameters:
      * element - {DOMElement} The DOM element to register the listener on
      * type - {String} The event type
      * handler - {Function} the handler
      */
-    addMsTouchListener: function (element, type, handler) {
+    addPointerTouchListener: function (element, type, handler) {
         var eventHandler = this.eventHandler;
-        var touches = this._msTouches;
+        var touches = this._pointerTouches;
 
-        function msHandler(evt) {
+        function pointerHandler(evt) {
             handler(OpenLayers.Util.applyDefaults({
                 stopPropagation: function() {
                     for (var i=touches.length-1; i>=0; --i) {
@@ -5622,28 +5705,33 @@ OpenLayers.Events = OpenLayers.Class({
 
         switch (type) {
             case 'touchstart':
-                return this.addMsTouchListenerStart(element, type, msHandler);
+                return this.addPointerTouchListenerStart(element, type, pointerHandler);
             case 'touchend':
-                return this.addMsTouchListenerEnd(element, type, msHandler);
+                return this.addPointerTouchListenerEnd(element, type, pointerHandler);
             case 'touchmove':
-                return this.addMsTouchListenerMove(element, type, msHandler);
+                return this.addPointerTouchListenerMove(element, type, pointerHandler);
             default:
                 throw 'Unknown touch event type';
         }
     },
 
     /**
-     * Method: addMsTouchListenerStart
+     * Method: addPointerTouchListenerStart
      *
      * Parameters:
      * element - {DOMElement} The DOM element to register the listener on
      * type - {String} The event type
      * handler - {Function} the handler
      */
-    addMsTouchListenerStart: function(element, type, handler) {
-        var touches = this._msTouches;
+    addPointerTouchListenerStart: function(element, type, handler) {
+        var touches = this._pointerTouches;
 
         var cb = function(e) {
+
+            // pointer could be mouse or pen
+            if (!OpenLayers.Event.isTouchEvent(e)) {
+                return;
+            }
 
             var alreadyInArray = false;
             for (var i=0, ii=touches.length; i<ii; ++i) {
@@ -5660,35 +5748,52 @@ OpenLayers.Events = OpenLayers.Class({
             handler(e);
         };
 
-        OpenLayers.Event.observe(element, 'MSPointerDown', cb);
+        OpenLayers.Event.observe(element,
+                this.getTouchModel() === this.TOUCH_MODEL_MSPOINTER ?
+                        'MSPointerDown' : 'pointerdown',
+                cb);
+        
+        // the pointerId only needs to be removed from the _pointerTouches array
+        // when the pointer has left its element
+        var internalCb = function (e) {
 
-        // Need to also listen for end events to keep the _msTouches list
-        // accurate
-        var internalCb = function(e) {
-            for (var i=0, ii=touches.length; i<ii; ++i) {
+            // pointer could be mouse or pen
+            if (!OpenLayers.Event.isTouchEvent(e)) {
+            	return;
+            }
+
+            var up = false;
+            for (var i = 0, ii = touches.length; i < ii; ++i) {
                 if (touches[i].pointerId == e.pointerId) {
-                    touches.splice(i, 1);
+                    if (this.clientWidth != 0 && this.clientHeight != 0) {
+                        if ((Math.ceil(e.clientX) >= this.clientWidth || Math.ceil(e.clientY) >= this.clientHeight)) {
+                            touches.splice(i, 1);
+                        }
+                    }
                     break;
                 }
             }
         };
-        OpenLayers.Event.observe(element, 'MSPointerUp', internalCb);
+        OpenLayers.Event.observe(element,
+                this.getTouchModel() === this.TOUCH_MODEL_MSPOINTER ?
+                        'MSPointerOut' : 'pointerout',
+                internalCb);
     },
 
     /**
-     * Method: addMsTouchListenerMove
+     * Method: addPointerTouchListenerMove
      *
      * Parameters:
      * element - {DOMElement} The DOM element to register the listener on
      * type - {String} The event type
      * handler - {Function} the handler
      */
-    addMsTouchListenerMove: function (element, type, handler) {
-        var touches = this._msTouches;
+    addPointerTouchListenerMove: function (element, type, handler) {
+        var touches = this._pointerTouches;
         var cb = function(e) {
 
-            //Don't fire touch moves when mouse isn't down
-            if (e.pointerType == e.MSPOINTER_TYPE_MOUSE && e.buttons == 0) {
+            // pointer could be mouse or pen
+            if (!OpenLayers.Event.isTouchEvent(e)) {
                 return;
             }
 
@@ -5708,21 +5813,29 @@ OpenLayers.Events = OpenLayers.Class({
             handler(e);
         };
 
-        OpenLayers.Event.observe(element, 'MSPointerMove', cb);
+        OpenLayers.Event.observe(element,
+                this.getTouchModel() === this.TOUCH_MODEL_MSPOINTER ?
+                        'MSPointerMove' : 'pointermove',
+                cb);
     },
 
     /**
-     * Method: addMsTouchListenerEnd
+     * Method: addPointerTouchListenerEnd
      *
      * Parameters:
      * element - {DOMElement} The DOM element to register the listener on
      * type - {String} The event type
      * handler - {Function} the handler
      */
-    addMsTouchListenerEnd: function (element, type, handler) {
-        var touches = this._msTouches;
+    addPointerTouchListenerEnd: function (element, type, handler) {
+        var touches = this._pointerTouches;
 
         var cb = function(e) {
+
+            // pointer could be mouse or pen
+            if (!OpenLayers.Event.isTouchEvent(e)) {
+            	return;
+            }
 
             for (var i=0, ii=touches.length; i<ii; ++i) {
                 if (touches[i].pointerId == e.pointerId) {
@@ -5735,14 +5848,17 @@ OpenLayers.Events = OpenLayers.Class({
             handler(e);
         };
 
-        OpenLayers.Event.observe(element, 'MSPointerUp', cb);
+        OpenLayers.Event.observe(element,
+                this.getTouchModel() === this.TOUCH_MODEL_MSPOINTER ?
+                        'MSPointerUp' : 'pointerup',
+                cb);
     },
 
     CLASS_NAME: "OpenLayers.Events"
 });
 
 /** FILE: OpenLayers/Animation.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -5846,7 +5962,7 @@ OpenLayers.Animation = (function(window) {
 })(window);
 
 /** FILE: OpenLayers/Tween.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -6209,7 +6325,7 @@ OpenLayers.Easing.Quad = {
 };
 
 /** FILE: OpenLayers/Projection.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -6315,7 +6431,7 @@ OpenLayers.Projection = OpenLayers.Class({
     /**
      * Method: equals
      * Test equality of two projection instances.  Determines equality based
-     *     soley on the projection code.
+     *     solely on the projection code.
      *
      * Returns:
      * {Boolean} The two projections are equivalent.
@@ -6377,23 +6493,27 @@ OpenLayers.Projection.transforms = {};
  * APIProperty: defaults
  * {Object} Defaults for the SRS codes known to OpenLayers (currently
  * EPSG:4326, CRS:84, urn:ogc:def:crs:EPSG:6.6:4326, EPSG:900913, EPSG:3857,
- * EPSG:102113 and EPSG:102100). Keys are the SRS code, values are units,
- * maxExtent (the validity extent for the SRS) and yx (true if this SRS is
- * known to have a reverse axis order).
+ * EPSG:102113, EPSG:102100 and OSGEO:41001). Keys are the SRS code, values are
+ * units, maxExtent (the validity extent for the SRS in projected coordinates),
+ * worldExtent (the world's extent in EPSG:4326) and yx (true if this SRS
+ * is known to have a reverse axis order).
  */
 OpenLayers.Projection.defaults = {
     "EPSG:4326": {
         units: "degrees",
         maxExtent: [-180, -90, 180, 90],
+        worldExtent: [-180, -90, 180, 90],
         yx: true
     },
     "CRS:84": {
         units: "degrees",
-        maxExtent: [-180, -90, 180, 90]
+        maxExtent: [-180, -90, 180, 90],
+        worldExtent: [-180, -90, 180, 90]
     },
     "EPSG:900913": {
         units: "m",
-        maxExtent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34]
+        maxExtent: [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
+        worldExtent: [-180, -89, 180, 89]
     }
 };
 
@@ -6477,9 +6597,9 @@ OpenLayers.Projection.nullTransform = function(point) {
 
 /**
  * Note: Transforms for web mercator <-> geographic
- * OpenLayers recognizes EPSG:3857, EPSG:900913, EPSG:102113 and EPSG:102100.
- * OpenLayers originally started referring to EPSG:900913 as web mercator.
- * The EPSG has declared EPSG:3857 to be web mercator.
+ * OpenLayers recognizes EPSG:3857, EPSG:900913, EPSG:102113, EPSG:102100 and 
+ * OSGEO:41001. OpenLayers originally started referring to EPSG:900913 as web
+ * mercator. The EPSG has declared EPSG:3857 to be web mercator.
  * ArcGIS 10 recognizes the EPSG:3857, EPSG:102113, and EPSG:102100 as
  * equivalent.  See http://blogs.esri.com/Dev/blogs/arcgisserver/archive/2009/11/20/ArcGIS-Online-moving-to-Google-_2F00_-Bing-tiling-scheme_3A00_-What-does-this-mean-for-you_3F00_.aspx#12084.
  * For geographic, OpenLayers recognizes EPSG:4326, CRS:84 and
@@ -6520,7 +6640,7 @@ OpenLayers.Projection.nullTransform = function(point) {
     }
     
     // list of equivalent codes for web mercator
-    var mercator = ["EPSG:900913", "EPSG:3857", "EPSG:102113", "EPSG:102100"],
+    var mercator = ["EPSG:900913", "EPSG:3857", "EPSG:102113", "EPSG:102100", "OSGEO:41001"],
         geographic = ["CRS:84", "urn:ogc:def:crs:EPSG:6.6:4326", "EPSG:4326"],
         i;
     for (i=mercator.length-1; i>=0; --i) {
@@ -6533,7 +6653,7 @@ OpenLayers.Projection.nullTransform = function(point) {
 })();
 
 /** FILE: OpenLayers/Map.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -6617,6 +6737,9 @@ OpenLayers.Map = OpenLayers.Class({
      *     zoom has changed.
      * move - triggered after each drag, pan, or zoom
      * moveend - triggered after a drag, pan, or zoom completes
+     * zoomstart - triggered when a zoom starts. Listeners receive an object
+     *     with *center* and *zoom* properties, for the target center and zoom
+     *     level.
      * zoomend - triggered after a zoom completes
      * mouseover - triggered after mouseover the map
      * mouseout - triggered after mouseout the map
@@ -7043,10 +7166,6 @@ OpenLayers.Map = OpenLayers.Class({
      *     Note that if an ArgParser/Permalink control is present,
      *     and the querystring contains a zoom level, zoom will be set
      *     by that, and this option will be ignored.
-     * extent - {<OpenLayers.Bounds>|Array} The initial extent of the map.
-     *     If provided as an array, the array should consist of
-     *     four values (left, bottom, right, top).
-     *     Only specify if <center> and <zoom> are not provided.
      * 
      * Examples:
      * (code)
@@ -7081,7 +7200,8 @@ OpenLayers.Map = OpenLayers.Class({
     initialize: function (div, options) {
         
         // If only one argument is provided, check if it is an object.
-        if(arguments.length === 1 && typeof div === "object") {
+        var isDOMElement = OpenLayers.Util.isElement(div);
+        if(arguments.length === 1 && typeof div === "object" && !isDOMElement) {
             options = div;
             div = options && options.div;
         }
@@ -7338,7 +7458,7 @@ OpenLayers.Map = OpenLayers.Class({
             this.zoomTween = null;
         }
 
-        // map has been destroyed. dont do it again!
+        // map has been destroyed. don't do it again!
         OpenLayers.Event.stopObserving(window, 'unload', this.unloadDestroy);
         this.unloadDestroy = null;
 
@@ -7794,7 +7914,7 @@ OpenLayers.Map = OpenLayers.Class({
      *     the layer is moved down.  Again, note that this cannot (or at least
      *     should not) be effectively used to raise base layers above overlays.
      *
-     * Paremeters:
+     * Parameters:
      * layer - {<OpenLayers.Layer>} 
      * delta - {int} 
      */
@@ -7820,6 +7940,7 @@ OpenLayers.Map = OpenLayers.Class({
 
                 // preserve center and scale when changing base layers
                 var center = this.getCachedCenter();
+                var oldResolution = this.getResolution();
                 var newResolution = OpenLayers.Util.getResolutionFromScale(
                     this.getScale(), newBaseLayer.units
                 );
@@ -7848,7 +7969,7 @@ OpenLayers.Map = OpenLayers.Class({
                         newResolution || this.resolution, true
                     );
                     // zoom and force zoom change
-                    this.setCenter(center, newZoom, false, true);
+                    this.setCenter(center, newZoom, false, oldResolution != newResolution);
                 }
 
                 this.events.triggerEvent("changebaselayer", {
@@ -8250,7 +8371,7 @@ OpenLayers.Map = OpenLayers.Class({
    
    /** 
      * APIMethod: panTo
-     * Allows user to pan to a new lonlat
+     * Allows user to pan to a new lonlat.
      * If the new lonlat is in the current extent the map will slide smoothly
      * 
      * Parameters:
@@ -8511,7 +8632,7 @@ OpenLayers.Map = OpenLayers.Class({
 
             if (centerChanged) {
                 if (!zoomChanged && this.center) { 
-                    // if zoom hasnt changed, just slide layerContainer
+                    // if zoom hasn't changed, just slide layerContainer
                     //  (must be done before setting this.center to new value)
                     this.centerLayerContainer(lonlat);
                 }
@@ -8932,44 +9053,46 @@ OpenLayers.Map = OpenLayers.Class({
             if (map.baseLayer.wrapDateLine) {
                 zoom = map.adjustZoom(zoom);
             }
+            var center = xy ?
+                map.getZoomTargetCenter(xy, map.getResolutionForZoom(zoom)) :
+                map.getCenter();
+            if (center) {
+                map.events.triggerEvent('zoomstart', {
+                    center: center,
+                    zoom: zoom
+                });
+            }
             if (map.zoomTween) {
+                map.zoomTween.stop();
                 var currentRes = map.getResolution(),
                     targetRes = map.getResolutionForZoom(zoom),
                     start = {scale: 1},
                     end = {scale: currentRes / targetRes};
-                if (map.zoomTween.playing && map.zoomTween.duration < 3 * map.zoomDuration) {
-                    // update the end scale, and reuse the running zoomTween
-                    map.zoomTween.finish = {
-                        scale: map.zoomTween.finish.scale * end.scale
-                    };
-                } else {
-                    if (!xy) {
-                        var size = map.getSize();
-                        xy = {x: size.w / 2, y: size.h / 2};
-                    }
-                    map.zoomTween.start(start, end, map.zoomDuration, {
-                        minFrameRate: 50, // don't spend much time zooming
-                        callbacks: {
-                            eachStep: function(data) {
-                                var containerOrigin = map.layerContainerOriginPx,
-                                    scale = data.scale,
-                                    dx = ((scale - 1) * (containerOrigin.x - xy.x)) | 0,
-                                    dy = ((scale - 1) * (containerOrigin.y - xy.y)) | 0;
-                                map.applyTransform(containerOrigin.x + dx, containerOrigin.y + dy, scale);
-                            },
-                            done: function(data) {
-                                map.applyTransform();
-                                var resolution = map.getResolution() / data.scale,
-                                    zoom = map.getZoomForResolution(resolution, true)
-                                map.moveTo(map.getZoomTargetCenter(xy, resolution), zoom, true);
-                            }
-                        }
-                    });
+                if (!xy) {
+                    var size = map.getSize();
+                    xy = {x: size.w / 2, y: size.h / 2};
                 }
+                map.zoomTween.start(start, end, map.zoomDuration, {
+                    minFrameRate: 50, // don't spend much time zooming
+                    callbacks: {
+                        eachStep: function(data) {
+                            var containerOrigin = map.layerContainerOriginPx,
+                                scale = data.scale,
+                                dx = ((scale - 1) * (containerOrigin.x - xy.x)) | 0,
+                                dy = ((scale - 1) * (containerOrigin.y - xy.y)) | 0;
+                            map.applyTransform(containerOrigin.x + dx, containerOrigin.y + dy, scale);
+                        },
+                        done: function(data) {
+                            map.applyTransform();
+                            var resolution = map.getResolution() / data.scale,
+                                newZoom = map.getZoomForResolution(resolution, true),
+                                newCenter = data.scale === 1 ? center :
+                                        map.getZoomTargetCenter(xy, resolution);
+                            map.moveTo(newCenter, newZoom);
+                        }
+                    }
+                });
             } else {
-                var center = xy ?
-                    map.getZoomTargetCenter(xy, map.getResolutionForZoom(zoom)) :
-                    null;
                 map.setCenter(center, zoom);
             }
         }
@@ -8980,6 +9103,9 @@ OpenLayers.Map = OpenLayers.Class({
      * 
      */
     zoomIn: function() {
+        if (this.zoomTween) {
+            this.zoomTween.stop();
+        }
         this.zoomTo(this.getZoom() + 1);
     },
     
@@ -8988,6 +9114,9 @@ OpenLayers.Map = OpenLayers.Class({
      * 
      */
     zoomOut: function() {
+        if (this.zoomTween) {
+            this.zoomTween.stop();
+        }
         this.zoomTo(this.getZoom() - 1);
     },
 
@@ -9402,7 +9531,7 @@ OpenLayers.Map.TILE_WIDTH = 256;
 OpenLayers.Map.TILE_HEIGHT = 256;
 
 /** FILE: OpenLayers/Feature.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -9629,7 +9758,7 @@ OpenLayers.Feature = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Feature/Vector.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -9703,7 +9832,7 @@ OpenLayers.Feature.Vector = OpenLayers.Class(OpenLayers.Feature, {
     /**
      * APIProperty: url
      * {String} If this property is set it will be taken into account by
-     *     {<OpenLayers.HTTP>} when upadting or deleting the feature.
+     *     {<OpenLayers.HTTP>} when updating or deleting the feature.
      */
     url: null,
     
@@ -9808,7 +9937,7 @@ OpenLayers.Feature.Vector = OpenLayers.Class(OpenLayers.Feature, {
      * Method: onScreen
      * Determine whether the feature is within the map viewport.  This method
      *     tests for an intersection between the geometry and the viewport
-     *     bounds.  If a more effecient but less precise geometry bounds
+     *     bounds.  If a more efficient but less precise geometry bounds
      *     intersection is desired, call the method with the boundsOnly
      *     parameter true.
      *
@@ -10141,7 +10270,7 @@ OpenLayers.Feature.Vector.style = {
 };    
 
 /** FILE: OpenLayers/Style.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -10591,7 +10720,7 @@ OpenLayers.Style.SYMBOLIZER_PREFIXES = ['Point', 'Line', 'Polygon', 'Text',
     'Raster'];
 
 /** FILE: OpenLayers/Rule.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -10773,7 +10902,7 @@ OpenLayers.Rule = OpenLayers.Class({
      * Method: getContext
      * Gets the context for evaluating this rule
      * 
-     * Paramters:
+     * Parameters:
      * feature - {<OpenLayers.Feature>} feature to take the context from if
      *           none is specified.
      */
@@ -10828,7 +10957,7 @@ OpenLayers.Rule = OpenLayers.Class({
     CLASS_NAME: "OpenLayers.Rule"
 });
 /** FILE: OpenLayers/Symbolizer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -10875,7 +11004,7 @@ OpenLayers.Symbolizer = OpenLayers.Class({
      * Returns a symbolizer of the same type with the same properties.
      */
     clone: function() {
-        var Type = eval(this.CLASS_NAME);
+        var Type = OpenLayers.Util.getConstructor(this.CLASS_NAME);
         return new Type(OpenLayers.Util.extend({}, this));
     },
     
@@ -10885,7 +11014,7 @@ OpenLayers.Symbolizer = OpenLayers.Class({
 
 
 /** FILE: OpenLayers/Symbolizer/Point.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11044,7 +11173,7 @@ OpenLayers.Symbolizer.Point = OpenLayers.Class(OpenLayers.Symbolizer, {
 
 
 /** FILE: OpenLayers/Symbolizer/Line.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11089,7 +11218,7 @@ OpenLayers.Symbolizer.Line = OpenLayers.Class(OpenLayers.Symbolizer, {
      */
     
     /**
-     * Property: strokeDashstyle
+     * APIProperty: strokeDashstyle
      * {String} Stroke dash style according to the SLD spec. Note that the
      *     OpenLayers values for strokeDashstyle ("dot", "dash", "dashdot",
      *     "longdash", "longdashdot", or "solid") will not work in SLD, but
@@ -11120,7 +11249,7 @@ OpenLayers.Symbolizer.Line = OpenLayers.Class(OpenLayers.Symbolizer, {
 
 
 /** FILE: OpenLayers/Symbolizer/Polygon.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11165,7 +11294,7 @@ OpenLayers.Symbolizer.Polygon = OpenLayers.Class(OpenLayers.Symbolizer, {
      */
     
     /**
-     * Property: strokeDashstyle
+     * APIProperty: strokeDashstyle
      * {String} Stroke dash style according to the SLD spec. Note that the
      *     OpenLayers values for strokeDashstyle ("dot", "dash", "dashdot",
      *     "longdash", "longdashdot", or "solid") will not work in SLD, but
@@ -11210,7 +11339,7 @@ OpenLayers.Symbolizer.Polygon = OpenLayers.Class(OpenLayers.Symbolizer, {
 
 
 /** FILE: OpenLayers/Symbolizer/Text.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11254,8 +11383,22 @@ OpenLayers.Symbolizer.Text = OpenLayers.Class(OpenLayers.Symbolizer, {
      */
     
     /**
-     * Property: fontStyle
+     * APIProperty: fontStyle
      * {String} The font style for the label.
+     * 
+     * No default set here.  Use OpenLayers.Renderer.defaultRenderer for defaults.
+     */
+
+    /**
+     * APIProperty: fontColor
+     * {String} The font color for the label.
+     * 
+     * No default set here.  Use OpenLayers.Renderer.defaultRenderer for defaults.
+     */
+
+    /**
+     * APIProperty: fontOpacity
+     * {String} The font opacity for the label.
      * 
      * No default set here.  Use OpenLayers.Renderer.defaultRenderer for defaults.
      */
@@ -11282,7 +11425,7 @@ OpenLayers.Symbolizer.Text = OpenLayers.Class(OpenLayers.Symbolizer, {
 
 
 /** FILE: OpenLayers/Symbolizer/Raster.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11318,7 +11461,7 @@ OpenLayers.Symbolizer.Raster = OpenLayers.Class(OpenLayers.Symbolizer, {
 });
 
 /** FILE: OpenLayers/Style2.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11432,7 +11575,7 @@ OpenLayers.Style2 = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Control.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11733,7 +11876,7 @@ OpenLayers.Control = OpenLayers.Class({
 
     /**
      * APIMethod: activate
-     * Explicitly activates a control and it's associated
+     * Explicitly activates a control and its associated
      * handler if one has been set.  Controls can be
      * deactivated by calling the deactivate() method.
      * 
@@ -11761,7 +11904,7 @@ OpenLayers.Control = OpenLayers.Class({
     
     /**
      * APIMethod: deactivate
-     * Deactivates a control and it's associated handler if any.  The exact
+     * Deactivates a control and its associated handler if any.  The exact
      * effect of this depends on the control itself.
      * 
      * Returns:
@@ -11805,7 +11948,7 @@ OpenLayers.Control.TYPE_TOGGLE = 2;
 OpenLayers.Control.TYPE_TOOL   = 3;
 
 /** FILE: OpenLayers/Control/Attribution.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -11830,15 +11973,24 @@ OpenLayers.Control.Attribution =
      * {String} String used to separate layers.
      */
     separator: ", ",
-    
+
     /**
      * APIProperty: template
-     * {String} Template for the attribution. This has to include the substring
-     *     "${layers}", which will be replaced by the layer specific
+     * {String} Template for the global attribution markup. This has to include the
+     *     substring "${layers}", which will be replaced by the layer specific
      *     attributions, separated by <separator>. The default is "${layers}".
      */
     template: "${layers}",
-    
+
+    /**
+     * APIProperty: layerTemplate
+     * {String} Template for the layer specific attribution. This has to include
+     *     the substrings "${href}" and "${title}", which will be replaced by
+     *     the layer specific attribution object properties.
+     *     The default is '<a href="${href}" target="_blank">${title}</a>'.
+     */
+    layerTemplate: '<a href="${href}" target="_blank">${title}</a>',
+
     /**
      * Constructor: OpenLayers.Control.Attribution 
      * 
@@ -11889,15 +12041,19 @@ OpenLayers.Control.Attribution =
      * Update attribution string.
      */
     updateAttribution: function() {
-        var attributions = [];
+        var attributions = [], attribution;
         if (this.map && this.map.layers) {
             for(var i=0, len=this.map.layers.length; i<len; i++) {
                 var layer = this.map.layers[i];
                 if (layer.attribution && layer.getVisibility()) {
+                    attribution = (typeof layer.attribution == "object") ?
+                        OpenLayers.String.format(
+                            this.layerTemplate, layer.attribution) :
+                        layer.attribution;
                     // add attribution only if attribution text is unique
                     if (OpenLayers.Util.indexOf(
-                                    attributions, layer.attribution) === -1) {
-                        attributions.push( layer.attribution );
+                                    attributions, attribution) === -1) {
+                        attributions.push( attribution );
                     }
                 }
             } 
@@ -11911,7 +12067,7 @@ OpenLayers.Control.Attribution =
 });
 
 /** FILE: OpenLayers/Control/DrawFeature.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12142,7 +12298,7 @@ OpenLayers.Control.DrawFeature = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Events/buttonclick.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12206,6 +12362,13 @@ OpenLayers.Events.buttonclick = OpenLayers.Class({
      *     a buttonclick sequence.
      */
     completeRegEx: /^mouseup|touchend$/,
+
+    /**
+     * Property: isDeviceTouchCapable
+     * {Boolean} Tells whether the browser detects touch events.
+     */
+    isDeviceTouchCapable: 'ontouchstart' in window ||
+        window.DocumentTouch && document instanceof window.DocumentTouch,
     
     /**
      * Property: startEvt
@@ -12296,7 +12459,11 @@ OpenLayers.Events.buttonclick = OpenLayers.Class({
     buttonClick: function(evt) {
         var propagate = true,
             element = OpenLayers.Event.element(evt);
-        if (element && (OpenLayers.Event.isLeftClick(evt) || !~evt.type.indexOf("mouse"))) {
+
+        if (element &&
+           (OpenLayers.Event.isLeftClick(evt) &&
+            !this.isDeviceTouchCapable ||
+            !~evt.type.indexOf("mouse"))) {
             // was a button pressed?
             var button = this.getPressedButton(element);
             if (button) {
@@ -12329,7 +12496,11 @@ OpenLayers.Events.buttonclick = OpenLayers.Class({
                         });
                     }
                     if (this.cancelRegEx.test(evt.type)) {
-                        delete this.startEvt;
+                        if (evt.touches && this.startEvt.touches &&
+                                (Math.abs(evt.touches[0].olClientX - this.startEvt.touches[0].olClientX) > 4 ||
+                                Math.abs(evt.touches[0].olClientY - this.startEvt.touches[0].olClientY)) > 4) {
+                            delete this.startEvt;
+                        }
                     }
                     OpenLayers.Event.stop(evt);
                     propagate = false;
@@ -12350,7 +12521,7 @@ OpenLayers.Events.buttonclick = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Control/Panel.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12626,7 +12797,7 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
      * (code)
      * var panel = new OpenLayers.Control.Panel({
      *     defaultControl: control,
-     *     // ovverride createControlMarkup to create actual buttons
+     *     // override createControlMarkup to create actual buttons
      *     // including texts wrapped into span elements.
      *     createControlMarkup: function(control) {
      *         var button = document.createElement('button'),
@@ -12721,7 +12892,7 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
      * property - {String} A control property to be matched.
      * match - {String | Object} A string to match.  Can also be a regular
      *     expression literal or object.  In addition, it can be any object
-     *     with a method named test.  For reqular expressions or other, if
+     *     with a method named test.  For regular expressions or other, if
      *     match.test(control[property]) evaluates to true, the control will be
      *     included in the array returned.  If no controls are found, an empty
      *     array is returned.
@@ -12740,12 +12911,12 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
 
     /**
      * APIMethod: getControlsByName
-     * Get a list of contorls with names matching the given name.
+     * Get a list of controls with names matching the given name.
      *
      * Parameters:
      * match - {String | Object} A control name.  The name can also be a regular
      *     expression literal or object.  In addition, it can be any object
-     *     with a method named test.  For reqular expressions or other, if
+     *     with a method named test.  For regular expressions or other, if
      *     name.test(control.name) evaluates to true, the control will be included
      *     in the list of controls returned.  If no controls are found, an empty
      *     array is returned.
@@ -12765,7 +12936,7 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
      * Parameters:
      * match - {String | Object} A control class name.  The type can also be a
      *     regular expression literal or object.  In addition, it can be any
-     *     object with a method named test.  For reqular expressions or other,
+     *     object with a method named test.  For regular expressions or other,
      *     if type.test(control.CLASS_NAME) evaluates to true, the control will
      *     be included in the list of controls returned.  If no controls are
      *     found, an empty array is returned.
@@ -12783,7 +12954,7 @@ OpenLayers.Control.Panel = OpenLayers.Class(OpenLayers.Control, {
 
 
 /** FILE: OpenLayers/Control/Button.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12829,7 +13000,7 @@ OpenLayers.Control.Button = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Control/ZoomIn.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12860,7 +13031,7 @@ OpenLayers.Control.ZoomIn = OpenLayers.Class(OpenLayers.Control.Button, {
 });
 
 /** FILE: OpenLayers/Control/ZoomOut.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12891,7 +13062,7 @@ OpenLayers.Control.ZoomOut = OpenLayers.Class(OpenLayers.Control.Button, {
 });
 
 /** FILE: OpenLayers/Control/ZoomToMaxExtent.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12928,7 +13099,7 @@ OpenLayers.Control.ZoomToMaxExtent = OpenLayers.Class(OpenLayers.Control.Button,
 });
 
 /** FILE: OpenLayers/Control/ZoomPanel.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -12942,7 +13113,7 @@ OpenLayers.Control.ZoomToMaxExtent = OpenLayers.Class(OpenLayers.Control.Button,
 
 /**
  * Class: OpenLayers.Control.ZoomPanel
- * The ZoomPanel control is a compact collecton of 3 zoom controls: a 
+ * The ZoomPanel control is a compact collection of 3 zoom controls: a 
  * <OpenLayers.Control.ZoomIn>, a <OpenLayers.Control.ZoomToMaxExtent>, and a
  * <OpenLayers.Control.ZoomOut>. By default it is drawn in the upper left 
  * corner of the map.
@@ -12984,7 +13155,7 @@ OpenLayers.Control.ZoomPanel = OpenLayers.Class(OpenLayers.Control.Panel, {
 });
 
 /** FILE: OpenLayers/Handler.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -13311,7 +13482,7 @@ OpenLayers.Handler.MOD_META  = 8;
 
 
 /** FILE: OpenLayers/Handler/Drag.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -13430,7 +13601,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
      *     the map.
      * callbacks - {Object} An object containing a single function to be
      *     called when the drag operation is finished. The callback should
-     *     expect to recieve a single argument, the pixel location of the event.
+     *     expect to receive a single argument, the pixel location of the event.
      *     Callbacks for 'move' and 'done' are supported. You can also speficy
      *     callbacks for 'down', 'up', and 'out' to respond to those events.
      * options - {Object} 
@@ -13467,6 +13638,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
         var propagate = true;
         this.dragging = false;
         if (this.checkModifiers(evt) &&
+               this._pointerId == evt.pointerId &&
                (OpenLayers.Event.isLeftClick(evt) ||
                 OpenLayers.Event.isSingleTouch(evt))) {
             this.started = true;
@@ -13489,6 +13661,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
 
             propagate = !this.stopDown;
         } else {
+            delete this._pointerId;
             this.started = false;
             this.start = null;
             this.last = null;
@@ -13508,8 +13681,9 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
      */
     dragmove: function (evt) {
         this.lastMoveEvt = evt;
-        if (this.started && !this.timeoutId && (evt.xy.x != this.last.x ||
-                                                evt.xy.y != this.last.y)) {
+        if (this.started && this._pointerId == evt.pointerId &&
+            !this.timeoutId && (evt.xy.x != this.last.x ||
+                                evt.xy.y != this.last.y)) {
             if(this.documentDrag === true && this.documentEvents) {
                 if(evt.element === document) {
                     this.adjustXY(evt);
@@ -13549,7 +13723,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
      * {Boolean} Let the event propagate.
      */
     dragend: function (evt) {
-        if (this.started) {
+        if (this.started && this._pointerId == evt.pointerId) {
             if(this.documentDrag === true && this.documentEvents) {
                 this.adjustXY(evt);
                 this.removeDocumentEvents();
@@ -13557,6 +13731,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
             var dragged = (this.start != this.last);
             this.started = false;
             this.dragging = false;
+            delete this._pointerId;
             OpenLayers.Element.removeClass(
                 this.map.viewPortDiv, "olDragDown"
             );
@@ -13652,6 +13827,11 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
      */
     touchstart: function(evt) {
         this.startTouch();
+        // only allow the first pointer event to be monitored by noting its pointerId
+        // which is unique in the pointer model (and undefined in the touch model)
+        if (!("_pointerId" in this)) {
+            this._pointerId = evt.pointerId;
+        }
         return this.dragstart(evt);
     },
 
@@ -13860,7 +14040,7 @@ OpenLayers.Handler.Drag = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Handler/Box.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -14106,7 +14286,7 @@ OpenLayers.Handler.Box = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Control/ZoomBox.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -14237,7 +14417,7 @@ OpenLayers.Control.ZoomBox = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Control/DragPan.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -14395,7 +14575,7 @@ OpenLayers.Control.DragPan = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Handler/MouseWheel.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -14459,7 +14639,7 @@ OpenLayers.Handler.MouseWheel = OpenLayers.Class(OpenLayers.Handler, {
      * control - {<OpenLayers.Control>} 
      * callbacks - {Object} An object containing a single function to be
      *                          called when the drag operation is finished.
-     *                          The callback should expect to recieve a single
+     *                          The callback should expect to receive a single
      *                          argument, the point geometry.
      * options - {Object} 
      */
@@ -14562,7 +14742,7 @@ OpenLayers.Handler.MouseWheel = OpenLayers.Class(OpenLayers.Handler, {
         //
         //       otherwise
         //
-        //       Kill the event (dont scroll the page if we wheel over the 
+        //       Kill the event (don't scroll the page if we wheel over the
         //        layerswitcher or the pan/zoom control)
         //
         if (!overScrollableDiv && overMapDiv) {
@@ -14661,7 +14841,7 @@ OpenLayers.Handler.MouseWheel = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Handler/Click.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -14797,7 +14977,7 @@ OpenLayers.Handler.Click = OpenLayers.Class(OpenLayers.Handler, {
      *     the map.
      * callbacks - {Object} An object with keys corresponding to callbacks
      *     that will be called by the handler. The callbacks should
-     *     expect to recieve a single argument, the click event.
+     *     expect to receive a single argument, the click event.
      *     Callbacks for 'click' and 'dblclick' are supported.
      * options - {Object} Optional object whose properties will be set on the
      *     handler.
@@ -15168,7 +15348,7 @@ OpenLayers.Handler.Click = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Control/Navigation.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -15515,7 +15695,7 @@ OpenLayers.Control.Navigation = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Control/Pan.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -15612,7 +15792,7 @@ OpenLayers.Control.Pan.EAST = "East";
 OpenLayers.Control.Pan.WEST = "West";
 
 /** FILE: OpenLayers/Control/PanPanel.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -15687,7 +15867,7 @@ OpenLayers.Control.PanPanel = OpenLayers.Class(OpenLayers.Control.Panel, {
 });
 
 /** FILE: OpenLayers/Control/ScaleLine.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -15909,7 +16089,7 @@ OpenLayers.Control.ScaleLine = OpenLayers.Class(OpenLayers.Control, {
 
 
 /** FILE: OpenLayers/Handler/Feature.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -16024,7 +16204,7 @@ OpenLayers.Handler.Feature = OpenLayers.Class(OpenLayers.Handler, {
      * layer - {<OpenLayers.Layer.Vector>}
      * callbacks - {Object} An object with a 'over' property whos value is
      *     a function to be called when the mouse is over a feature. The 
-     *     callback should expect to recieve a single argument, the feature.
+     *     callback should expect to receive a single argument, the feature.
      * options - {Object} 
      */
     initialize: function(control, layer, callbacks, options) {
@@ -16345,7 +16525,7 @@ OpenLayers.Handler.Feature = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Layer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -16494,10 +16674,14 @@ OpenLayers.Layer = OpenLayers.Class({
 
     /**
      * APIProperty: attribution
-     * {String} Attribution string, displayed when an 
+     * {<Object>} or {<String>} Attribution information, displayed when an
      *     <OpenLayers.Control.Attribution> has been added to the map.
+     *
+     *     An object is required to store the full attribution information
+     *     from a WMS capabilities response. Example attribution object:
+     *     {title:"",href:"",logo:{format:"",width:10,height:10,href:""}}
      */
-    attribution: null, 
+    attribution: null,
 
     /** 
      * Property: inRange
@@ -16979,8 +17163,12 @@ OpenLayers.Layer = OpenLayers.Class({
 
             // Check the projection to see if we can get units -- if not, refer
             // to properties.
-            this.units = this.projection.getUnits() ||
-                         this.units || this.map.units;
+            if (this.projection && this.projection.getUnits()) {
+                this.units = this.projection.getUnits();
+            }
+            else {
+                this.units = this.units || this.map.units;
+            }
             
             this.initResolutions();
             
@@ -17724,7 +17912,7 @@ OpenLayers.Layer = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Renderer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -17747,7 +17935,7 @@ OpenLayers.Layer = OpenLayers.Class({
  * 
  * A note to the user that all subclasses should use getResolution() instead
  *  of directly accessing this.resolution in order to correctly use the 
- *  cacheing system.
+ *  caching system.
  *
  */
 OpenLayers.Renderer = OpenLayers.Class({
@@ -18158,7 +18346,7 @@ OpenLayers.Renderer.symbol = {
 };
 
 /** FILE: OpenLayers/StyleMap.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -18321,7 +18509,7 @@ OpenLayers.StyleMap = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Layer/Vector.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -18383,7 +18571,7 @@ OpenLayers.Layer.Vector = OpenLayers.Class(OpenLayers.Layer, {
      * beforefeaturesremoved - Triggered before multiple features are removed. 
      *      Listeners will receive an object with a *features* property
      *      referencing the features to be removed.
-     * featureremoved - Triggerd after a feature is removed. The event
+     * featureremoved - Triggered after a feature is removed. The event
      *      object passed to listeners will have a *feature* property with a
      *      reference to the removed feature.
      * featuresremoved - Triggered after features are removed. The event
@@ -18940,7 +19128,7 @@ OpenLayers.Layer.Vector = OpenLayers.Class(OpenLayers.Layer, {
      *     removes them from the layer's control.  The beforefeatureremoved
      *     and featureremoved events will be triggered for each feature.  The
      *     featuresremoved event will be triggered after all features have
-     *     been removed.  To supress event triggering, use the silent option.
+     *     been removed.  To suppress event triggering, use the silent option.
      * 
      * Parameters:
      * features - {Array(<OpenLayers.Feature.Vector>)} List of features to be
@@ -18949,7 +19137,7 @@ OpenLayers.Layer.Vector = OpenLayers.Class(OpenLayers.Layer, {
      *     removal.
      *
      * Valid options:
-     * silent - {Boolean} Supress event triggering.  Default is false.
+     * silent - {Boolean} Suppress event triggering.  Default is false.
      */
     removeFeatures: function(features, options) {
         if(!features || features.length === 0) {
@@ -19032,7 +19220,7 @@ OpenLayers.Layer.Vector = OpenLayers.Class(OpenLayers.Layer, {
      *     removal.
      *
      * Valid options:
-     * silent - {Boolean} Supress event triggering.  Default is false.
+     * silent - {Boolean} Suppress event triggering.  Default is false.
      */
     removeAllFeatures: function(options) {
         var notify = !options || !options.silent;
@@ -19330,7 +19518,7 @@ OpenLayers.Layer.Vector = OpenLayers.Class(OpenLayers.Layer, {
 });
 
 /** FILE: OpenLayers/Layer/Vector/RootContainer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -19486,7 +19674,7 @@ OpenLayers.Layer.Vector.RootContainer = OpenLayers.Class(OpenLayers.Layer.Vector
 });
 
 /** FILE: OpenLayers/Control/SelectFeature.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -19501,15 +19689,15 @@ OpenLayers.Layer.Vector.RootContainer = OpenLayers.Class(OpenLayers.Layer.Vector
 
 /**
  * Class: OpenLayers.Control.SelectFeature
- * The SelectFeature control selects vector features from a given layer on 
- * click or hover. 
+ * The SelectFeature control selects vector features from a given layer on
+ * click or hover.
  *
  * Inherits from:
  *  - <OpenLayers.Control>
  */
 OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
 
-    /** 
+    /**
      * APIProperty: events
      * {<OpenLayers.Events>} Events instance for listeners and triggering
      *     control specific events.
@@ -19526,26 +19714,26 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * boxselectionstart - Triggered before box selection starts
      * boxselectionend - Triggered after box selection ends
      */
-    
+
     /**
-     * Property: multipleKey
+     * APIProperty: multipleKey
      * {String} An event modifier ('altKey' or 'shiftKey') that temporarily sets
      *     the <multiple> property to true.  Default is null.
      */
     multipleKey: null,
-    
+
     /**
-     * Property: toggleKey
+     * APIProperty: toggleKey
      * {String} An event modifier ('altKey' or 'shiftKey') that temporarily sets
      *     the <toggle> property to true.  Default is null.
      */
     toggleKey: null,
-    
+
     /**
      * APIProperty: multiple
      * {Boolean} Allow selection of multiple geometries.  Default is false.
      */
-    multiple: false, 
+    multiple: false,
 
     /**
      * APIProperty: clickout
@@ -19570,27 +19758,27 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
 
     /**
      * APIProperty: highlightOnly
-     * {Boolean} If true do not actually select features (that is place them in 
+     * {Boolean} If true do not actually select features (that is place them in
      * the layer's selected features array), just highlight them. This property
      * has no effect if hover is false. Defaults to false.
      */
     highlightOnly: false,
-    
+
     /**
      * APIProperty: box
      * {Boolean} Allow feature selection by drawing a box.
      */
     box: false,
-    
+
     /**
-     * Property: onBeforeSelect 
+     * APIProperty: onBeforeSelect
      * {Function} Optional function to be called before a feature is selected.
      *     The function should expect to be called with a feature.
      */
     onBeforeSelect: function() {},
-    
+
     /**
-     * APIProperty: onSelect 
+     * APIProperty: onSelect
      * {Function} Optional function to be called when a feature is selected.
      *     The function should expect to be called with a feature.
      */
@@ -19602,9 +19790,9 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      *     The function should expect to be called with a feature.
      */
     onUnselect: function() {},
-    
+
     /**
-     * Property: scope
+     * APIProperty: scope
      * {Object} The scope to use with the onBeforeSelect, onSelect, onUnselect
      *     callbacks. If null the scope will be this control.
      */
@@ -19625,28 +19813,28 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * was configured with (if a single layer was passed to the constructor).
      */
     layer: null,
-    
+
     /**
      * Property: layers
      * {Array(<OpenLayers.Layer.Vector>)} The layers this control will work on,
      * or null if the control was configured with a single layer
      */
     layers: null,
-    
+
     /**
      * APIProperty: callbacks
      * {Object} The functions that are sent to the handlers.feature for callback
      */
     callbacks: null,
-    
+
     /**
-     * APIProperty: selectStyle 
+     * APIProperty: selectStyle
      * {Object} Hash of styles
      */
     selectStyle: null,
-    
+
     /**
-     * Property: renderIntent
+     * APIProperty: renderIntent
      * {String} key used to retrieve the select style from the layer's
      * style map.
      */
@@ -19666,11 +19854,11 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Parameters:
      * layers - {<OpenLayers.Layer.Vector>}, or an array of vector layers. The
      *     layer(s) this control will select features from.
-     * options - {Object} 
+     * options - {Object}
      */
     initialize: function(layers, options) {
         OpenLayers.Control.prototype.initialize.apply(this, [options]);
-        
+
         if(this.scope === null) {
             this.scope = this;
         }
@@ -19683,7 +19871,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
             callbacks.over = this.overFeature;
             callbacks.out = this.outFeature;
         }
-             
+
         this.callbacks = OpenLayers.Util.extend(callbacks, this.callbacks);
         this.handlers = {
             feature: new OpenLayers.Handler.Feature(
@@ -19696,7 +19884,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
             this.handlers.box = new OpenLayers.Handler.Box(
                 this, {done: this.selectBox},
                 {boxDivClassName: "olHandlerBoxSelectFeature"}
-            ); 
+            );
         }
     },
 
@@ -19720,7 +19908,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
             this.layer = layers;
         }
     },
-    
+
     /**
      * Method: destroy
      */
@@ -19737,7 +19925,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
     /**
      * Method: activate
      * Activates the control.
-     * 
+     *
      * Returns:
      * {Boolean} The control was effectively activated.
      */
@@ -19759,7 +19947,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
     /**
      * Method: deactivate
      * Deactivates the control.
-     * 
+     *
      * Returns:
      * {Boolean} The control was effectively deactivated.
      */
@@ -19787,14 +19975,14 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * options - {Object} Optional configuration object.
      */
     unselectAll: function(options) {
-        // we'll want an option to supress notification here
+        // we'll want an option to suppress notification here
         var layers = this.layers || [this.layer],
             layer, feature, l, numExcept;
         for(l=0; l<layers.length; ++l) {
             layer = layers[l];
             numExcept = 0;
-            //layer.selectedFeatures is null when layer is destroyed and 
-            //one of it's preremovelayer listener calls setLayer 
+            //layer.selectedFeatures is null when layer is destroyed and
+            //one of it's preremovelayer listener calls setLayer
             //with another layer on this control
             if(layer.selectedFeatures != null) {
                 while(layer.selectedFeatures.length > numExcept) {
@@ -19815,7 +20003,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Only responds if this.hover is false.
      *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     clickFeature: function(feature) {
         if(!this.hover) {
@@ -19848,7 +20036,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
         return this.multiple || (this.handlers.feature.evt &&
                                  this.handlers.feature.evt[this.multipleKey]);
     },
-    
+
     /**
      * Method: toggleSelect
      * Event should toggle the selected state of a feature based on <toggle>
@@ -19868,7 +20056,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Only responds if this.hover is false.
      *
      * Parameters:
-     * feature - {<OpenLayers.Vector.Feature>} 
+     * feature - {<OpenLayers.Vector.Feature>}
      */
     clickoutFeature: function(feature) {
         if(!this.hover && this.clickout) {
@@ -19882,7 +20070,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Only responds if this.hover is true.
      *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     overFeature: function(feature) {
         var layer = feature.layer;
@@ -19902,7 +20090,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Only responds if this.hover is true.
      *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     outFeature: function(feature) {
         if(this.hover) {
@@ -19937,7 +20125,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Redraw feature with the select style.
      *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     highlight: function(feature) {
         var layer = feature.layer;
@@ -19958,7 +20146,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
      * Redraw feature with the "default" style
      *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     unhighlight: function(feature) {
         var layer = feature.layer;
@@ -19983,14 +20171,14 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
             "default");
         this.events.triggerEvent("featureunhighlighted", {feature : feature});
     },
-    
+
     /**
      * Method: select
      * Add feature to the layer's selectedFeature array, render the feature as
      * selected, and call the onSelect function.
-     * 
+     *
      * Parameters:
-     * feature - {<OpenLayers.Feature.Vector>} 
+     * feature - {<OpenLayers.Feature.Vector>}
      */
     select: function(feature) {
         var cont = this.onBeforeSelect.call(this.scope, feature);
@@ -20031,14 +20219,14 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
         layer.events.triggerEvent("featureunselected", {feature: feature});
         this.onUnselect.call(this.scope, feature);
     },
-    
+
     /**
      * Method: selectBox
      * Callback from the handlers.box set up when <box> selection is true
      *     on.
      *
      * Parameters:
-     * position - {<OpenLayers.Bounds> || <OpenLayers.Pixel> }  
+     * position - {<OpenLayers.Bounds> || <OpenLayers.Pixel> }
      */
     selectBox: function(position) {
         if (position instanceof OpenLayers.Bounds) {
@@ -20053,17 +20241,17 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
             var bounds = new OpenLayers.Bounds(
                 minXY.lon, minXY.lat, maxXY.lon, maxXY.lat
             );
-            
+
             // if multiple is false, first deselect currently selected features
             if (!this.multipleSelect()) {
                 this.unselectAll();
             }
-            
+
             // because we're using a box, we consider we want multiple selection
             var prevMultiple = this.multiple;
             this.multiple = true;
             var layers = this.layers || [this.layer];
-            this.events.triggerEvent("boxselectionstart", {layers: layers}); 
+            this.events.triggerEvent("boxselectionstart", {layers: layers});
             var layer;
             for(var l=0; l<layers.length; ++l) {
                 layer = layers[l];
@@ -20085,16 +20273,16 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
                 }
             }
             this.multiple = prevMultiple;
-            this.events.triggerEvent("boxselectionend", {layers: layers}); 
+            this.events.triggerEvent("boxselectionend", {layers: layers});
         }
     },
 
-    /** 
+    /**
      * Method: setMap
-     * Set the map property for the control. 
-     * 
+     * Set the map property for the control.
+     *
      * Parameters:
-     * map - {<OpenLayers.Map>} 
+     * map - {<OpenLayers.Map>}
      */
     setMap: function(map) {
         this.handlers.feature.setMap(map);
@@ -20103,7 +20291,7 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
         }
         OpenLayers.Control.prototype.setMap.apply(this, arguments);
     },
-    
+
     /**
      * APIMethod: setLayer
      * Attach a new layer to the control, overriding any existing layers.
@@ -20127,11 +20315,38 @@ OpenLayers.Control.SelectFeature = OpenLayers.Class(OpenLayers.Control, {
         }
     },
     
+    /**
+     * APIMethod: addLayer
+     * Add a layer to the control, making the existing layers still selectable
+     *
+     * Parameters:
+     * layer - element <OpenLayers.Layer.Vector> 
+     */
+    addLayer: function( layer ) {
+        var isActive = this.active;
+        this.deactivate();
+        if (this.layers == null) {
+            if (this.layer != null) {
+                this.layers = [this.layer];
+                this.layers.push(layer);
+            } else {
+                this.layers = [layer];
+            }
+        } else {	
+            this.layers.push(layer);
+        }
+        this.initLayer(this.layers);
+        this.handlers.feature.layer = this.layer;
+        if (isActive) {
+            this.activate();
+        }
+    },	    
+
     CLASS_NAME: "OpenLayers.Control.SelectFeature"
 });
 
 /** FILE: OpenLayers/Handler/Keyboard.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -20184,7 +20399,7 @@ OpenLayers.Handler.Keyboard = OpenLayers.Class(OpenLayers.Handler, {
      *     the map.
      * callbacks - {Object} An object containing a single function to be
      *     called when the drag operation is finished. The callback should
-     *     expect to recieve a single argument, the pixel location of the event.
+     *     expect to receive a single argument, the pixel location of the event.
      *     Callbacks for 'keydown', 'keypress', and 'keyup' are supported.
      * options - {Object} Optional object whose properties will be set on the
      *     handler.
@@ -20250,7 +20465,7 @@ OpenLayers.Handler.Keyboard = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Control/ModifyFeature.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -20273,6 +20488,16 @@ OpenLayers.Handler.Keyboard = OpenLayers.Class(OpenLayers.Handler, {
  *  - <OpenLayers.Control>
  */
 OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
+
+    /**
+     * APIProperty: bySegment
+     * {Boolean} If set to true, one segment at a time will be editable (the
+     *     one under the mouse cursor on hover). This supports editing much
+     *     larger geometries. This requires the rbush library
+     *     (https://github.com/mourner/rbush) for spatial indexing. Default is
+     *     false.
+     */
+    bySegment: false,
 
     /**
      * APIProperty: documentDrag
@@ -20416,7 +20641,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
     dragHandle: null,
 
     /**
-     * APIProperty: onModificationStart 
+     * APIProperty: onModificationStart
      * {Function} *Deprecated*.  Register for "beforefeaturemodified" instead.
      *     The "beforefeaturemodified" event is triggered on the layer before
      *     any modification begins.
@@ -20445,7 +20670,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
      *     The "afterfeaturemodified" event is triggered on the layer after
      *     a feature has been modified.
      *
-     * Optional function to be called when a feature is finished 
+     * Optional function to be called when a feature is finished
      *     being modified.  The function should expect to be called with a
      *     feature.
      */
@@ -20478,7 +20703,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
         if(!(OpenLayers.Util.isArray(this.deleteCodes))) {
             this.deleteCodes = [this.deleteCodes];
         }
-        
+
         // configure the drag handler
         var dragCallbacks = {
             down: function(pixel) {
@@ -20510,8 +20735,16 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
                 }
             }
         };
+        var _self = this;
         var dragOptions = {
             documentDrag: this.documentDrag,
+            setEvent: function(evt) {
+                var feature = _self.feature;
+                _self._lastVertex = feature ?
+                                  feature.layer.getFeatureFromEvent(evt) : null;
+                OpenLayers.Handler.Drag.prototype.setEvent.apply(
+                                                               this, arguments);
+            },
             stopDown: false
         };
 
@@ -20523,6 +20756,39 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             keyboard: new OpenLayers.Handler.Keyboard(this, keyboardOptions),
             drag: new OpenLayers.Handler.Drag(this, dragCallbacks, dragOptions)
         };
+
+        if (this.bySegment) {
+            if (!window.rbush) {
+                throw new Error("The rbush library is required");
+            }
+            if (!OpenLayers.Control.ModifyFeature.BySegment) {
+                throw new Error("OpenLayers.Control.ModifyFeature.BySegment is missing from the build");
+            } else {
+                OpenLayers.Util.extend(this, OpenLayers.Control.ModifyFeature.BySegment);
+            }
+        }
+    },
+
+    /**
+     * Method: createVirtualVertex
+     * Create a virtual vertex in the middle of the segment.
+     *
+     * Parameters:
+     * point1 - {<OpenLayers.Geometry.Point>} First point of the segment.
+     * point2 - {<OpenLayers.Geometry.Point>} Second point of the segment.
+     *
+     * Returns:
+     * {<OpenLayers.Feature.Vector>} The virtual vertex created.
+     */
+    createVirtualVertex: function(point1, point2) {
+        var x = (point1.x + point2.x) / 2;
+        var y = (point1.y + point2.y) / 2;
+        var point = new OpenLayers.Feature.Vector(
+            new OpenLayers.Geometry.Point(x, y),
+            null, this.virtualStyle
+        );
+        point._sketch = true;
+        return point;
     },
 
     /**
@@ -20544,27 +20810,30 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
     /**
      * APIMethod: activate
      * Activate the control.
-     * 
+     *
      * Returns:
      * {Boolean} Successfully activated the control.
      */
     activate: function() {
-        this.moveLayerToTop();
-        this.map.events.on({
-            "removelayer": this.handleMapEvents,
-            "changelayer": this.handleMapEvents,
-            scope: this
-        });
-        return (this.handlers.keyboard.activate() &&
-                this.handlers.drag.activate() &&
-                OpenLayers.Control.prototype.activate.apply(this, arguments));
+        if (OpenLayers.Control.prototype.activate.apply(this, arguments)) {
+            this.moveLayerToTop();
+            this.map.events.on({
+                "removelayer": this.handleMapEvents,
+                "changelayer": this.handleMapEvents,
+                scope: this
+            });
+            this._lastVertex = null;
+            return this.handlers.keyboard.activate() &&
+                    this.handlers.drag.activate();
+        }
+        return false;
     },
 
     /**
      * APIMethod: deactivate
      * Deactivate the control.
      *
-     * Returns: 
+     * Returns:
      * {Boolean} Successfully deactivated the control.
      */
     deactivate: function() {
@@ -20615,8 +20884,10 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
      * feature - {<OpenLayers.Feature.Vector>} the selected feature.
      */
     selectFeature: function(feature) {
+        var indexOf = OpenLayers.Util.indexOf;
+
         if (this.feature === feature ||
-           (this.geometryTypes && OpenLayers.Util.indexOf(this.geometryTypes,
+           (this.geometryTypes && indexOf(this.geometryTypes,
            feature.geometry.CLASS_NAME) == -1)) {
             return;
         }
@@ -20625,7 +20896,11 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
                 this.unselectFeature(this.feature);
             }
             this.feature = feature;
-            this.layer.selectedFeatures.push(feature);
+
+            if(indexOf(this.layer.selectedFeatures, feature) == -1){
+                this.layer.selectedFeatures.push(feature);
+            }
+
             this.layer.drawFeature(feature, 'select');
             this.modified = false;
             this.resetVertices();
@@ -20668,8 +20943,8 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
         });
         this.modified = false;
     },
-    
-    
+
+
     /**
      * Method: dragStart
      * Called by the drag handler before a feature is dragged.  This method is
@@ -20691,7 +20966,8 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             }
             this.selectFeature(feature);
         }
-        if (feature._sketch || isPoint) {
+        if (this.feature &&
+                (feature._sketch || isPoint && feature === this.feature)) {
             // feature is a drag or virtual handle or point
             this.vertex = feature;
             this.handlers.drag.stopDown = true;
@@ -20728,6 +21004,9 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             });
         } else {
             if(vertex._index) {
+                if (vertex._index == -1) {
+                    vertex._index = OpenLayers.Util.indexOf(vertex.geometry.parent.components, vertex._next);
+                }
                 // dragging a virtual vertex
                 vertex.geometry.parent.addComponent(vertex.geometry,
                                                     vertex._index);
@@ -20764,7 +21043,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
         // maintain node z-index
         this.layer.drawFeature(vertex);
     },
-    
+
     /**
      * Method: dragComplete
      * Called by the drag handler when the feature dragging is complete.
@@ -20776,10 +21055,10 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
         this.resetVertices();
         this.setFeatureState();
         this.onModification(this.feature);
-        this.layer.events.triggerEvent("featuremodified", 
+        this.layer.events.triggerEvent("featuremodified",
                                        {feature: this.feature});
     },
-    
+
     /**
      * Method: setFeatureState
      * Called when the feature is modified.  If the current state is not
@@ -20798,7 +21077,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             }
         }
     },
-    
+
     /**
      * Method: resetVertices
      */
@@ -20836,7 +21115,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             }
         }
     },
-    
+
     /**
      * Method: handleKeypress
      * Called by the feature handler on keypress.  This is used to delete
@@ -20849,11 +21128,11 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
      */
     handleKeypress: function(evt) {
         var code = evt.keyCode;
-        
+
         // check for delete key
         if(this.feature &&
            OpenLayers.Util.indexOf(this.deleteCodes, code) != -1) {
-            var vertex = this.layer.getFeatureFromEvent(this.handlers.drag.evt);
+            var vertex = this._lastVertex;
             if (vertex &&
                     OpenLayers.Util.indexOf(this.vertices, vertex) != -1 &&
                     !this.handlers.drag.dragging && vertex.geometry.parent) {
@@ -20870,7 +21149,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
                 this.resetVertices();
                 this.setFeatureState();
                 this.onModification(this.feature);
-                this.layer.events.triggerEvent("featuremodified", 
+                this.layer.events.triggerEvent("featuremodified",
                                                {feature: this.feature});
             }
         }
@@ -20883,7 +21162,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
      */
     collectVertices: function() {
         this.vertices = [];
-        this.virtualVertices = [];        
+        this.virtualVertices = [];
         var control = this;
         function collectComponentVertices(geometry) {
             var i, vertex, component, len;
@@ -20908,7 +21187,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
                         collectComponentVertices(component);
                     }
                 }
-                
+
                 // add virtual vertices in the middle of each edge
                 if (control.createVertices && geometry.CLASS_NAME != "OpenLayers.Geometry.MultiPoint") {
                     for(i=0, len=geometry.components.length; i<len-1; ++i) {
@@ -20916,16 +21195,10 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
                         var nextVertex = geometry.components[i + 1];
                         if(prevVertex.CLASS_NAME == "OpenLayers.Geometry.Point" &&
                            nextVertex.CLASS_NAME == "OpenLayers.Geometry.Point") {
-                            var x = (prevVertex.x + nextVertex.x) / 2;
-                            var y = (prevVertex.y + nextVertex.y) / 2;
-                            var point = new OpenLayers.Feature.Vector(
-                                new OpenLayers.Geometry.Point(x, y),
-                                null, control.virtualStyle
-                            );
+                            var point = control.createVirtualVertex.call(control, prevVertex, nextVertex);
                             // set the virtual parent and intended index
                             point.geometry.parent = geometry;
                             point._index = i + 1;
-                            point._sketch = true;
                             control.virtualVertices.push(point);
                         }
                     }
@@ -20992,8 +21265,8 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
             }
             if(resize) {
                 var scale, ratio;
-                // 'resize' together with 'reshape' implies that the aspect 
-                // ratio of the geometry will not be preserved whilst resizing 
+                // 'resize' together with 'reshape' implies that the aspect
+                // ratio of the geometry will not be preserved whilst resizing
                 if (reshape) {
                     scale = dy1 / dy0;
                     ratio = (dx1 / dx0) / scale;
@@ -21025,7 +21298,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
 
     /**
      * Method: handleMapEvents
-     * 
+     *
      * Parameters:
      * evt - {Object}
      */
@@ -21044,7 +21317,7 @@ OpenLayers.Control.ModifyFeature = OpenLayers.Class(OpenLayers.Control, {
         var index = Math.max(this.map.Z_INDEX_BASE['Feature'] - 1,
             this.layer.getZIndex()) + 1;
         this.layer.setZIndex(index);
-        
+
     },
 
     /**
@@ -21087,7 +21360,7 @@ OpenLayers.Control.ModifyFeature.ROTATE = 4;
 OpenLayers.Control.ModifyFeature.DRAG = 8;
 
 /** FILE: OpenLayers/Control/NavigationHistory.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -21512,7 +21785,7 @@ OpenLayers.Control.NavigationHistory = OpenLayers.Class(OpenLayers.Control, {
 
 
 /** FILE: OpenLayers/Control/Measure.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -21893,7 +22166,7 @@ OpenLayers.Control.Measure = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Handler/Hover.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -22535,7 +22808,7 @@ OpenLayers.Handler.Hover = OpenLayers.Class(OpenLayers.Handler, {
 })();
 
 /** FILE: OpenLayers/Request.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -22966,7 +23239,7 @@ OpenLayers.Util.extend(OpenLayers.Request, {
 });
 
 /** FILE: OpenLayers/Format.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -23091,7 +23364,7 @@ OpenLayers.Format = OpenLayers.Class({
 });     
 
 /** FILE: OpenLayers/Format/XML.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -23174,7 +23447,7 @@ OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
      *     the object.
      */
     initialize: function(options) {
-        if(window.ActiveXObject) {
+        if (OpenLayers.Format.XML.supportActiveX) {
             this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
         }
         OpenLayers.Format.prototype.initialize.apply(this, [options]);
@@ -23231,7 +23504,7 @@ OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
                      * Since we want to be able to call this method on the prototype
                      * itself, this.xmldom may not exist even if in IE.
                      */
-                    if(window.ActiveXObject && !this.xmldom) {
+                    if (OpenLayers.Format.XML.supportActiveX && !this.xmldom) {
                         xmldom = new ActiveXObject("Microsoft.XMLDOM");
                     } else {
                         xmldom = this.xmldom;
@@ -23681,6 +23954,27 @@ OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
     },
 
     /**
+     * Method: getFirstElementChild
+     * Implementation of firstElementChild attribute that works on ie7 and ie8.
+     *
+     * Parameters:
+     * node - {DOMElement} The parent node (required).
+     *
+     * Returns:
+     * {DOMElement} The first child element.
+     */
+    getFirstElementChild: function(node) {
+        if (node.firstElementChild) {
+            return node.firstElementChild;
+        }
+        else {
+            var child = node.firstChild;
+            while (child.nodeType != 1 && (child = child.nextSibling)) {}
+            return child;
+        }
+    },
+
+    /**
      * Method: readNode
      * Shorthand for applying one of the named readers given the node
      *     namespace and local name.  Readers take two args (node, obj) and
@@ -23943,7 +24237,7 @@ OpenLayers.Format.XML = OpenLayers.Class(OpenLayers.Format, {
             if (document.implementation && document.implementation.createDocument) {
                 OpenLayers.Format.XML.document =
                     document.implementation.createDocument("", "", null);
-            } else if (!this.xmldom && window.ActiveXObject) {
+            } else if (!this.xmldom && OpenLayers.Format.XML.supportActiveX) {
                 this.xmldom = new ActiveXObject("Microsoft.XMLDOM");
             }
         }
@@ -23989,8 +24283,18 @@ OpenLayers.Format.XML.lookupNamespaceURI = OpenLayers.Function.bind(
  */
 OpenLayers.Format.XML.document = null;
 
+/**
+ * APIFunction: OpenLayers.Format.XML.supportActiveX
+ * Returns a poolean flag to check if this browser uses ActiveX.
+ */
+OpenLayers.Format.XML.supportActiveX = (function () {
+    return (Object.getOwnPropertyDescriptor &&
+            Object.getOwnPropertyDescriptor(window, "ActiveXObject")) ||
+            ("ActiveXObject" in window);
+})();
+
 /** FILE: OpenLayers/Format/WMSGetFeatureInfo.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -24012,12 +24316,12 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
      * APIProperty: layerIdentifier
      * {String} All xml nodes containing this search criteria will populate an
      *     internal array of layer nodes.
-     */ 
+     */
     layerIdentifier: '_layer',
 
     /**
      * APIProperty: featureIdentifier
-     * {String} All xml nodes containing this search criteria will populate an 
+     * {String} All xml nodes containing this search criteria will populate an
      *     internal array of feature nodes for each layer node found.
      */
     featureIdentifier: '_feature',
@@ -24080,8 +24384,8 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
         }
         return result;
     },
-    
-    
+
+
     /**
      * Method: read_msGMLOutput
      * Parse msGMLOutput nodes.
@@ -24104,14 +24408,14 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
                     layerName = layerName.split(':')[1];
                 }
                 var layerName = layerName.replace(this.layerIdentifier, '');
-                var featureNodes = this.getSiblingNodesByTagCriteria(node, 
+                var featureNodes = this.getSiblingNodesByTagCriteria(node,
                     this.featureIdentifier);
                 if (featureNodes) {
                     for (var j = 0; j < featureNodes.length; j++) {
                         var featureNode = featureNodes[j];
                         var geomInfo = this.parseGeometry(featureNode);
                         var attributes = this.parseAttributes(featureNode);
-                        var feature = new OpenLayers.Feature.Vector(geomInfo.geometry, 
+                        var feature = new OpenLayers.Feature.Vector(geomInfo.geometry,
                             attributes, null);
                         feature.bounds = geomInfo.bounds;
                         feature.type = layerName;
@@ -24122,7 +24426,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
         }
         return response;
     },
-    
+
     /**
      * Method: read_FeatureInfoResponse
      * Parse FeatureInfoResponse nodes.
@@ -24142,7 +24446,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
             var featureNode = featureNodes[i];
             var geom = null;
 
-            // attributes can be actual attributes on the FIELDS tag, 
+            // attributes can be actual attributes on the FIELDS tag,
             // or FIELD children
             var attributes = {};
             var j;
@@ -24157,7 +24461,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
                 for (j=0, jlen=nodes.length; j<jlen; ++j) {
                     var node = nodes[j];
                     if (node.nodeType != 3) {
-                        attributes[node.getAttribute("name")] = 
+                        attributes[node.getAttribute("name")] =
                             node.getAttribute("value");
                     }
                 }
@@ -24172,18 +24476,18 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
 
     /**
      * Method: getSiblingNodesByTagCriteria
-     * Recursively searches passed xml node and all it's descendant levels for 
-     *     nodes whose tagName contains the passed search string. This returns an 
-     *     array of all sibling nodes which match the criteria from the highest 
+     * Recursively searches passed xml node and all it's descendant levels for
+     *     nodes whose tagName contains the passed search string. This returns an
+     *     array of all sibling nodes which match the criteria from the highest
      *     hierarchial level from which a match is found.
-     * 
+     *
      * Parameters:
      * node - {DOMElement} An xml node
-     * criteria - {String} Search string which will match some part of a tagName 
-     *                                       
+     * criteria - {String} Search string which will match some part of a tagName
+     *
      * Returns:
      * Array({DOMElement}) An array of sibling xml nodes
-     */                
+     */
     getSiblingNodesByTagCriteria: function(node, criteria){
         var nodes = [];
         var children, tagName, n, matchNodes, child;
@@ -24205,7 +24509,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
                         child, criteria);
 
                     if(matchNodes.length > 0){
-                        (nodes.length == 0) ? 
+                        (nodes.length == 0) ?
                             nodes = matchNodes : nodes.push(matchNodes);
                     }
                 }
@@ -24223,11 +24527,11 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
      *
      * Returns:
      * {Object} An attributes object.
-     * 
+     *
      * Notes:
      * Assumes that attributes are direct child xml nodes of the passed node
-     * and contain only a single text node. 
-     */    
+     * and contain only a single text node.
+     */
     parseAttributes: function(node){
         var attributes = {};
         if (node.nodeType == 1) {
@@ -24241,13 +24545,21 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
                         child.nodeName.split(":")[1] : child.nodeName;
                     if (grandchildren.length == 0) {
                         attributes[name] = null;
-                    } else if (grandchildren.length == 1) {
+                    } else if (grandchildren.length == 1 ||
+                            // to include separate big tag (with Firefox)
+                            // without including boundedBy and geom.
+                            grandchildren[0].nodeValue.replace(
+                                this.regExes.trimSpace, "").length > 0) {
                         var grandchild = grandchildren[0];
                         if (grandchild.nodeType == 3 ||
-                            grandchild.nodeType == 4) {
-                            var value = grandchild.nodeValue.replace(
-                                this.regExes.trimSpace, "");
-                            attributes[name] = value;
+                                grandchild.nodeType == 4) {
+                            // wholeText doesn't exist everywhere but we need it for FireFox
+                            // see i.e.: http://msdn.microsoft.com/en-us/library/ie/ff974769%28v=vs.85%29.aspx
+                            var attribute = grandchild.wholeText ?
+                                grandchild.wholeText :
+                                grandchild.nodeValue;
+                            attributes[name] = attribute.replace(
+                                    this.regExes.trimSpace, "");
                         }
                     }
                 }
@@ -24258,7 +24570,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
 
     /**
      * Method: parseGeometry
-     * Parse the geometry and the feature bounds out of the node using 
+     * Parse the geometry and the feature bounds out of the node using
      *     Format.GML
      *
      * Parameters:
@@ -24268,7 +24580,7 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
      * {Object} An object containing the geometry and the feature bounds
     */
     parseGeometry: function(node) {
-        // we need to use the old Format.GML parser since we do not know the 
+        // we need to use the old Format.GML parser since we do not know the
         // geometry name
         if (!this.gmlFormat) {
             this.gmlFormat = new OpenLayers.Format.GML();
@@ -24284,11 +24596,11 @@ OpenLayers.Format.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Format.XML, {
     },
 
     CLASS_NAME: "OpenLayers.Format.WMSGetFeatureInfo"
-    
+
 });
 
 /** FILE: OpenLayers/Control/WMSGetFeatureInfo.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -24693,8 +25005,8 @@ OpenLayers.Control.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Control, {
         } else {
             if (OpenLayers.Util.isArray(layer.params.LAYERS)) {
                 styleNames = new Array(layer.params.LAYERS.length);
-            } else { // Assume it's a String
-                styleNames = layer.params.LAYERS.replace(/[^,]/g, "");
+            } else {
+                styleNames = layer.params.LAYERS.toString().replace(/[^,]/g, "");
             }
         }
         return styleNames;
@@ -24797,7 +25109,16 @@ OpenLayers.Control.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Control, {
         if(!doc || !doc.documentElement) {
             doc = request.responseText;
         }
-        var features = this.format.read(doc);
+
+        var features = [];
+        var responseHeaders = request.getAllResponseHeaders();
+        if(responseHeaders && this.infoFormat === "application/json" && responseHeaders.indexOf("application/json") !== -1) {
+            features = new OpenLayers.Format.GeoJSON().read(doc);
+        }
+        else {
+            features = this.format.read(doc);
+        }
+
         if (this.drillDown === false) {
             this.triggerGetFeatureInfo(request, xy, features);
         } else {
@@ -24809,6 +25130,7 @@ OpenLayers.Control.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Control, {
             } else {
             this._features = (this._features || []).concat(features);
             }
+
             if (this._requestCount === this._numRequests) {
                 this.triggerGetFeatureInfo(request, xy, this._features.concat());
                 delete this._features;
@@ -24822,7 +25144,7 @@ OpenLayers.Control.WMSGetFeatureInfo = OpenLayers.Class(OpenLayers.Control, {
 });
 
 /** FILE: OpenLayers/Geometry.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -25303,7 +25625,7 @@ OpenLayers.Geometry.distanceSquaredToSegment = function(point, segment) {
     var y2 = segment.y2;
     var dx = x2 - x1;
     var dy = y2 - y1;
-    var along = ((dx * (x0 - x1)) + (dy * (y0 - y1))) /
+    var along = (dx == 0 && dy == 0) ? 0 : ((dx * (x0 - x1)) + (dy * (y0 - y1))) /
                 (Math.pow(dx, 2) + Math.pow(dy, 2));
     var x, y;
     if(along <= 0.0) {
@@ -25324,7 +25646,7 @@ OpenLayers.Geometry.distanceSquaredToSegment = function(point, segment) {
 };
 
 /** FILE: OpenLayers/Geometry/Point.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -25609,7 +25931,7 @@ OpenLayers.Geometry.Point = OpenLayers.Class(OpenLayers.Geometry, {
 });
 
 /** FILE: OpenLayers/Handler/Point.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -25748,7 +26070,7 @@ OpenLayers.Handler.Point = OpenLayers.Class(OpenLayers.Handler, {
      * modify - Called with each move of a vertex with the vertex (point)
      *     geometry and the sketch feature.
      * done - Called when the point drawing is finished.  The callback will
-     *     recieve a single argument, the point geometry.
+     *     receive a single argument, the point geometry.
      * cancel - Called when the handler is deactivated while drawing.  The
      *     cancel callback will receive a geometry.
      */
@@ -26167,7 +26489,7 @@ OpenLayers.Handler.Point = OpenLayers.Class(OpenLayers.Handler, {
 });
 
 /** FILE: OpenLayers/Geometry/Collection.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -26244,7 +26566,8 @@ OpenLayers.Geometry.Collection = OpenLayers.Class(OpenLayers.Geometry, {
      * {<OpenLayers.Geometry.Collection>} An exact clone of this collection
      */
     clone: function() {
-        var geometry = eval("new " + this.CLASS_NAME + "()");
+        var Constructor = OpenLayers.Util.getConstructor(this.CLASS_NAME);
+        var geometry = new Constructor();
         for(var i=0, len=this.components.length; i<len; i++) {
             geometry.addComponent(this.components[i].clone());
         }
@@ -26732,7 +27055,7 @@ OpenLayers.Geometry.Collection = OpenLayers.Class(OpenLayers.Geometry, {
 });
 
 /** FILE: OpenLayers/Geometry/MultiPoint.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -26800,7 +27123,7 @@ OpenLayers.Geometry.MultiPoint = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Geometry/Curve.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -26891,7 +27214,7 @@ OpenLayers.Geometry.Curve = OpenLayers.Class(OpenLayers.Geometry.MultiPoint, {
 });
 
 /** FILE: OpenLayers/Geometry/LineString.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -27351,25 +27674,21 @@ OpenLayers.Geometry.LineString = OpenLayers.Class(OpenLayers.Geometry.Curve, {
                 result = OpenLayers.Geometry.distanceToSegment(geometry, seg);
                 if(result.distance < min) {
                     min = result.distance;
-                    best = result;
+                    if(details) {
+                        best = {
+                            distance: min,
+                            x0: result.x, y0: result.y,
+                            x1: x, y1: y,
+                            index: i,
+                            indexDistance: new OpenLayers.Geometry.Point(seg.x1, seg.y1).distanceTo(geometry)
+                        };
+                    } else {
+                        best = min;
+                    }
                     if(min === 0) {
                         break;
                     }
-                } else {
-                    // if distance increases and we cross y0 to the right of x0, no need to keep looking.
-                    if(seg.x2 > x && ((y > seg.y1 && y < seg.y2) || (y < seg.y1 && y > seg.y2))) {
-                        break;
-                    }
                 }
-            }
-            if(details) {
-                best = {
-                    distance: best.distance,
-                    x0: best.x, y0: best.y,
-                    x1: x, y1: y
-                };
-            } else {
-                best = best.distance;
             }
         } else if(geometry instanceof OpenLayers.Geometry.LineString) { 
             var segs0 = this.getSortedSegments();
@@ -27450,7 +27769,7 @@ OpenLayers.Geometry.LineString = OpenLayers.Class(OpenLayers.Geometry.Curve, {
      *
      *
      * Parameters:
-     * tolerance - {number} threshhold for simplification in map units
+     * tolerance - {number} threshold for simplification in map units
      *
      * Returns:
      * {OpenLayers.Geometry.LineString} the simplified LineString
@@ -27538,8 +27857,144 @@ OpenLayers.Geometry.LineString = OpenLayers.Class(OpenLayers.Geometry.Curve, {
     CLASS_NAME: "OpenLayers.Geometry.LineString"
 });
 
+
+/**
+ * Function: OpenLayers.Geometry.LineString.geodesic
+ *
+ * Parameters:
+ * interpolate - {function(number): OpenLayers.Geometry.Point} Interpolate
+ *     function.
+ * transform - {function(OpenLayers.Geometry.Point): OpenLayers.Geometry.Point}
+ *     Transform from longitude/latitude to projected coordinates.
+ * squaredTolerance - {number} Squared tolerance.
+ *
+ * Returns:
+ * {OpenLayers.Geometry.LineString}
+ */
+OpenLayers.Geometry.LineString.geodesic =
+        function(interpolate, transform, squaredTolerance) {
+    // FIXME reduce garbage generation
+    // FIXME optimize stack operations
+
+    var components = [];
+
+    var geoA = interpolate(0);
+    var geoB = interpolate(1);
+
+    var a = transform(geoA);
+    var b = transform(geoB);
+
+    var geoStack = [geoB, geoA];
+    var stack = [b, a];
+    var fractionStack = [1, 0];
+
+    var fractions = {};
+
+    var maxIterations = 1e5;
+    var geoM, m, fracA, fracB, fracM, key;
+
+    while (--maxIterations > 0 && fractionStack.length > 0) {
+        // Pop the a coordinate off the stack
+        fracA = fractionStack.pop();
+        geoA = geoStack.pop();
+        a = stack.pop();
+        // Add the a coordinate if it has not been added yet
+        key = fracA.toString();
+        if (!(key in fractions)) {
+            components.push(a);
+            fractions[key] = true;
+        }
+        // Pop the b coordinate off the stack
+        fracB = fractionStack.pop();
+        geoB = geoStack.pop();
+        b = stack.pop();
+        // Find the m point between the a and b coordinates
+        fracM = (fracA + fracB) / 2;
+        geoM = interpolate(fracM);
+        m = transform(geoM);
+        if (OpenLayers.Geometry.distanceSquaredToSegment(m, {x1: a.x, y1: a.y,
+                x2: b.x, y2: b.y}).distance < squaredTolerance) {
+            // If the m point is sufficiently close to the straight line, then
+            // we discard it. Just use the b coordinate and move on to the next
+            // line segment.
+            components.push(b);
+            key = fracB.toString();
+            fractions[key] = true;
+        } else {
+            // Otherwise, we need to subdivide the current line segment.
+            // Split it into two and push the two line segments onto the stack.
+            fractionStack.push(fracB, fracM, fracM, fracA);
+            stack.push(b, m, m, a);
+            geoStack.push(geoB, geoM, geoM, geoA);
+        }
+    }
+
+    return new OpenLayers.Geometry.LineString(components);
+};
+
+
+/**
+ * Function: OpenLayers.Geometry.LineString.geodesicMeridian
+ * Generate a meridian (line at constant longitude).
+ *
+ * Parameters:
+ * lon - {number} Longitude.
+ * lat1 - {number} Latitude 1.
+ * lat2 - {number} Latitude 2.
+ * projection - {OpenLayers.Projection} Projection.
+ * squaredTolerance - {number} Squared tolerance.
+ *
+ * Returns:
+ * {OpenLayers.Geometry.LineString} Line geometry for the meridian at <lon>.
+ */
+OpenLayers.Geometry.LineString.geodesicMeridian =
+        function(lon, lat1, lat2, projection, squaredTolerance) {
+    var epsg4326Projection = new OpenLayers.Projection('EPSG:4326');
+    return OpenLayers.Geometry.LineString.geodesic(
+        function(frac) {
+            return new OpenLayers.Geometry.Point(
+                    lon, lat1 + ((lat2 - lat1) * frac));
+        },
+        function(point) {
+            return point.transform(epsg4326Projection, projection);
+        },
+        squaredTolerance
+  );
+};
+
+
+/**
+ * Function: OpenLayers.Geometry.LineString.geodesicParallel
+ * Generate a parallel (line at constant latitude).
+ *
+ * Parameters:
+ * lat - {number} Latitude.
+ * lon1 - {number} Longitude 1.
+ * lon2 - {number} Longitude 2.
+ * projection {OpenLayers.Projection} Projection.
+ * squaredTolerance - {number} Squared tolerance.
+ *
+ * Returns:
+ * {OpenLayers.Geometry.LineString} Line geometry for the parallel at <lat>.
+ */
+OpenLayers.Geometry.LineString.geodesicParallel =
+        function(lat, lon1, lon2, projection, squaredTolerance) {
+    var epsg4326Projection = new OpenLayers.Projection('EPSG:4326');
+    return OpenLayers.Geometry.LineString.geodesic(
+        function(frac) {
+            return new OpenLayers.Geometry.Point(
+                    lon1 + ((lon2 - lon1) * frac), lat);
+        },
+        function(point) {
+            return point.transform(epsg4326Projection, projection);
+        },
+        squaredTolerance
+    );
+};
+
+
 /** FILE: OpenLayers/Handler/Path.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -27631,7 +28086,7 @@ OpenLayers.Handler.Path = OpenLayers.Class(OpenLayers.Handler.Point, {
      *     geometry and the sketch feature.
      * point - Called as each point is added.  Receives the new point geometry.
      * done - Called when the point drawing is finished.  The callback will
-     *     recieve a single argument, the linestring geometry.
+     *     receive a single argument, the linestring geometry.
      * cancel - Called when the handler is deactivated while drawing.  The
      *     cancel callback will receive a geometry.
      */
@@ -28084,7 +28539,7 @@ OpenLayers.Handler.Path = OpenLayers.Class(OpenLayers.Handler.Point, {
 });
 
 /** FILE: OpenLayers/Geometry/LinearRing.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -28372,7 +28827,7 @@ OpenLayers.Geometry.LinearRing = OpenLayers.Class(
                         (2 + Math.sin(OpenLayers.Util.rad(p1.y)) +
                         Math.sin(OpenLayers.Util.rad(p2.y)));
             }
-            area = area * 6378137.0 * 6378137.0 / 2.0;
+            area = area * OpenLayers.Util.VincentyConstants.a * OpenLayers.Util.VincentyConstants.a / 2.0;
         }
         return area;
     },
@@ -28519,7 +28974,7 @@ OpenLayers.Geometry.LinearRing = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Geometry/Polygon.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -28776,7 +29231,7 @@ OpenLayers.Geometry.Polygon.createRegularPolygon = function(origin, radius, side
 };
 
 /** FILE: OpenLayers/Handler/Polygon.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -28836,7 +29291,7 @@ OpenLayers.Handler.Polygon = OpenLayers.Class(OpenLayers.Handler.Path, {
      *     geometry and the sketch feature.
      * point - Called as each point is added.  Receives the new point geometry.
      * done - Called when the point drawing is finished.  The callback will
-     *     recieve a single argument, the polygon geometry.
+     *     receive a single argument, the polygon geometry.
      * cancel - Called when the handler is deactivated while drawing.  The
      *     cancel callback will receive a geometry.
      */
@@ -29083,7 +29538,7 @@ OpenLayers.Handler.Polygon = OpenLayers.Class(OpenLayers.Handler.Path, {
 });
 
 /** FILE: OpenLayers/Kinetic.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29263,7 +29718,7 @@ OpenLayers.Kinetic = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Geometry/MultiLineString.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29523,7 +29978,7 @@ OpenLayers.Geometry.MultiLineString = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Geometry/MultiPolygon.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29567,7 +30022,7 @@ OpenLayers.Geometry.MultiPolygon = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/OGCExceptionReport.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29677,7 +30132,7 @@ OpenLayers.Format.OGCExceptionReport = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Format/XML/VersionedOGC.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29884,6 +30339,7 @@ OpenLayers.Format.XML.VersionedOGC = OpenLayers.Class(OpenLayers.Format.XML, {
             obj.error = format.read(data);
         }
         obj.version = version;
+        obj.requestType = this.name;
         return obj;
     },
 
@@ -29891,7 +30347,7 @@ OpenLayers.Format.XML.VersionedOGC = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Filter.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -29980,7 +30436,7 @@ OpenLayers.Filter = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Filter/FeatureId.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -30069,7 +30525,7 @@ OpenLayers.Filter.FeatureId = OpenLayers.Class(OpenLayers.Filter, {
 });
 
 /** FILE: OpenLayers/Filter/Logical.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -30192,7 +30648,7 @@ OpenLayers.Filter.Logical.OR  = "||";
 OpenLayers.Filter.Logical.NOT = "!";
 
 /** FILE: OpenLayers/Filter/Comparison.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -30309,6 +30765,9 @@ OpenLayers.Filter.Comparison = OpenLayers.Class(OpenLayers.Filter, {
         }
         var result = false;
         var got = context[this.property];
+        if (got === undefined) {
+            return false;
+        }
         var exp;
         switch(this.type) {
             case OpenLayers.Filter.Comparison.EQUAL_TO:
@@ -30461,7 +30920,7 @@ OpenLayers.Filter.Comparison.LIKE                     = "~";
 OpenLayers.Filter.Comparison.IS_NULL                  = "NULL";
 
 /** FILE: OpenLayers/Format/Filter.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -30516,7 +30975,7 @@ OpenLayers.Format.Filter = OpenLayers.Class(OpenLayers.Format.XML.VersionedOGC, 
 });
 
 /** FILE: OpenLayers/Filter/Function.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -30567,7 +31026,7 @@ OpenLayers.Filter.Function = OpenLayers.Class(OpenLayers.Filter, {
 
 
 /** FILE: OpenLayers/Format/Filter/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -31073,7 +31532,7 @@ OpenLayers.Format.Filter.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Format/GML.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -31262,11 +31721,13 @@ OpenLayers.Format.GML = OpenLayers.Class(OpenLayers.Format.XML, {
         var feature = new OpenLayers.Feature.Vector(geometry, attributes);
         feature.bounds = bounds;
         
+        var firstChild = this.getFirstElementChild(node);
         feature.gml = {
-            featureType: node.firstChild.nodeName.split(":")[1],
-            featureNS: node.firstChild.namespaceURI,
-            featureNSPrefix: node.firstChild.prefix
+            featureType: firstChild.nodeName.split(":")[1],
+            featureNS: firstChild.namespaceURI,
+            featureNSPrefix: firstChild.prefix
         };
+        feature.type = feature.gml.featureType;
                 
         // assign fid - this can come from a "fid" or "id" attribute
         var childNode = node.firstChild;
@@ -31998,7 +32459,7 @@ OpenLayers.Format.GML = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Format/GML/Base.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -32024,7 +32485,7 @@ if(!OpenLayers.Format.GML) {
  *  - <OpenLayers.Format.XML>
  */
 OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
-    
+
     /**
      * Property: namespaces
      * {Object} Mapping of namespace aliases to namespace URIs.
@@ -32035,7 +32496,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         xsi: "http://www.w3.org/2001/XMLSchema-instance",
         wfs: "http://www.opengis.net/wfs" // this is a convenience for reading wfs:FeatureCollection
     },
-    
+
     /**
      * Property: defaultPrefix
      */
@@ -32046,19 +32507,26 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      * {String} Schema location for a particular minor version.
      */
     schemaLocation: null,
-    
+
     /**
      * APIProperty: featureType
      * {Array(String) or String} The local (without prefix) feature typeName(s).
      */
     featureType: null,
-    
+
     /**
      * APIProperty: featureNS
      * {String} The feature namespace.  Must be set in the options at
      *     construction.
      */
     featureNS: null,
+
+    /**
+     * APIProperty: featurePrefix
+     * {String} Namespace alias (or prefix) for feature nodes.  Default is
+     *     "feature".
+     */
+    featurePrefix: "feature",
 
     /**
      * APIProperty: geometry
@@ -32072,7 +32540,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      * {Boolean} Extract attributes from GML.  Default is true.
      */
     extractAttributes: true,
-    
+
     /**
      * APIProperty: srsName
      * {String} URI for spatial reference system.  This is optional for
@@ -32086,7 +32554,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      * APIProperty: xy
      * {Boolean} Order of the GML coordinate true:(x,y) or false:(y,x)
      * Changing is not recommended, a new Format should be instantiated.
-     */ 
+     */
     xy: true,
 
     /**
@@ -32102,7 +32570,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      *     of featuretypes.
      */
     singleFeatureType: null,
-    
+
     /**
      * Property: autoConfig
      * {Boolean} Indicates if the format was configured without a <featureNS>,
@@ -32138,7 +32606,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      *     this instance.
      *
      * Valid options properties:
-     * featureType - {Array(String) or String} Local (without prefix) feature 
+     * featureType - {Array(String) or String} Local (without prefix) feature
      *     typeName(s) (required for write).
      * featureNS - {String} Feature namespace (required for write).
      * geometryName - {String} Geometry element name (required for write).
@@ -32147,11 +32615,11 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         OpenLayers.Format.XML.prototype.initialize.apply(this, [options]);
         this.setGeometryTypes();
         if(options && options.featureNS) {
-            this.setNamespace("feature", options.featureNS);
+            this.setNamespace(this.featurePrefix, options.featureNS);
         }
         this.singleFeatureType = !options || (typeof options.featureType === "string");
     },
-    
+
     /**
      * Method: read
      *
@@ -32163,7 +32631,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
      * {Array(<OpenLayers.Feature.Vector>)} An array of features.
      */
     read: function(data) {
-        if(typeof data == "string") { 
+        if(typeof data == "string") {
             data = OpenLayers.Format.XML.prototype.read.apply(this, [data]);
         }
         if(data && data.nodeType == 9) {
@@ -32193,7 +32661,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         }
         return features;
     },
-    
+
     /**
      * Method: readNode
      * Shorthand for applying one of the named readers given the node
@@ -32230,7 +32698,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         }
         return OpenLayers.Format.XML.prototype.readNode.apply(this, [node, obj]);
     },
-    
+
     /**
      * Property: readers
      * Contains public functions, grouped by namespace prefix, that will
@@ -32248,7 +32716,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
                 this.readChildNodes(node, obj);
             },
             "featureMembers": function(node, obj) {
-                this.readChildNodes(node, obj);                
+                this.readChildNodes(node, obj);
             },
             "name": function(node, obj) {
                 obj.name = this.getChildValue(node);
@@ -32468,7 +32936,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
             }
         }
     },
-    
+
     /**
      * Method: write
      *
@@ -32496,7 +32964,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
 
         return OpenLayers.Format.XML.prototype.write.apply(this, [root]);
     },
-    
+
     /**
      * Property: writers
      * As a compliment to the readers property, this structure contains public
@@ -32567,7 +33035,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         },
         "feature": {
             "_typeName": function(feature) {
-                var node = this.createElementNSPlus("feature:" + this.featureType, {
+                var node = this.createElementNSPlus(this.featurePrefix + ":" + this.featureType, {
                     attributes: {fid: feature.fid}
                 });
                 if(feature.geometry) {
@@ -32589,9 +33057,9 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
                     geometry = geometry.clone().transform(
                         this.internalProjection, this.externalProjection
                     );
-                }    
+                }
                 var node = this.createElementNSPlus(
-                    "feature:" + this.geometryName
+                    this.featurePrefix + ":" + this.geometryName
                 );
                 var type = this.geometryTypes[geometry.CLASS_NAME];
                 var child = this.writeNode("gml:" + type, geometry, node);
@@ -32601,7 +33069,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
                 return node;
             },
             "_attribute": function(obj) {
-                return this.createElementNSPlus("feature:" + obj.name, {
+                return this.createElementNSPlus(this.featurePrefix + ":" + obj.name, {
                     value: obj.value
                 });
             }
@@ -32623,7 +33091,7 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
             }
         }
     },
-    
+
     /**
      * Method: setGeometryTypes
      * Sets the <geometryTypes> mapping.
@@ -32640,12 +33108,12 @@ OpenLayers.Format.GML.Base = OpenLayers.Class(OpenLayers.Format.XML, {
         };
     },
 
-    CLASS_NAME: "OpenLayers.Format.GML.Base" 
+    CLASS_NAME: "OpenLayers.Format.GML.Base"
 
 });
 
 /** FILE: OpenLayers/Format/GML/v2.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -32840,7 +33308,7 @@ OpenLayers.Format.GML.v2 = OpenLayers.Class(OpenLayers.Format.GML.Base, {
 });
 
 /** FILE: OpenLayers/Format/Filter/v1_0_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -33025,7 +33493,7 @@ OpenLayers.Format.Filter.v1_0_0 = OpenLayers.Class(
 
 });
 /** FILE: OpenLayers/Format/GML/v3.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -33164,7 +33632,10 @@ OpenLayers.Format.GML.v3 = OpenLayers.Class(OpenLayers.Format.GML.Base, {
                         coords[1], coords[0], coords[2]
                     );
                 }
-                obj.points = [point];
+                if(!!!obj.points) {
+                    obj.points = [];
+                }
+                obj.points.push(point);
             },
             "posList": function(node, obj) {
                 var str = this.getChildValue(node).replace(
@@ -33255,6 +33726,7 @@ OpenLayers.Format.GML.v3 = OpenLayers.Class(OpenLayers.Format.GML.Base, {
                 if(!container.components) {
                     container.components = [];
                 }
+
                 var min = obj.points[0];
                 var max = obj.points[1];
                 container.components.push(
@@ -33504,7 +33976,7 @@ OpenLayers.Format.GML.v3 = OpenLayers.Class(OpenLayers.Format.GML.Base, {
 });
 
 /** FILE: OpenLayers/Format/Filter/v1_1_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -33728,7 +34200,7 @@ OpenLayers.Format.Filter.v1_1_0 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/OWSCommon.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -33808,7 +34280,7 @@ OpenLayers.Format.OWSCommon = OpenLayers.Class(OpenLayers.Format.XML.VersionedOG
 });
 
 /** FILE: OpenLayers/Format/OWSCommon/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -33940,6 +34412,9 @@ OpenLayers.Format.OWSCommon.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
             },
             "Voice": function(node, phone) {
                 phone.voice = this.getChildValue(node);
+            },
+            "Facsimile": function(node, phone) {
+                phone.facsimile = this.getChildValue(node);
             },
             "Address": function(node, contactInfo) {
                 contactInfo.address = {};
@@ -34128,7 +34603,7 @@ OpenLayers.Format.OWSCommon.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Format/OWSCommon/v1_0_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34192,7 +34667,7 @@ OpenLayers.Format.OWSCommon.v1_0_0 = OpenLayers.Class(OpenLayers.Format.OWSCommo
 });
 
 /** FILE: OpenLayers/Format/WMSDescribeLayer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34247,7 +34722,7 @@ OpenLayers.Format.WMSDescribeLayer = OpenLayers.Class(OpenLayers.Format.XML.Vers
 });
 
 /** FILE: OpenLayers/Format/WMSDescribeLayer/v1_1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34371,7 +34846,7 @@ OpenLayers.Format.WMSDescribeLayer.v1_1_0 =
     OpenLayers.Format.WMSDescribeLayer.v1_1_1;
 
 /** FILE: OpenLayers/Format/WFSDescribeFeatureType.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34607,7 +35082,7 @@ OpenLayers.Format.WFSDescribeFeatureType = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WFST.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34643,7 +35118,7 @@ OpenLayers.Format.WFST.DEFAULTS = {
 };
 
 /** FILE: OpenLayers/Filter/Spatial.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34767,7 +35242,7 @@ OpenLayers.Filter.Spatial.WITHIN = "WITHIN";
 OpenLayers.Filter.Spatial.CONTAINS = "CONTAINS";
 
 /** FILE: OpenLayers/Format/WFST/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -34798,7 +35273,8 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
         wfs: "http://www.opengis.net/wfs",
         gml: "http://www.opengis.net/gml",
         ogc: "http://www.opengis.net/ogc",
-        ows: "http://www.opengis.net/ows"
+        ows: "http://www.opengis.net/ows",
+        xmlns: "http://www.w3.org/2000/xmlns/"
     },
     
     /**
@@ -34957,8 +35433,8 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
      * - *modified.geometry* is set (null or a geometry): The geometry will be
      *     included. If *modified.attributes* is not set, all attributes will
      *     be included.
-     * - *modified.attributes* is set: Only the attributes set (i.e. to null or
-     *     a value) in *modified.attributes* will be included. 
+     * - *modified.attributes* is set: Only the attributes set in 
+     *     *modified.attributes* will be included.
      *     If *modified.geometry* is not set, the geometry will not be included.
      *
      * Valid options include:
@@ -34998,6 +35474,7 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
                         handle: options && options.handle,
                         outputFormat: options && options.outputFormat,
                         maxFeatures: options && options.maxFeatures,
+                        viewParams: options && options.viewParams,
                         "xsi:schemaLocation": this.schemaLocationAttr(options)
                     }
                 });
@@ -35089,7 +35566,10 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
                     }
                 });
                 if(this.featureNS) {
-                    node.setAttribute("xmlns:" + this.featurePrefix, this.featureNS);
+                    this.setAttributeNS(
+                        node, this.namespaces.xmlns,
+                        "xmlns:" + this.featurePrefix, this.featureNS
+                    );
                 }
                 
                 // add in geometry
@@ -35105,7 +35585,7 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
                 for(var key in feature.attributes) {
                     if(feature.attributes[key] !== undefined &&
                                 (!modified || !modified.attributes ||
-                                (modified.attributes && modified.attributes[key] !== undefined))) {
+                                (modified.attributes && (key in modified.attributes)))) {
                         this.writeNode(
                             "Property", {name: key, value: feature.attributes[key]}, node
                         );
@@ -35152,7 +35632,10 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
                     }
                 });
                 if(this.featureNS) {
-                    node.setAttribute("xmlns:" + this.featurePrefix, this.featureNS);
+                    this.setAttributeNS(
+                        node, this.namespaces.xmlns,
+                        "xmlns:" + this.featurePrefix, this.featureNS
+                    );
                 }
                 this.writeNode("ogc:Filter", new OpenLayers.Filter.FeatureId({
                     fids: [feature.fid]
@@ -35215,7 +35698,7 @@ OpenLayers.Format.WFST.v1 = OpenLayers.Class(OpenLayers.Format.XML, {
 });
 
 /** FILE: OpenLayers/Format/WFST/v1_1_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -35368,13 +35851,14 @@ OpenLayers.Format.WFST.v1_1_0 = OpenLayers.Class(
                 var prefix = options.featurePrefix;
                 var node = this.createElementNSPlus("wfs:Query", {
                     attributes: {
-                        typeName: (prefix ? prefix + ":" : "") +
+                        typeName: (options.featureNS ? prefix + ":" : "") +
                             options.featureType,
                         srsName: options.srsName
                     }
                 });
                 if(options.featureNS) {
-                    node.setAttribute("xmlns:" + prefix, options.featureNS);
+                    this.setAttributeNS(node, this.namespaces.xmlns,
+                        "xmlns:" + prefix, options.featureNS);
                 }
                 if(options.propertyNames) {
                     for(var i=0,len = options.propertyNames.length; i<len; i++) {
@@ -35406,7 +35890,7 @@ OpenLayers.Format.WFST.v1_1_0 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -35464,7 +35948,7 @@ OpenLayers.Format.WMSCapabilities = OpenLayers.Class(OpenLayers.Format.XML.Versi
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -35834,7 +36318,7 @@ OpenLayers.Format.WMSCapabilities.v1 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -35958,7 +36442,7 @@ OpenLayers.Format.WMSCapabilities.v1_1 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_1_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36017,7 +36501,7 @@ OpenLayers.Format.WMSCapabilities.v1_1_0 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_1_1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36079,7 +36563,7 @@ OpenLayers.Format.WMSCapabilities.v1_1_1 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_3.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36094,6 +36578,14 @@ OpenLayers.Format.WMSCapabilities.v1_1_1 = OpenLayers.Class(
  * SLD 1.1.0 adds in the extra operations DescribeLayer and GetLegendGraphic, 
  * see: http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd
  * 
+ * Note on <MinScaleDenominator> and <MaxScaleDenominator> parsing: If
+ * the <MinScaleDenominator> value is set to "0", no maxScale will be
+ * set on the layer object. If the <MaxScaleDenominator> value is set to
+ * "Infinity", no minScale will be set. This makes it easy to create proper
+ * {<OpenLayers.Layer.WMS>} configurations directly from the layer object
+ * literals returned by this format, because no minScale/maxScale modifications
+ * need to be made.
+ *
  * Inherits from:
  *  - <OpenLayers.Format.WMSCapabilities.v1>
  */
@@ -36150,10 +36642,16 @@ OpenLayers.Format.WMSCapabilities.v1_3 = OpenLayers.Class(
                 obj[3] = this.getChildValue(node);
             },
             "MinScaleDenominator": function(node, obj) {
-                obj.maxScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+                var maxScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+                if (maxScale != 0) {
+                    obj.maxScale = maxScale;
+                }
             },
             "MaxScaleDenominator": function(node, obj) {
-                obj.minScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+                var minScale = parseFloat(this.getChildValue(node)).toPrecision(16);
+                if (minScale != Number.POSITIVE_INFINITY) {
+                    obj.minScale = minScale;
+                }
             },
             "Dimension": function(node, obj) {
                 // dimension has extra attributes: default, multipleValues, 
@@ -36209,7 +36707,7 @@ OpenLayers.Format.WMSCapabilities.v1_3 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_3_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36241,7 +36739,7 @@ OpenLayers.Format.WMSCapabilities.v1_3_0 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/GeoRSS.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36652,7 +37150,7 @@ OpenLayers.Format.GeoRSS = OpenLayers.Class(OpenLayers.Format.XML, {
 });     
 
 /** FILE: OpenLayers/Format/WMSCapabilities/v1_1_1_WMSC.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36739,7 +37237,7 @@ OpenLayers.Format.WMSCapabilities.v1_1_1_WMSC = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/QueryStringFilter.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36793,7 +37291,7 @@ OpenLayers.Format.QueryStringFilter = (function() {
         // convert % to \%
         value = value.replace(/%/g, "\\%");
 
-        // convert \\. to \\_ (\\.* occurences converted later)
+        // convert \\. to \\_ (\\.* occurrences converted later)
         value = value.replace(/\\\\\.(\*)?/g, function($0, $1) {
             return $1 ? $0 : "\\\\_";
         });
@@ -36801,7 +37299,7 @@ OpenLayers.Format.QueryStringFilter = (function() {
         // convert \\.* to \\%
         value = value.replace(/\\\\\.\*/g, "\\\\%");
 
-        // convert . to _ (\. and .* occurences converted later)
+        // convert . to _ (\. and .* occurrences converted later)
         value = value.replace(/(\\)?\.(\*)?/g, function($0, $1, $2) {
             return $1 || $2 ? $0 : "_";
         });
@@ -36924,8 +37422,7 @@ OpenLayers.Format.QueryStringFilter = (function() {
 })();
 
 /** FILE: OpenLayers/Format/TMSCapabilities.js **/
-/** FILE: OpenLayers/Format/TMSCapabilities.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -36940,7 +37437,7 @@ OpenLayers.Format.QueryStringFilter = (function() {
  * Class: OpenLayers.Format.TMSCapabilities
  * Parse TMS Capabilities.
  * See http://wiki.osgeo.org/wiki/Tile_Map_Service_Specification
- *
+ * 
  * Inherits from:
  *  - <OpenLayers.Format.XML>
  */
@@ -36969,7 +37466,7 @@ OpenLayers.Format.TMSCapabilities = OpenLayers.Class(
             "TileMapService": function(node, obj) {
                 if (obj.services) {
                     obj.services.push({
-                        service: 'TMS',
+                        service: 'TMS', 
                         version: node.getAttribute("version"),
                         title: node.getAttribute("title"),
                         href: node.getAttribute("href")
@@ -37047,9 +37544,9 @@ OpenLayers.Format.TMSCapabilities = OpenLayers.Class(
 
     /**
      * APIMethod: read
-     * Read TMS capabilities data from a string, and return a list of tilesets.
-     *
-     * Parameters:
+     * Read TMS capabilities data from a string, and return a list of tilesets. 
+     * 
+     * Parameters: 
      * data - {String} or {DOMElement} data to read/parse.
      *
      * Returns:
@@ -37073,7 +37570,7 @@ OpenLayers.Format.TMSCapabilities = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/JSON.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -37473,7 +37970,7 @@ OpenLayers.Format.JSON = OpenLayers.Class(OpenLayers.Format, {
 });     
 
 /** FILE: OpenLayers/Format/GeoJSON.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -38191,7 +38688,7 @@ OpenLayers.Format.GeoJSON = OpenLayers.Class(OpenLayers.Format.JSON, {
 });     
 
 /** FILE: OpenLayers/Format/SLD.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -38274,12 +38771,13 @@ OpenLayers.Format.SLD = OpenLayers.Class(OpenLayers.Format.XML.VersionedOGC, {
 });
 
 /** FILE: OpenLayers/Format/SLD/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
 
 /**
+ * @requires OpenLayers/BaseTypes.js
  * @requires OpenLayers/Rule.js
  * @requires OpenLayers/Format/SLD.js
  * @requires OpenLayers/Format/Filter/v1_0_0.js
@@ -38308,7 +38806,8 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
         ogc: "http://www.opengis.net/ogc",
         gml: "http://www.opengis.net/gml",
         xlink: "http://www.w3.org/1999/xlink",
-        xsi: "http://www.w3.org/2001/XMLSchema-instance"
+        xsi: "http://www.w3.org/2001/XMLSchema-instance",
+        xmlns: "http://www.w3.org/2000/xmlns/"
     },
     
     /**
@@ -38433,7 +38932,7 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             },
             "NamedStyle": function(node, layer) {
                 layer.namedStyles.push(
-                    this.getChildName(node.firstChild)
+                    this.getChildValue(node.firstChild)
                 );
             },
             "UserStyle": function(node, layer) {
@@ -38571,7 +39070,7 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             "Label": function(node, symbolizer) {
                 var value = this.readers.ogc._expression.call(this, node);
                 if (value) {
-                    symbolizer.label = value;
+                    symbolizer.label = OpenLayers.String.trim(value);
                 }
             },
             "Font": function(node, symbolizer) {
@@ -38929,8 +39428,14 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
 
                 // For ArcGIS Server it is necessary to define this
                 // at the root level (see ticket:2166).
-                root.setAttribute("xmlns:ogc", this.namespaces.ogc);
-                root.setAttribute("xmlns:gml", this.namespaces.gml);
+                this.setAttributeNS(
+                    root, this.namespaces.xmlns,
+                    "xmlns:ogc", this.namespaces.ogc
+                );
+                this.setAttributeNS(
+                    root, this.namespaces.xmlns,
+                    "xmlns:gml", this.namespaces.gml
+                );
 
                 // add in optional name
                 if(sld.name) {
@@ -39170,6 +39675,10 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             },
             "LineSymbolizer": function(symbolizer) {
                 var node = this.createElementNSPlus("sld:LineSymbolizer");
+                // add in optional Geometry
+                if (symbolizer.geometry) {
+                    this.writeNode("Geometry", symbolizer.geometry, node);
+                }
                 this.writeNode("Stroke", symbolizer, node);
                 return node;
             },
@@ -39227,6 +39736,10 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             },
             "TextSymbolizer": function(symbolizer) {
                 var node = this.createElementNSPlus("sld:TextSymbolizer");
+                // add in optional Geometry
+                if (symbolizer.geometry) {
+                    this.writeNode("Geometry", symbolizer.geometry, node);
+                }
                 // add in optional Label
                 if(symbolizer.label != null) {
                     this.writeNode("Label", symbolizer.label, node);
@@ -39465,6 +39978,10 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             },
             "PolygonSymbolizer": function(symbolizer) {
                 var node = this.createElementNSPlus("sld:PolygonSymbolizer");
+                // add in optional Geometry
+                if (symbolizer.geometry) {
+                    this.writeNode("Geometry", symbolizer.geometry, node);
+                }
                 if(symbolizer.fill !== false) {
                     this.writeNode("Fill", symbolizer, node);
                 }
@@ -39497,6 +40014,10 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
             },
             "PointSymbolizer": function(symbolizer) {
                 var node = this.createElementNSPlus("sld:PointSymbolizer");
+                // add in optional Geometry
+                if (symbolizer.geometry) {
+                    this.writeNode("Geometry", symbolizer.geometry, node);
+                }
                 this.writeNode("Graphic", symbolizer, node);
                 return node;
             },
@@ -39585,7 +40106,7 @@ OpenLayers.Format.SLD.v1 = OpenLayers.Class(OpenLayers.Format.Filter.v1_0_0, {
 });
 
 /** FILE: OpenLayers/Format/SLD/v1_0_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -39633,7 +40154,7 @@ OpenLayers.Format.SLD.v1_0_0 = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/WKT.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -40027,7 +40548,7 @@ OpenLayers.Format.WKT = OpenLayers.Class(OpenLayers.Format, {
 });     
 
 /** FILE: OpenLayers/Format/CQL.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -40041,15 +40562,15 @@ OpenLayers.Format.WKT = OpenLayers.Class(OpenLayers.Format, {
 
 /**
  * Class: OpenLayers.Format.CQL
- * Read CQL strings to get <OpenLayers.Filter> objects.  Write 
- *     <OpenLayers.Filter> objects to get CQL strings. Create a new parser with 
+ * Read CQL strings to get <OpenLayers.Filter> objects.  Write
+ *     <OpenLayers.Filter> objects to get CQL strings. Create a new parser with
  *     the <OpenLayers.Format.CQL> constructor.
  *
  * Inherits from:
  *  - <OpenLayers.Format>
  */
 OpenLayers.Format.CQL = (function() {
-    
+
     var tokens = [
         "PROPERTY", "COMPARISON", "VALUE", "LOGICAL"
     ],
@@ -40060,7 +40581,7 @@ OpenLayers.Format.CQL = (function() {
         IS_NULL: /^IS NULL/i,
         COMMA: /^,/,
         LOGICAL: /^(AND|OR)/i,
-        VALUE: /^('([^']|'')*'|\d+(\.\d*)?|\.\d+)/,
+        VALUE: /^('([^']|'')*'|-?\d+(\.\d*)?|\.\d+)/,
         LPAREN: /^\(/,
         RPAREN: /^\)/,
         SPATIAL: /^(BBOX|INTERSECTS|DWITHIN|WITHIN|CONTAINS)/i,
@@ -40384,7 +40905,7 @@ OpenLayers.Format.CQL = (function() {
          * Returns:
          * {<OpenLayers.Filter>} A filter based on the CQL text.
          */
-        read: function(text) { 
+        read: function(text) {
             var result = buildAst(tokenize(text));
             if (this.keepData) {
                 this.data = result;
@@ -40436,7 +40957,7 @@ OpenLayers.Format.CQL = (function() {
                     }
                 case "OpenLayers.Filter.Logical":
                     if (filter.type == OpenLayers.Filter.Logical.NOT) {
-                        // TODO: deal with precedence of logical operators to 
+                        // TODO: deal with precedence of logical operators to
                         // avoid extra parentheses (not urgent)
                         return "NOT (" + this.write(filter.filters[0]) + ")";
                     } else {
@@ -40454,12 +40975,12 @@ OpenLayers.Format.CQL = (function() {
                     }
                 case "OpenLayers.Filter.Comparison":
                     if (filter.type == OpenLayers.Filter.Comparison.BETWEEN) {
-                        return filter.property + " BETWEEN " + 
-                            this.write(filter.lowerBoundary) + " AND " + 
+                        return filter.property + " BETWEEN " +
+                            this.write(filter.lowerBoundary) + " AND " +
                             this.write(filter.upperBoundary);
                     } else {
                         return (filter.value !== null) ? filter.property +
-                            " " + operatorReverse[filter.type] + " " + 
+                            " " + operatorReverse[filter.type] + " " +
                             this.write(filter.value) : filter.property +
                             " " + operatorReverse[filter.type];
                     }
@@ -40479,14 +41000,14 @@ OpenLayers.Format.CQL = (function() {
     });
 })();
 
-
 /** FILE: OpenLayers/Format/SLD/v1_0_0_GeoServer.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
 
 /**
+ * @requires OpenLayers/BaseTypes.js
  * @requires OpenLayers/Format/SLD/v1_0_0.js
  */
 
@@ -40536,7 +41057,7 @@ OpenLayers.Format.SLD.v1_0_0_GeoServer = OpenLayers.Class(
             "Priority": function(node, obj) {
                 var value = this.readers.ogc._expression.call(this, node);
                 if (value) {
-                    obj.priority = value;
+                    obj.priority = OpenLayers.String.trim(value);
                 }
             },
             "VendorOption": function(node, obj) {
@@ -40632,7 +41153,7 @@ OpenLayers.Format.SLD.v1_0_0_GeoServer = OpenLayers.Class(
 });
 
 /** FILE: OpenLayers/Format/CSWGetRecords.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -40668,7 +41189,7 @@ OpenLayers.Format.CSWGetRecords.DEFAULTS = {
 };
 
 /** FILE: OpenLayers/Format/CSWGetRecords/v2_0_2.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -40705,7 +41226,8 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
         ogc: "http://www.opengis.net/ogc",
         ows: "http://www.opengis.net/ows",
         xlink: "http://www.w3.org/1999/xlink",
-        xsi: "http://www.w3.org/2001/XMLSchema-instance"
+        xsi: "http://www.w3.org/2001/XMLSchema-instance",
+        xmlns: "http://www.w3.org/2000/xmlns/"
     },
     
     /**
@@ -40980,7 +41502,10 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
      */
     write: function(options) {
         var node = this.writeNode("csw:GetRecords", options);
-        node.setAttribute("xmlns:gmd", this.namespaces.gmd);
+        this.setAttributeNS(
+            node, this.namespaces.xmlns,
+            "xmlns:gmd", this.namespaces.gmd
+        );
         return OpenLayers.Format.XML.prototype.write.apply(this, [node]);
     },
 
@@ -41127,7 +41652,7 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
 });
 
 /** FILE: OpenLayers/Layer/HTTPRequest.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -41144,6 +41669,15 @@ OpenLayers.Format.CSWGetRecords.v2_0_2 = OpenLayers.Class(OpenLayers.Format.XML,
  *  - <OpenLayers.Layer>
  */
 OpenLayers.Layer.HTTPRequest = OpenLayers.Class(OpenLayers.Layer, {
+
+    /**
+     * APIProperty: events
+     * {<OpenLayers.Events>}
+     *
+     * Supported event types (in addition to those from <OpenLayers.Layer.events>):
+     * refresh - Triggered when a redraw is forced, to re-fetch data from the
+     *     server.
+     */
 
     /** 
      * Constant: URL_HASH_FACTOR
@@ -41273,6 +41807,7 @@ OpenLayers.Layer.HTTPRequest = OpenLayers.Class(OpenLayers.Layer, {
      */
     redraw: function(force) { 
         if (force) {
+            this.events.triggerEvent('refresh');
             return this.mergeNewParams({"_olSalt": Math.random()});
         } else {
             return OpenLayers.Layer.prototype.redraw.apply(this, []);
@@ -41359,7 +41894,7 @@ OpenLayers.Layer.HTTPRequest = OpenLayers.Class(OpenLayers.Layer, {
 });
 
 /** FILE: OpenLayers/Tile.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -41653,7 +42188,7 @@ OpenLayers.Tile = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Tile/Image.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -42165,7 +42700,7 @@ OpenLayers.Tile.Image.IMAGE = (function() {
 
 
 /** FILE: OpenLayers/Layer/Grid.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -42251,7 +42786,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     /**
      * APIProperty: buffer
      * {Integer} Used only when in gridded mode, this specifies the number of 
-     *           extra rows and colums of tiles on each side which will
+     *           extra rows and columns of tiles on each side which will
      *           surround the minimum grid tiles to cover the map.
      *           For very slow loading layers, a larger value may increase
      *           performance somewhat when dragging, but will increase bandwidth
@@ -42262,7 +42797,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     /**
      * APIProperty: transitionEffect
      * {String} The transition effect to use when the map is zoomed.
-     * Two posible values:
+     * Two possible values:
      *
      * "resize" - Existing tiles are resized on zoom to provide a visual
      *     effect of the zoom having taken place immediately.  As the
@@ -42563,7 +43098,9 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
             this.clearGrid();
             this.tileSize = this.options.tileSize;
             this.setTileSize();
-            this.moveTo(null, true);
+            if (this.visibility) {
+                this.moveTo(null, true);
+            }
         }
     },
     
@@ -42847,8 +43384,8 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         var tiles = backBuffer.childNodes, tile;
         for (var i=tiles.length-1; i>=0; --i) {
             tile = tiles[i];
-            tile.style.top = ((ratio * tile._i * tile._h) | 0) + 'px';
-            tile.style.left = ((ratio * tile._j * tile._w) | 0) + 'px';
+            tile.style.top = ((ratio * tile._i * backBuffer._th) | 0) + 'px';
+            tile.style.left = ((ratio * tile._j * backBuffer._tw) | 0) + 'px';
             tile.style.width = Math.round(ratio * tile._w) + 'px';
             tile.style.height = Math.round(ratio * tile._h) + 'px';
         }
@@ -42890,13 +43427,16 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
                     if (markup) {
                         markup._i = i;
                         markup._j = j;
-                        markup._w = tile.size.w;
+                        markup._w = this.singleTile ?
+                                this.getImageSize(tile.bounds).w : tile.size.w;
                         markup._h = tile.size.h;
                         markup.id = tile.id + '_bb';
                         backBuffer.appendChild(markup);
                     }
                 }
             }
+            backBuffer._tw = this.tileSize.w;
+            backBuffer._th = this.tileSize.h;
         }
         return backBuffer;
     },
@@ -43002,7 +43542,19 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
                                   center.lat - (tileHeight/2),
                                   center.lon + (tileWidth/2),
                                   center.lat + (tileHeight/2));
+
+        // store the resolution of the grid
+        this.gridResolution = this.getServerResolution();
   
+        // same logic as OpenLayers.Tile#shouldDraw
+        var maxExtent = this.maxExtent;
+        if (maxExtent && (!this.displayOutsideMaxExtent ||
+                (this.map.baseLayer.wrapDateLine &&
+                this.maxExtent.equals(this.map.getMaxExtent())))) {
+            tileBounds.left = Math.max(tileBounds.left, maxExtent.left);
+            tileBounds.right = Math.min(tileBounds.right, maxExtent.right);
+        }
+
         var px = this.map.getLayerPxFromLonLat({
             lon: tileBounds.left,
             lat: tileBounds.top
@@ -43015,7 +43567,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         var tile = this.grid[0][0];
         if (!tile) {
             tile = this.addTile(tileBounds, px);
-            
+
             this.addTileMonitoringHooks(tile);
             tile.draw();
             this.grid[0][0] = tile;
@@ -43025,9 +43577,6 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         
         //remove all but our single tile
         this.removeExcessTiles(1,1);
-
-        // store the resolution of the grid
-        this.gridResolution = this.getServerResolution();
     },
 
     /** 
@@ -43063,7 +43612,18 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         };
 
     },
-    
+
+    getImageSize: function(bounds) {
+        var tileSize = OpenLayers.Layer.HTTPRequest.prototype.getImageSize.apply(this, arguments);
+        if (this.singleTile) {
+            tileSize = new OpenLayers.Size(
+                Math.round(bounds.getWidth() / this.gridResolution),
+                tileSize.h
+            );
+        }
+        return tileSize;
+    },
+
     /**
      * Method: getTileOrigin
      * Determine the origin for aligning the grid of tiles.  If a <tileOrigin>
@@ -43199,7 +43759,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
         } while((tileBounds.bottom >= bounds.bottom - tilelat * this.buffer)
                 || rowidx < minRows);
         
-        //shave off exceess rows and colums
+        //shave off excess rows and columns
         this.removeExcessTiles(rowidx, colidx);
 
         var resolution = this.getServerResolution();
@@ -43226,7 +43786,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
     getMaxExtent: function() {
         return this.maxExtent;
     },
-    
+
     /**
      * APIMethod: addTile
      * Create a tile, initialize it, and add it to the layer div. 
@@ -43510,7 +44070,7 @@ OpenLayers.Layer.Grid = OpenLayers.Class(OpenLayers.Layer.HTTPRequest, {
 });
 
 /** FILE: OpenLayers/Layer/WMS.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -43709,7 +44269,7 @@ OpenLayers.Layer.WMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
     getURL: function (bounds) {
         bounds = this.adjustBounds(bounds);
         
-        var imageSize = this.getImageSize();
+        var imageSize = this.getImageSize(bounds);
         var newParams = {};
         // WMS 1.3 introduced axis order
         var reverseAxisOrder = this.reverseAxisOrder();
@@ -43779,7 +44339,7 @@ OpenLayers.Layer.WMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
 });
 
 /** FILE: OpenLayers/Layer/XYZ.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -43860,7 +44420,8 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
         if (options && options.sphericalMercator || this.sphericalMercator) {
             options = OpenLayers.Util.extend({
                 projection: "EPSG:900913",
-                numZoomLevels: 19
+                numZoomLevels: this.serverResolutions ?
+                        this.serverResolutions.length : 19
             }, options);
         }
         OpenLayers.Layer.Grid.prototype.initialize.apply(this, [
@@ -43926,9 +44487,9 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
      */
     getXYZ: function(bounds) {
         var res = this.getServerResolution();
-        var x = Math.round((bounds.left - this.maxExtent.left) /
+        var x = Math.round((bounds.left - this.tileOrigin.lon) /
             (res * this.tileSize.w));
-        var y = Math.round((this.maxExtent.top - bounds.top) /
+        var y = Math.round((this.tileOrigin.lat - bounds.top) /
             (res * this.tileSize.h));
         var z = this.getServerZoom();
 
@@ -43951,7 +44512,7 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
         OpenLayers.Layer.Grid.prototype.setMap.apply(this, arguments);
         if (!this.tileOrigin) {
             this.tileOrigin = new OpenLayers.LonLat(this.maxExtent.left,
-                                                this.maxExtent.bottom);
+                                                this.maxExtent.top);
         }
     },
 
@@ -43959,7 +44520,7 @@ OpenLayers.Layer.XYZ = OpenLayers.Class(OpenLayers.Layer.Grid, {
 });
 
 /** FILE: OpenLayers/Layer/Bing.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -44000,7 +44561,7 @@ OpenLayers.Layer.Bing = OpenLayers.Class(OpenLayers.Layer.XYZ, {
         38.218514137268066, 19.109257068634033, 9.554628534317017,
         4.777314267158508, 2.388657133579254, 1.194328566789627,
         0.5971642833948135, 0.29858214169740677, 0.14929107084870338,
-        0.07464553542435169
+        0.07464553542435169, 0.03732276771218, 0.01866138385609
     ],
     
     /**
@@ -44167,7 +44728,7 @@ OpenLayers.Layer.Bing = OpenLayers.Class(OpenLayers.Layer.XYZ, {
     /**
      * Method: getURL
      *
-     * Paramters:
+     * Parameters:
      * bounds - {<OpenLayers.Bounds>}
      */
     getURL: function(bounds) {
@@ -44294,7 +44855,7 @@ OpenLayers.Layer.Bing.processMetadata = function(metadata) {
 };
 
 /** FILE: OpenLayers/Layer/SphericalMercator.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -44306,7 +44867,7 @@ OpenLayers.Layer.Bing.processMetadata = function(metadata) {
 
 /**
  * Class: OpenLayers.Layer.SphericalMercator
- * A mixin for layers that wraps up the pieces neccesary to have a coordinate
+ * A mixin for layers that wraps up the pieces necessary to have a coordinate
  *     conversion for working with commercial APIs which use a spherical
  *     mercator projection.  Using this layer as a base layer, additional
  *     layers can be used as overlays if they are in the same projection.
@@ -44442,7 +45003,7 @@ OpenLayers.Layer.SphericalMercator = {
 };
 
 /** FILE: OpenLayers/Layer/EventPane.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -44570,6 +45131,8 @@ OpenLayers.Layer.EventPane = OpenLayers.Class(OpenLayers.Layer, {
         if (this.mapObject == null) {
             this.loadWarningMessage();
         }
+
+        this.map.events.register('zoomstart', this, this.onZoomStart);
     },
 
     /**
@@ -44581,10 +45144,26 @@ OpenLayers.Layer.EventPane = OpenLayers.Class(OpenLayers.Layer, {
      * map - {<OpenLayers.Map>}
      */
     removeMap: function(map) {
+        this.map.events.unregister('zoomstart', this, this.onZoomStart);
+
         if (this.pane && this.pane.parentNode) {
             this.pane.parentNode.removeChild(this.pane);
         }
         OpenLayers.Layer.prototype.removeMap.apply(this, arguments);
+    },
+
+    /**
+     * Method: onZoomStart
+     *
+     * Parameters:
+     * evt - zoomstart event object with center and zoom properties.
+     */
+    onZoomStart: function(evt) {
+        if (this.mapObject != null) {
+            var center = this.getMapObjectLonLatFromOLLonLat(evt.center);
+            var zoom = this.getMapObjectZoomFromOLZoom(evt.zoom);
+            this.setMapObjectCenter(center, zoom, false);
+        }
     },
   
     /**
@@ -44885,7 +45464,7 @@ OpenLayers.Layer.EventPane = OpenLayers.Class(OpenLayers.Layer, {
 });
 
 /** FILE: OpenLayers/Layer/FixedZoomLevels.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -45206,7 +45785,7 @@ OpenLayers.Layer.FixedZoomLevels = OpenLayers.Class({
 
 
 /** FILE: OpenLayers/Layer/Google.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -45221,58 +45800,58 @@ OpenLayers.Layer.FixedZoomLevels = OpenLayers.Class({
 
 /**
  * Class: OpenLayers.Layer.Google
- * 
+ *
  * Provides a wrapper for Google's Maps API
  * Normally the Terms of Use for this API do not allow wrapping, but Google
- * have provided written consent to OpenLayers for this - see email in 
+ * have provided written consent to OpenLayers for this - see email in
  * http://osgeo-org.1560.n6.nabble.com/Google-Maps-API-Terms-of-Use-changes-tp4910013p4911981.html
- * 
+ *
  * Inherits from:
  *  - <OpenLayers.Layer.SphericalMercator>
  *  - <OpenLayers.Layer.EventPane>
  *  - <OpenLayers.Layer.FixedZoomLevels>
  */
 OpenLayers.Layer.Google = OpenLayers.Class(
-    OpenLayers.Layer.EventPane, 
+    OpenLayers.Layer.EventPane,
     OpenLayers.Layer.FixedZoomLevels, {
-    
-    /** 
+
+    /**
      * Constant: MIN_ZOOM_LEVEL
-     * {Integer} 0 
+     * {Integer} 0
      */
     MIN_ZOOM_LEVEL: 0,
-    
-    /** 
+
+    /**
      * Constant: MAX_ZOOM_LEVEL
      * {Integer} 21
      */
     MAX_ZOOM_LEVEL: 21,
 
-    /** 
+    /**
      * Constant: RESOLUTIONS
      * {Array(Float)} Hardcode these resolutions so that they are more closely
      *                tied with the standard wms projection
      */
     RESOLUTIONS: [
-        1.40625, 
-        0.703125, 
-        0.3515625, 
-        0.17578125, 
-        0.087890625, 
+        1.40625,
+        0.703125,
+        0.3515625,
+        0.17578125,
+        0.087890625,
         0.0439453125,
-        0.02197265625, 
-        0.010986328125, 
-        0.0054931640625, 
+        0.02197265625,
+        0.010986328125,
+        0.0054931640625,
         0.00274658203125,
-        0.001373291015625, 
-        0.0006866455078125, 
+        0.001373291015625,
+        0.0006866455078125,
         0.00034332275390625,
-        0.000171661376953125, 
-        0.0000858306884765625, 
+        0.000171661376953125,
+        0.0000858306884765625,
         0.00004291534423828125,
-        0.00002145767211914062, 
+        0.00002145767211914062,
         0.00001072883605957031,
-        0.00000536441802978515, 
+        0.00000536441802978515,
         0.00000268220901489257,
         0.0000013411045074462891,
         0.00000067055225372314453
@@ -45286,30 +45865,39 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
     /**
      * APIProperty: wrapDateLine
-     * {Boolean} Allow user to pan forever east/west.  Default is true.  
-     *     Setting this to false only restricts panning if 
-     *     <sphericalMercator> is true. 
+     * {Boolean} Allow user to pan forever east/west.  Default is true.
+     *     Setting this to false only restricts panning if
+     *     <sphericalMercator> is true.
      */
     wrapDateLine: true,
 
     /**
      * APIProperty: sphericalMercator
      * {Boolean} Should the map act as a mercator-projected map? This will
-     *     cause all interactions with the map to be in the actual map 
-     *     projection, which allows support for vector drawing, overlaying 
-     *     other maps, etc. 
+     *     cause all interactions with the map to be in the actual map
+     *     projection, which allows support for vector drawing, overlaying
+     *     other maps, etc.
      */
-    sphericalMercator: false, 
-    
+    sphericalMercator: false,
+
+    /**
+     * APIProperty: useTiltImages
+     * {Boolean} Should Google use 45° (tilt) imagery when available or
+     *     should it stick to the 0° overhead view? While tilt images look
+     *     impressive, the changed viewing angle can cause the misalignment
+     *     of overlay layers.
+     */
+    useTiltImages: false,
+
     /**
      * Property: version
      * {Number} The version of the Google Maps API
      */
     version: null,
 
-    /** 
+    /**
      * Constructor: OpenLayers.Layer.Google
-     * 
+     *
      * Parameters:
      * name - {String} A name for the layer.
      * options - {Object} An optional object whose properties will be set
@@ -45317,9 +45905,7 @@ OpenLayers.Layer.Google = OpenLayers.Class(
      */
     initialize: function(name, options) {
         options = options || {};
-        if(!options.version) {
-            options.version = typeof GMap2 === "function" ? "2" : "3";
-        }
+        options.version = "3";
         var mixin = OpenLayers.Layer.Google["v" +
             options.version.replace(/\./g, "_")];
         if (mixin) {
@@ -45335,13 +45921,13 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
         OpenLayers.Layer.EventPane.prototype.initialize.apply(this,
             [name, options]);
-        OpenLayers.Layer.FixedZoomLevels.prototype.initialize.apply(this, 
+        OpenLayers.Layer.FixedZoomLevels.prototype.initialize.apply(this,
             [name, options]);
 
         if (this.sphericalMercator) {
             OpenLayers.Util.extend(this, OpenLayers.Layer.SphericalMercator);
             this.initMercatorParameters();
-        }    
+        }
     },
 
     /**
@@ -45365,16 +45951,16 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
     /**
      * APIMethod: setVisibility
-     * Set the visibility flag for the layer and hide/show & redraw 
+     * Set the visibility flag for the layer and hide/show & redraw
      *     accordingly. Fire event unless otherwise specified
-     * 
+     *
      * Note that visibility is no longer simply whether or not the layer's
-     *     style.display is set to "block". Now we store a 'visibility' state 
-     *     property on the layer class, this allows us to remember whether or 
-     *     not we *desire* for a layer to be visible. In the case where the 
-     *     map's resolution is out of the layer's range, this desire may be 
+     *     style.display is set to "block". Now we store a 'visibility' state
+     *     property on the layer class, this allows us to remember whether or
+     *     not we *desire* for a layer to be visible. In the case where the
+     *     map's resolution is out of the layer's range, this desire may be
      *     subverted.
-     * 
+     *
      * Parameters:
      * visible - {Boolean} Display the layer (if in range)
      */
@@ -45384,11 +45970,11 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         OpenLayers.Layer.EventPane.prototype.setVisibility.apply(this, arguments);
         this.setOpacity(opacity);
     },
-    
-    /** 
+
+    /**
      * APIMethod: display
      * Hide or show the Layer
-     * 
+     *
      * Parameters:
      * visible - {Boolean}
      */
@@ -45398,10 +45984,10 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         }
         OpenLayers.Layer.EventPane.prototype.display.apply(this, arguments);
     },
-    
+
     /**
      * Method: moveTo
-     * 
+     *
      * Parameters:
      * bounds - {<OpenLayers.Bounds>}
      * zoomChanged - {Boolean} Tells when zoom has changed, as layers have to
@@ -45413,11 +45999,11 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         OpenLayers.Layer.EventPane.prototype.moveTo.apply(this, arguments);
         delete this._dragging;
     },
-    
+
     /**
      * APIMethod: setOpacity
      * Sets the opacity for the entire layer (all images)
-     * 
+     *
      * Parameters:
      * opacity - {Float}
      */
@@ -45456,11 +46042,11 @@ OpenLayers.Layer.Google = OpenLayers.Class(
             var cache = OpenLayers.Layer.Google.cache[this.map.id];
             if (cache && cache.count <= 1) {
                 this.removeGMapElements();
-            }            
+            }
         }
         OpenLayers.Layer.EventPane.prototype.destroy.apply(this, arguments);
     },
-    
+
     /**
      * Method: removeGMapElements
      * Remove all elements added to the dom.  This should only be called if
@@ -45470,7 +46056,7 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         var cache = OpenLayers.Layer.Google.cache[this.map.id];
         if (cache) {
             // remove shared elements from dom
-            var container = this.mapObject && this.getMapContainer();                
+            var container = this.mapObject && this.getMapContainer();
             if (container && container.parentNode) {
                 container.parentNode.removeChild(container);
             }
@@ -45492,7 +46078,7 @@ OpenLayers.Layer.Google = OpenLayers.Class(
     /**
      * APIMethod: removeMap
      * On being removed from the map, also remove termsOfUse and poweredBy divs
-     * 
+     *
      * Parameters:
      * map - {<OpenLayers.Map>}
      */
@@ -45519,19 +46105,19 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         delete this.dragObject;
         OpenLayers.Layer.EventPane.prototype.removeMap.apply(this, arguments);
     },
-    
+
   //
   // TRANSLATION: MapObject Bounds <-> OpenLayers.Bounds
   //
 
     /**
      * APIMethod: getOLBoundsFromMapObjectBounds
-     * 
+     *
      * Parameters:
      * moBounds - {Object}
-     * 
+     *
      * Returns:
-     * {<OpenLayers.Bounds>} An <OpenLayers.Bounds>, translated from the 
+     * {<OpenLayers.Bounds>} An <OpenLayers.Bounds>, translated from the
      *                       passed-in MapObject Bounds.
      *                       Returns null if null value is passed in.
      */
@@ -45544,21 +46130,21 @@ OpenLayers.Layer.Google = OpenLayers.Class(
                 sw = this.forwardMercator(sw.lng(), sw.lat());
                 ne = this.forwardMercator(ne.lng(), ne.lat());
             } else {
-                sw = new OpenLayers.LonLat(sw.lng(), sw.lat()); 
-                ne = new OpenLayers.LonLat(ne.lng(), ne.lat()); 
-            }    
-            olBounds = new OpenLayers.Bounds(sw.lon, 
-                                             sw.lat, 
-                                             ne.lon, 
+                sw = new OpenLayers.LonLat(sw.lng(), sw.lat());
+                ne = new OpenLayers.LonLat(ne.lng(), ne.lat());
+            }
+            olBounds = new OpenLayers.Bounds(sw.lon,
+                                             sw.lat,
+                                             ne.lon,
                                              ne.lat );
         }
         return olBounds;
     },
 
-    /** 
+    /**
      * APIMethod: getWarningHTML
-     * 
-     * Returns: 
+     *
+     * Returns:
      * {String} String with information on why layer is broken, how to get
      *          it working.
      */
@@ -45578,17 +46164,17 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
     /**
      * APIMethod: getMapObjectCenter
-     * 
-     * Returns: 
+     *
+     * Returns:
      * {Object} The mapObject's current center in Map Object format
      */
     getMapObjectCenter: function() {
         return this.mapObject.getCenter();
     },
 
-    /** 
+    /**
      * APIMethod: getMapObjectZoom
-     * 
+     *
      * Returns:
      * {Integer} The mapObject's current zoom, in Map Object format
      */
@@ -45596,7 +46182,7 @@ OpenLayers.Layer.Google = OpenLayers.Class(
         return this.mapObject.getZoom();
     },
 
-  
+
     /************************************
      *                                  *
      *       MapObject Primitives       *
@@ -45605,46 +46191,46 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
 
   // LonLat
-    
+
     /**
      * APIMethod: getLongitudeFromMapObjectLonLat
-     * 
+     *
      * Parameters:
      * moLonLat - {Object} MapObject LonLat format
-     * 
+     *
      * Returns:
      * {Float} Longitude of the given MapObject LonLat
      */
     getLongitudeFromMapObjectLonLat: function(moLonLat) {
-        return this.sphericalMercator ? 
+        return this.sphericalMercator ?
           this.forwardMercator(moLonLat.lng(), moLonLat.lat()).lon :
-          moLonLat.lng();  
+          moLonLat.lng();
     },
 
     /**
      * APIMethod: getLatitudeFromMapObjectLonLat
-     * 
+     *
      * Parameters:
      * moLonLat - {Object} MapObject LonLat format
-     * 
+     *
      * Returns:
      * {Float} Latitude of the given MapObject LonLat
      */
     getLatitudeFromMapObjectLonLat: function(moLonLat) {
-        var lat = this.sphericalMercator ? 
+        var lat = this.sphericalMercator ?
           this.forwardMercator(moLonLat.lng(), moLonLat.lat()).lat :
-          moLonLat.lat(); 
-        return lat;  
+          moLonLat.lat();
+        return lat;
     },
-    
+
   // Pixel
-    
+
     /**
      * APIMethod: getXFromMapObjectPixel
-     * 
+     *
      * Parameters:
      * moPixel - {Object} MapObject Pixel format
-     * 
+     *
      * Returns:
      * {Integer} X value of the MapObject Pixel
      */
@@ -45654,17 +46240,17 @@ OpenLayers.Layer.Google = OpenLayers.Class(
 
     /**
      * APIMethod: getYFromMapObjectPixel
-     * 
+     *
      * Parameters:
      * moPixel - {Object} MapObject Pixel format
-     * 
+     *
      * Returns:
      * {Integer} Y value of the MapObject Pixel
      */
     getYFromMapObjectPixel: function(moPixel) {
         return moPixel.y;
     },
-    
+
     CLASS_NAME: "OpenLayers.Layer.Google"
 });
 
@@ -45674,350 +46260,8 @@ OpenLayers.Layer.Google = OpenLayers.Class(
  */
 OpenLayers.Layer.Google.cache = {};
 
-
-/**
- * Constant: OpenLayers.Layer.Google.v2
- * 
- * Mixin providing functionality specific to the Google Maps API v2.
- * 
- * This API has been deprecated by Google.
- * Developers are encouraged to migrate to v3 of the API; support for this
- * is provided by <OpenLayers.Layer.Google.v3>
- */
-OpenLayers.Layer.Google.v2 = {
-    
-    /**
-     * Property: termsOfUse
-     * {DOMElement} Div for Google's copyright and terms of use link
-     */
-    termsOfUse: null, 
-
-    /**
-     * Property: poweredBy
-     * {DOMElement} Div for Google's powered by logo and link
-     */
-    poweredBy: null, 
-
-    /**
-     * Property: dragObject
-     * {GDraggableObject} Since 2.93, Google has exposed the ability to get
-     *     the maps GDraggableObject. We can now use this for smooth panning
-     */
-    dragObject: null, 
-    
-    /** 
-     * Method: loadMapObject
-     * Load the GMap and register appropriate event listeners. If we can't 
-     *     load GMap2, then display a warning message.
-     */
-    loadMapObject:function() {
-        if (!this.type) {
-            this.type = G_NORMAL_MAP;
-        }
-        var mapObject, termsOfUse, poweredBy;
-        var cache = OpenLayers.Layer.Google.cache[this.map.id];
-        if (cache) {
-            // there are already Google layers added to this map
-            mapObject = cache.mapObject;
-            termsOfUse = cache.termsOfUse;
-            poweredBy = cache.poweredBy;
-            // increment the layer count
-            ++cache.count;
-        } else {
-            // this is the first Google layer for this map
-
-            var container = this.map.viewPortDiv;
-            var div = document.createElement("div");
-            div.id = this.map.id + "_GMap2Container";
-            div.style.position = "absolute";
-            div.style.width = "100%";
-            div.style.height = "100%";
-            container.appendChild(div);
-
-            // create GMap and shuffle elements
-            try {
-                mapObject = new GMap2(div);
-                
-                // move the ToS and branding stuff up to the container div
-                termsOfUse = div.lastChild;
-                container.appendChild(termsOfUse);
-                termsOfUse.style.zIndex = "1100";
-                termsOfUse.style.right = "";
-                termsOfUse.style.bottom = "";
-                termsOfUse.className = "olLayerGoogleCopyright";
-
-                poweredBy = div.lastChild;
-                container.appendChild(poweredBy);
-                poweredBy.style.zIndex = "1100";
-                poweredBy.style.right = "";
-                poweredBy.style.bottom = "";
-                poweredBy.className = "olLayerGooglePoweredBy gmnoprint";
-                
-            } catch (e) {
-                throw(e);
-            }
-            // cache elements for use by any other google layers added to
-            // this same map
-            OpenLayers.Layer.Google.cache[this.map.id] = {
-                mapObject: mapObject,
-                termsOfUse: termsOfUse,
-                poweredBy: poweredBy,
-                count: 1
-            };
-        }
-
-        this.mapObject = mapObject;
-        this.termsOfUse = termsOfUse;
-        this.poweredBy = poweredBy;
-        
-        // ensure this layer type is one of the mapObject types
-        if (OpenLayers.Util.indexOf(this.mapObject.getMapTypes(),
-                                    this.type) === -1) {
-            this.mapObject.addMapType(this.type);
-        }
-
-        //since v 2.93 getDragObject is now available.
-        if(typeof mapObject.getDragObject == "function") {
-            this.dragObject = mapObject.getDragObject();
-        } else {
-            this.dragPanMapObject = null;
-        }
-        
-        if(this.isBaseLayer === false) {
-            this.setGMapVisibility(this.div.style.display !== "none");
-        }
-
-    },
-
-    /**
-     * APIMethod: onMapResize
-     */
-    onMapResize: function() {
-        // workaround for resizing of invisible or not yet fully loaded layers
-        // where GMap2.checkResize() does not work. We need to load the GMap
-        // for the old div size, then checkResize(), and then call
-        // layer.moveTo() to trigger GMap.setCenter() (which will finish
-        // the GMap initialization).
-        if(this.visibility && this.mapObject.isLoaded()) {
-            this.mapObject.checkResize();
-        } else {
-            if(!this._resized) {
-                var layer = this;
-                var handle = GEvent.addListener(this.mapObject, "load", function() {
-                    GEvent.removeListener(handle);
-                    delete layer._resized;
-                    layer.mapObject.checkResize();
-                    layer.moveTo(layer.map.getCenter(), layer.map.getZoom());
-                });
-            }
-            this._resized = true;
-        }
-    },
-
-    /**
-     * Method: setGMapVisibility
-     * Display the GMap container and associated elements.
-     * 
-     * Parameters:
-     * visible - {Boolean} Display the GMap elements.
-     */
-    setGMapVisibility: function(visible) {
-        var cache = OpenLayers.Layer.Google.cache[this.map.id];
-        if (cache) {
-            var container = this.mapObject.getContainer();
-            if (visible === true) {
-                this.mapObject.setMapType(this.type);
-                container.style.display = "";
-                this.termsOfUse.style.left = "";
-                this.termsOfUse.style.display = "";
-                this.poweredBy.style.display = "";            
-                cache.displayed = this.id;
-            } else {
-                if (cache.displayed === this.id) {
-                    delete cache.displayed;
-                }
-                if (!cache.displayed) {
-                    container.style.display = "none";
-                    this.termsOfUse.style.display = "none";
-                    // move ToU far to the left in addition to setting display
-                    // to "none", because at the end of the GMap2 load
-                    // sequence, display: none will be unset and ToU would be
-                    // visible after loading a map with a google layer that is
-                    // initially hidden. 
-                    this.termsOfUse.style.left = "-9999px";
-                    this.poweredBy.style.display = "none";
-                }
-            }
-        }
-    },
-    
-    /**
-     * Method: getMapContainer
-     * 
-     * Returns:
-     * {DOMElement} the GMap container's div
-     */
-    getMapContainer: function() {
-        return this.mapObject.getContainer();
-    },
-
-  //
-  // TRANSLATION: MapObject Bounds <-> OpenLayers.Bounds
-  //
-
-    /**
-     * APIMethod: getMapObjectBoundsFromOLBounds
-     * 
-     * Parameters:
-     * olBounds - {<OpenLayers.Bounds>}
-     * 
-     * Returns:
-     * {Object} A MapObject Bounds, translated from olBounds
-     *          Returns null if null value is passed in
-     */
-    getMapObjectBoundsFromOLBounds: function(olBounds) {
-        var moBounds = null;
-        if (olBounds != null) {
-            var sw = this.sphericalMercator ? 
-              this.inverseMercator(olBounds.bottom, olBounds.left) : 
-              new OpenLayers.LonLat(olBounds.bottom, olBounds.left);
-            var ne = this.sphericalMercator ? 
-              this.inverseMercator(olBounds.top, olBounds.right) : 
-              new OpenLayers.LonLat(olBounds.top, olBounds.right);
-            moBounds = new GLatLngBounds(new GLatLng(sw.lat, sw.lon),
-                                         new GLatLng(ne.lat, ne.lon));
-        }
-        return moBounds;
-    },
-
-
-    /************************************
-     *                                  *
-     *   MapObject Interface Controls   *
-     *                                  *
-     ************************************/
-
-
-  // Get&Set Center, Zoom
-
-    /** 
-     * APIMethod: setMapObjectCenter
-     * Set the mapObject to the specified center and zoom
-     * 
-     * Parameters:
-     * center - {Object} MapObject LonLat format
-     * zoom - {int} MapObject zoom format
-     */
-    setMapObjectCenter: function(center, zoom) {
-        this.mapObject.setCenter(center, zoom); 
-    },
-   
-    /**
-     * APIMethod: dragPanMapObject
-     * 
-     * Parameters:
-     * dX - {Integer}
-     * dY - {Integer}
-     */
-    dragPanMapObject: function(dX, dY) {
-        this.dragObject.moveBy(new GSize(-dX, dY));
-    },
-
-
-  // LonLat - Pixel Translation
-  
-    /**
-     * APIMethod: getMapObjectLonLatFromMapObjectPixel
-     * 
-     * Parameters:
-     * moPixel - {Object} MapObject Pixel format
-     * 
-     * Returns:
-     * {Object} MapObject LonLat translated from MapObject Pixel
-     */
-    getMapObjectLonLatFromMapObjectPixel: function(moPixel) {
-        return this.mapObject.fromContainerPixelToLatLng(moPixel);
-    },
-
-    /**
-     * APIMethod: getMapObjectPixelFromMapObjectLonLat
-     * 
-     * Parameters:
-     * moLonLat - {Object} MapObject LonLat format
-     * 
-     * Returns:
-     * {Object} MapObject Pixel transtlated from MapObject LonLat
-     */
-    getMapObjectPixelFromMapObjectLonLat: function(moLonLat) {
-        return this.mapObject.fromLatLngToContainerPixel(moLonLat);
-    },
-
-  
-  // Bounds
-  
-    /** 
-     * APIMethod: getMapObjectZoomFromMapObjectBounds
-     * 
-     * Parameters:
-     * moBounds - {Object} MapObject Bounds format
-     * 
-     * Returns:
-     * {Object} MapObject Zoom for specified MapObject Bounds
-     */
-    getMapObjectZoomFromMapObjectBounds: function(moBounds) {
-        return this.mapObject.getBoundsZoomLevel(moBounds);
-    },
-
-    /************************************
-     *                                  *
-     *       MapObject Primitives       *
-     *                                  *
-     ************************************/
-
-
-  // LonLat
-    
-    /**
-     * APIMethod: getMapObjectLonLatFromLonLat
-     * 
-     * Parameters:
-     * lon - {Float}
-     * lat - {Float}
-     * 
-     * Returns:
-     * {Object} MapObject LonLat built from lon and lat params
-     */
-    getMapObjectLonLatFromLonLat: function(lon, lat) {
-        var gLatLng;
-        if(this.sphericalMercator) {
-            var lonlat = this.inverseMercator(lon, lat);
-            gLatLng = new GLatLng(lonlat.lat, lonlat.lon);
-        } else {
-            gLatLng = new GLatLng(lat, lon);
-        }
-        return gLatLng;
-    },
-
-  // Pixel
-    
-    /**
-     * APIMethod: getMapObjectPixelFromXY
-     * 
-     * Parameters:
-     * x - {Integer}
-     * y - {Integer}
-     * 
-     * Returns:
-     * {Object} MapObject Pixel from x and y parameters
-     */
-    getMapObjectPixelFromXY: function(x, y) {
-        return new GPoint(x, y);
-    }
-    
-};
-
 /** FILE: OpenLayers/Layer/Google/v3.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -46029,22 +46273,28 @@ OpenLayers.Layer.Google.v2 = {
 
 /**
  * Constant: OpenLayers.Layer.Google.v3
- * 
+ *
  * Mixin providing functionality specific to the Google Maps API v3.
- * 
- * To use this layer, you must include the GMaps v3 API in your html.
- * 
+ *
+ * To use this layer, you must include the GMaps v3 API in your html. To match
+ * Google's zoom animation better with OpenLayers animated zooming, configure
+ * your map with a zoomDuration of 10:
+ *
+ * (code)
+ * new OpenLayers.Map('map', {zoomDuration: 10});
+ * (end)
+ *
  * Note that this layer configures the google.maps.map object with the
  * "disableDefaultUI" option set to true. Using UI controls that the Google
  * Maps API provides is not supported by the OpenLayers API.
  */
 OpenLayers.Layer.Google.v3 = {
-    
+
     /**
      * Constant: DEFAULTS
      * {Object} It is not recommended to change the properties set here. Note
      * that Google.v3 layers only work when sphericalMercator is set to true.
-     * 
+     *
      * (code)
      * {
      *     sphericalMercator: true,
@@ -46068,9 +46318,9 @@ OpenLayers.Layer.Google.v3 = {
      *     idle, and make it visible again. The result will be a blank layer
      *     for a few moments while zooming.
      */
-    animationEnabled: true, 
+    animationEnabled: true,
 
-    /** 
+    /**
      * Method: loadMapObject
      * Load the GMap and register appropriate event listeners.
      */
@@ -46104,13 +46354,14 @@ OpenLayers.Layer.Google.v3 = {
                 draggable: false,
                 disableDoubleClickZoom: true,
                 scrollwheel: false,
-                streetViewControl: false
+                streetViewControl: false,
+                tilt: (this.useTiltImages ? 45: 0)
             });
             var googleControl = document.createElement('div');
             googleControl.style.width = '100%';
             googleControl.style.height = '100%';
             mapObject.controls[google.maps.ControlPosition.TOP_LEFT].push(googleControl);
-            
+
             // cache elements for use by any other google layers added to
             // this same map
             cache = {
@@ -46123,7 +46374,7 @@ OpenLayers.Layer.Google.v3 = {
         this.mapObject = mapObject;
         this.setGMapVisibility(this.visibility);
     },
-    
+
     /**
      * APIMethod: onMapResize
      */
@@ -46136,7 +46387,7 @@ OpenLayers.Layer.Google.v3 = {
     /**
      * Method: setGMapVisibility
      * Display the GMap container and associated elements.
-     * 
+     *
      * Parameters:
      * visible - {Boolean} Display the GMap elements.
      */
@@ -46160,46 +46411,52 @@ OpenLayers.Layer.Google.v3 = {
             if (visible === true) {
                 if (container.parentNode !== map.div) {
                     if (!cache.rendered) {
+                        container.style.visibility = 'hidden';
                         var me = this;
                         google.maps.event.addListenerOnce(this.mapObject, 'tilesloaded', function() {
                             cache.rendered = true;
-                            me.setGMapVisibility(me.getVisibility());
+                            container.style.visibility = '';
+                            me.setGMapVisibility(true);
                             me.moveTo(me.map.getCenter());
+                            cache.googleControl.appendChild(map.viewPortDiv);
+                            me.setGMapVisibility(me.visible);
                         });
                     } else {
-                        map.div.appendChild(container);
                         cache.googleControl.appendChild(map.viewPortDiv);
-                        google.maps.event.trigger(this.mapObject, 'resize');
                     }
+                    map.div.appendChild(container);
+                    google.maps.event.trigger(this.mapObject, 'resize');
                 }
-                this.mapObject.setMapTypeId(type);                
+                this.mapObject.setMapTypeId(type);
             } else if (cache.googleControl.hasChildNodes()) {
                 map.div.appendChild(map.viewPortDiv);
-                map.div.removeChild(container);
+                if (map.div.contains(container)) {
+                    map.div.removeChild(container);
+                }
             }
         }
     },
-    
+
     /**
      * Method: getMapContainer
-     * 
+     *
      * Returns:
      * {DOMElement} the GMap container's div
      */
     getMapContainer: function() {
         return this.mapObject.getDiv();
     },
-    
+
   //
   // TRANSLATION: MapObject Bounds <-> OpenLayers.Bounds
   //
 
     /**
      * APIMethod: getMapObjectBoundsFromOLBounds
-     * 
+     *
      * Parameters:
      * olBounds - {<OpenLayers.Bounds>}
-     * 
+     *
      * Returns:
      * {Object} A MapObject Bounds, translated from olBounds
      *          Returns null if null value is passed in
@@ -46207,11 +46464,11 @@ OpenLayers.Layer.Google.v3 = {
     getMapObjectBoundsFromOLBounds: function(olBounds) {
         var moBounds = null;
         if (olBounds != null) {
-            var sw = this.sphericalMercator ? 
-              this.inverseMercator(olBounds.bottom, olBounds.left) : 
+            var sw = this.sphericalMercator ?
+              this.inverseMercator(olBounds.bottom, olBounds.left) :
               new OpenLayers.LonLat(olBounds.bottom, olBounds.left);
-            var ne = this.sphericalMercator ? 
-              this.inverseMercator(olBounds.top, olBounds.right) : 
+            var ne = this.sphericalMercator ?
+              this.inverseMercator(olBounds.top, olBounds.right) :
               new OpenLayers.LonLat(olBounds.top, olBounds.right);
             moBounds = new google.maps.LatLngBounds(
                 new google.maps.LatLng(sw.lat, sw.lon),
@@ -46230,13 +46487,13 @@ OpenLayers.Layer.Google.v3 = {
 
 
   // LonLat - Pixel Translation
-  
+
     /**
      * APIMethod: getMapObjectLonLatFromMapObjectPixel
-     * 
+     *
      * Parameters:
      * moPixel - {Object} MapObject Pixel format
-     * 
+     *
      * Returns:
      * {Object} MapObject LonLat translated from MapObject Pixel
      */
@@ -46248,11 +46505,11 @@ OpenLayers.Layer.Google.v3 = {
 
         var delta_x = moPixel.x - (size.w / 2);
         var delta_y = moPixel.y - (size.h / 2);
-    
+
         var lonlat = new OpenLayers.LonLat(
             lon + delta_x * res,
             lat - delta_y * res
-        ); 
+        );
 
         if (this.wrapDateLine) {
             lonlat = lonlat.wrapDateLine(this.maxExtent);
@@ -46262,10 +46519,10 @@ OpenLayers.Layer.Google.v3 = {
 
     /**
      * APIMethod: getMapObjectPixelFromMapObjectLonLat
-     * 
+     *
      * Parameters:
      * moLonLat - {Object} MapObject LonLat format
-     * 
+     *
      * Returns:
      * {Object} MapObject Pixel transtlated from MapObject LonLat
      */
@@ -46278,11 +46535,11 @@ OpenLayers.Layer.Google.v3 = {
                                             (1/res * (extent.top - lat)));
     },
 
-  
-    /** 
+
+    /**
      * APIMethod: setMapObjectCenter
      * Set the mapObject to the specified center and zoom
-     * 
+     *
      * Parameters:
      * center - {Object} MapObject LonLat format
      * zoom - {int} MapObject zoom format
@@ -46291,8 +46548,8 @@ OpenLayers.Layer.Google.v3 = {
         if (this.animationEnabled === false && zoom != this.mapObject.zoom) {
             var mapContainer = this.getMapContainer();
             google.maps.event.addListenerOnce(
-                this.mapObject, 
-                "idle", 
+                this.mapObject,
+                "idle",
                 function() {
                     mapContainer.style.visibility = "";
                 }
@@ -46304,16 +46561,16 @@ OpenLayers.Layer.Google.v3 = {
             zoom: zoom
         });
     },
-   
-    
+
+
   // Bounds
-  
-    /** 
+
+    /**
      * APIMethod: getMapObjectZoomFromMapObjectBounds
-     * 
+     *
      * Parameters:
      * moBounds - {Object} MapObject Bounds format
-     * 
+     *
      * Returns:
      * {Object} MapObject Zoom for specified MapObject Bounds
      */
@@ -46329,14 +46586,14 @@ OpenLayers.Layer.Google.v3 = {
 
 
   // LonLat
-    
+
     /**
      * APIMethod: getMapObjectLonLatFromLonLat
-     * 
+     *
      * Parameters:
      * lon - {Float}
      * lat - {Float}
-     * 
+     *
      * Returns:
      * {Object} MapObject LonLat built from lon and lat params
      */
@@ -46350,27 +46607,27 @@ OpenLayers.Layer.Google.v3 = {
         }
         return gLatLng;
     },
-    
+
   // Pixel
-    
+
     /**
      * APIMethod: getMapObjectPixelFromXY
-     * 
+     *
      * Parameters:
      * x - {Integer}
      * y - {Integer}
-     * 
+     *
      * Returns:
      * {Object} MapObject Pixel from x and y parameters
      */
     getMapObjectPixelFromXY: function(x, y) {
         return new google.maps.Point(x, y);
     }
-    
+
 };
 
 /** FILE: OpenLayers/Layer/OSM.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -46407,8 +46664,8 @@ OpenLayers.Layer.OSM = OpenLayers.Class(OpenLayers.Layer.XYZ, {
 
     /**
      * APIProperty: url
-     * {String} The tileset URL scheme. Defaults to
-     * : http://[a|b|c].tile.openstreetmap.org/${z}/${x}/${y}.png
+     * {String} The tileset URL scheme. Defaults to (protocol relative url):
+     *  //[a|b|c].tile.openstreetmap.org/${z}/${x}/${y}.png 
      * (the official OSM tileset) if the second argument to the constructor
      * is null or undefined. To use another tileset you can have something
      * like this:
@@ -46420,16 +46677,16 @@ OpenLayers.Layer.OSM = OpenLayers.Class(OpenLayers.Layer.XYZ, {
      * (end)
      */
     url: [
-        'http://a.tile.openstreetmap.org/${z}/${x}/${y}.png',
-        'http://b.tile.openstreetmap.org/${z}/${x}/${y}.png',
-        'http://c.tile.openstreetmap.org/${z}/${x}/${y}.png'
+        '//a.tile.openstreetmap.org/${z}/${x}/${y}.png',
+        '//b.tile.openstreetmap.org/${z}/${x}/${y}.png',
+        '//c.tile.openstreetmap.org/${z}/${x}/${y}.png'
     ],
 
     /**
      * Property: attribution
      * {String} The layer attribution.
      */
-    attribution: "&copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
+    attribution: "&copy; <a href='//www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors",
 
     /**
      * Property: sphericalMercator
@@ -46495,7 +46752,7 @@ OpenLayers.Layer.OSM = OpenLayers.Class(OpenLayers.Layer.XYZ, {
 });
 
 /** FILE: OpenLayers/Layer/TMS.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -46699,7 +46956,7 @@ OpenLayers.Layer.TMS = OpenLayers.Class(OpenLayers.Layer.Grid, {
 });
 
 /** FILE: OpenLayers/Layer/ArcGIS93Rest.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -46747,20 +47004,22 @@ OpenLayers.Layer.ArcGIS93Rest = OpenLayers.Class(OpenLayers.Layer.Grid, {
      * var arcims = new OpenLayers.Layer.ArcGIS93Rest("MyName",
      *                                    "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer/export", 
      *                                    {
-     *                                      layers: "0,1,2"
+     *                                      layers: "show:0,1,2"
      *                                    });
      * (end)
      *
      * Parameters:
      * name - {String} A name for the layer
      * url - {String} Base url for the ArcGIS server REST service
-     * options - {Object} An object with key/value pairs representing the
-     *                    options and option values.
+     * params - {Object} An object with key/value pairs representing the
+     *                   query string parameters and values.
+     * options - {Object} Hashtable of extra options to tag onto the layer.
      *
-     * Valid Options:
-     *        format - {String} MIME type of desired image type.
-     *        layers - {String} Comma-separated list of layers to display.
+     * Valid Query Parameters:
+     *        format - {String} MIME type of desired image type.  Default is 'png'
+     *        layers - {String} Comma-separated list of layers to display (requires show: command).
      *        srs - {String} Projection ID.
+     *        transparent - {Boolean} sets transparency of images.  May apply some alphaHack magic.
      */
     initialize: function(name, url, params, options) {
         var newArguments = [];
@@ -46834,7 +47093,7 @@ OpenLayers.Layer.ArcGIS93Rest = OpenLayers.Class(OpenLayers.Layer.Grid, {
         var projWords = this.projection.getCode().split(":");
         var srid = projWords[projWords.length - 1];
 
-        var imageSize = this.getImageSize(); 
+        var imageSize = this.getImageSize(bounds); 
         var newParams = {
             'BBOX': bounds.toBBOX(),
             'SIZE': imageSize.w + "," + imageSize.h,
@@ -46926,7 +47185,7 @@ OpenLayers.Layer.ArcGIS93Rest = OpenLayers.Class(OpenLayers.Layer.Grid, {
 });
 
 /** FILE: OpenLayers/Protocol.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -47219,7 +47478,7 @@ OpenLayers.Protocol.Response.SUCCESS = 1;
 OpenLayers.Protocol.Response.FAILURE = 0;
 
 /** FILE: OpenLayers/Protocol/HTTP.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -47801,7 +48060,7 @@ OpenLayers.Protocol.HTTP = OpenLayers.Class(OpenLayers.Protocol, {
 });
 
 /** FILE: OpenLayers/Protocol/WFS.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -47889,7 +48148,7 @@ OpenLayers.Protocol.WFS.DEFAULTS = {
 };
 
 /** FILE: OpenLayers/Protocol/WFS/v1.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -48344,7 +48603,7 @@ OpenLayers.Protocol.WFS.v1 = OpenLayers.Class(OpenLayers.Protocol, {
 });
 
 /** FILE: OpenLayers/Protocol/WFS/v1_1_0.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -48414,7 +48673,7 @@ OpenLayers.Protocol.WFS.v1_1_0 = OpenLayers.Class(OpenLayers.Protocol.WFS.v1, {
 });
 
 /** FILE: OpenLayers/Protocol/CSW.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -48446,7 +48705,7 @@ OpenLayers.Protocol.CSW.DEFAULTS = {
 };
 
 /** FILE: OpenLayers/Protocol/CSW/v2_0_2.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -48575,7 +48834,7 @@ OpenLayers.Protocol.CSW.v2_0_2 = OpenLayers.Class(OpenLayers.Protocol, {
 });
 
 /** FILE: OpenLayers/Renderer/Elements.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -48787,16 +49046,13 @@ OpenLayers.ElementsIndexer = OpenLayers.Class({
      *     null.
      */
     getNextElement: function(index) {
-        var nextIndex = index + 1;
-        if (nextIndex < this.order.length) {
-            var nextElement = OpenLayers.Util.getElement(this.order[nextIndex]);
-            if (nextElement == undefined) {
-                nextElement = this.getNextElement(nextIndex);
-            }
-            return nextElement;
-        } else {
-            return null;
-        } 
+        for (var nextIndex = index + 1, nextElement = undefined;
+            (nextIndex < this.order.length) && (nextElement == undefined);
+            nextIndex++) {
+            nextElement = OpenLayers.Util.getElement(this.order[nextIndex]);
+        }
+        
+        return nextElement || null;
     },
     
     CLASS_NAME: "OpenLayers.ElementsIndexer"
@@ -49630,7 +49886,7 @@ OpenLayers.Renderer.Elements = OpenLayers.Class(OpenLayers.Renderer, {
 
 
 /** FILE: OpenLayers/Renderer/SVG.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -49876,7 +50132,7 @@ OpenLayers.Renderer.SVG = OpenLayers.Class(OpenLayers.Renderer.Elements, {
         if (title) {
             node.setAttributeNS(null, "title", title);
             //Standards-conformant SVG
-            // Prevent duplicate nodes. See issue https://github.com/openlayers/openlayers/issues/92 
+            // Prevent duplicate nodes. See issue https://github.com/openlayers/ol2/issues/92 
             var titleNode = node.getElementsByTagName("title");
             if (titleNode.length > 0) {
                 titleNode[0].firstChild.textContent = title;
@@ -50644,7 +50900,7 @@ OpenLayers.Renderer.SVG.preventDefault = function(e) {
 };
 
 /** FILE: OpenLayers/Renderer/VML.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -51631,7 +51887,7 @@ OpenLayers.Renderer.VML.LABEL_SHIFT = {
 };
 
 /** FILE: OpenLayers/Renderer/Canvas.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -51702,6 +51958,7 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
         this.root = document.createElement("canvas");
         this.container.appendChild(this.root);
         this.canvas = this.root.getContext("2d");
+        this._clearRectId = OpenLayers.Util.createUniqueID();
         this.features = {};
         if (this.hitDetection) {
             this.hitCanvas = document.createElement("canvas");
@@ -51839,7 +52096,9 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
             (className == "OpenLayers.Geometry.MultiPoint") ||
             (className == "OpenLayers.Geometry.MultiLineString") ||
             (className == "OpenLayers.Geometry.MultiPolygon")) {
+            var worldBounds = (this.map.baseLayer && this.map.baseLayer.wrapDateLine) && this.map.getMaxExtent();
             for (var i = 0; i < geometry.components.length; i++) {
+                this.calculateFeatureDx(geometry.components[i].getBounds(), worldBounds);
                 this.drawGeometry(geometry.components[i], style, featureId);
             }
             return;
@@ -51887,11 +52146,13 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
            style.graphicXOffset : -(0.5 * width);
         var yOffset = (style.graphicYOffset != undefined) ?
            style.graphicYOffset : -(0.5 * height);
+        var _clearRectId = this._clearRectId;
 
         var opacity = style.graphicOpacity || style.fillOpacity;
         
         var onLoad = function() {
-            if(!this.features[featureId]) {
+            if(!this.features[featureId] ||
+                                     _clearRectId !== this._clearRectId) {
                 return;
             }
             var pt = this.getLocalXY(geometry);
@@ -51918,9 +52179,12 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
                 }
             }
         };
-
         img.onload = OpenLayers.Function.bind(onLoad, this);
         img.src = style.externalGraphic;
+        if (img.complete) {
+            img.onload();
+            img.onload = null;
+        }
     },
 
     /**
@@ -52275,7 +52539,7 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
         // erase inner rings
         for (var i=1; i<len; ++i) {
             /** 
-             * Note that this is overly agressive.  Here we punch holes through 
+             * Note that this is overly aggressive.  Here we punch holes through 
              * all previously rendered features on the same canvas.  A better 
              * solution for polygons with interior rings would be to draw the 
              * polygon on a sketch canvas first.  We could erase all holes 
@@ -52400,10 +52664,19 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
      * Clear all vectors from the renderer.
      */    
     clear: function() {
+        this.clearCanvas();
+        this.features = {};
+    },
+
+    /**
+     * Method: clearCanvas
+     * Clear the canvas element of the renderer.
+     */    
+    clearCanvas: function() {
         var height = this.root.height;
         var width = this.root.width;
         this.canvas.clearRect(0, 0, width, height);
-        this.features = {};
+        this._clearRectId = OpenLayers.Util.createUniqueID();
         if (this.hitDetection) {
             this.hitContext.clearRect(0, 0, width, height);
         }
@@ -52477,12 +52750,7 @@ OpenLayers.Renderer.Canvas = OpenLayers.Class(OpenLayers.Renderer, {
      */
     redraw: function() {
         if (!this.locked) {
-            var height = this.root.height;
-            var width = this.root.width;
-            this.canvas.clearRect(0, 0, width, height);
-            if (this.hitDetection) {
-                this.hitContext.clearRect(0, 0, width, height);
-            }
+            this.clearCanvas();
             var labelMap = [];
             var feature, geometry, style;
             var worldBounds = (this.map.baseLayer && this.map.baseLayer.wrapDateLine) && this.map.getMaxExtent();
@@ -52539,7 +52807,7 @@ OpenLayers.Renderer.Canvas.LABEL_FACTOR = {
 OpenLayers.Renderer.Canvas.drawImageScaleFactor = null;
 
 /** FILE: OpenLayers/Strategy.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -52662,7 +52930,7 @@ OpenLayers.Strategy = OpenLayers.Class({
 });
 
 /** FILE: OpenLayers/Strategy/BBOX.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -52808,7 +53076,7 @@ OpenLayers.Strategy.BBOX = OpenLayers.Class(OpenLayers.Strategy, {
             return null;
         }
         var bounds = this.layer.map.getExtent();
-        if(bounds && !this.layer.projection.equals(
+        if (bounds && this.layer.projection && !this.layer.projection.equals(
                 this.layer.map.getProjectionObject())) {
             bounds = bounds.clone().transform(
                 this.layer.map.getProjectionObject(), this.layer.projection
@@ -52932,7 +53200,7 @@ OpenLayers.Strategy.BBOX = OpenLayers.Class(OpenLayers.Strategy, {
             if(features && features.length > 0) {
                 var remote = this.layer.projection;
                 var local = this.layer.map.getProjectionObject();
-                if(!local.equals(remote)) {
+                if(remote && local && !local.equals(remote)) {
                     var geom;
                     for(var i=0, len=features.length; i<len; ++i) {
                         geom = features[i].geometry;
@@ -52954,7 +53222,7 @@ OpenLayers.Strategy.BBOX = OpenLayers.Class(OpenLayers.Strategy, {
 });
 
 /** FILE: OpenLayers/Strategy/Fixed.js **/
-/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+/* Copyright (c) 2006-2015 by OpenLayers Contributors (see authors.txt for
  * full list of contributors). Published under the 2-clause BSD license.
  * See license.txt in the OpenLayers distribution or repository for the
  * full text of the license. */
@@ -80571,6 +80839,10 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 layer.attribution = config.attribution;
             }
 
+            if ("wrapDateLine" in config) {
+                layer.addOptions({wrapDateLine:config.wrapDateLine, displayOutsideMaxExtent: config.wrapDateLine}, true);
+            }
+
             // create a layer record for this layer
             var Record = GeoExt.data.LayerRecord.create([
                 {name: "name", type: "string"},
@@ -80580,6 +80852,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 {name: "selected", type: "boolean"},
                 {name: "type", type: "string"},
                 {name: "attribution", type: "string"},
+                {name: "wrapDateLine", type: "boolean"},
                 {name: "queryable", type: "boolean"},
                 {name: "args"}
             ]);
@@ -80595,6 +80868,7 @@ gxp.plugins.OLSource = Ext.extend(gxp.plugins.LayerSource, {
                 type: config.type,
                 args: config.args,
                 attribution: ("attribution" in config) ? config.attribution : undefined,
+                wrapDateLine: ("wrapDateLine" in config) ? config.wrapDateLine : false,
                 properties: ("properties" in config) ? config.properties : undefined
             };
             record = new Record(data, layer.id);
@@ -85705,7 +85979,7 @@ Ext.preg(gxp.plugins.BingSource.prototype.ptype, gxp.plugins.BingSource);
 /** FILE: plugins/OSMSource.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
- * 
+ *
  * Published under the GPL license.
  * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
  * of the license.
@@ -85755,7 +86029,7 @@ Ext.namespace("gxp.plugins");
  *
  */
 gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
-    
+
     /** api: ptype = gxp_osmsource */
     ptype: "gxp_osmsource",
 
@@ -85763,7 +86037,7 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
      *  ``GeoExt.data.LayerStore``. Will contain records with "mapnik" and
      *  "osmarender" as name field values.
      */
-    
+
     /** api: config[title]
      *  ``String``
      *  A descriptive title for this layer source (i18n).
@@ -85787,7 +86061,7 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
      *  Creates a store of layer records.  Fires "ready" when store is loaded.
      */
     createStore: function() {
-        
+
         var options = {
             projection: "EPSG:900913",
             maxExtent: new OpenLayers.Bounds(
@@ -85795,12 +86069,12 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
                 128 * 156543.0339, 128 * 156543.0339
             ),
             maxResolution: 156543.03390625,
-            numZoomLevels: 19,
+            numZoomLevels: 21,
             units: "m",
             buffer: 1,
             transitionEffect: "resize"
         };
-        
+
         var layers = [
             new OpenLayers.Layer.OSM(
                 "OpenStreetMap",
@@ -85809,13 +86083,13 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
                     "//b.tile.openstreetmap.org/${z}/${x}/${y}.png",
                     "//c.tile.openstreetmap.org/${z}/${x}/${y}.png"
                 ],
-                OpenLayers.Util.applyDefaults({                
+                OpenLayers.Util.applyDefaults({
                     attribution: this.mapnikAttribution,
                     type: "mapnik"
                 }, options)
             )
         ];
-        
+
         this.store = new GeoExt.data.LayerStore({
             layers: layers,
             fields: [
@@ -85833,7 +86107,7 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
         this.fireEvent("ready", this);
 
     },
-    
+
     /** api: method[createLayerRecord]
      *  :arg config:  ``Object``  The application config for this layer.
      *  :returns: ``GeoExt.data.LayerRecord``
@@ -85847,7 +86121,7 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
 
             record = this.store.getAt(index).copy(Ext.data.Record.id({}));
             var layer = record.getLayer().clone();
- 
+
             // set layer title from config
             if (config.title) {
                 /**
@@ -85864,7 +86138,11 @@ gxp.plugins.OSMSource = Ext.extend(gxp.plugins.LayerSource, {
             if ("visibility" in config) {
                 layer.visibility = config.visibility;
             }
-            
+
+            if ("wrapDateLine" in config) {
+                layer.addOptions({wrapDateLine:config.wrapDateLine, displayOutsideMaxExtent: config.wrapDateLine}, true);
+            }
+
             record.set("selected", config.selected || false);
             record.set("source", config.source);
             record.set("name", config.name);
