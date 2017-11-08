@@ -59747,7 +59747,12 @@ GeoExt.data.PrintProviderBase = Ext.extend(Ext.util.Observable, {
                             }
                         }
                     }
-                    var items = (legend.output ? legend.output[0].items : legend.items);
+                    var items;
+                    try {
+                        items = (legend.output ? legend.output[0].items : legend.items);
+                    } catch(err) {
+                        items = null;
+                    }
                     if (encodedLegends.length == 0 && items) {
                         for (itemNum in items) {
                             var cmp = items[itemNum];
