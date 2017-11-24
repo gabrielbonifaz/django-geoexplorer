@@ -64866,13 +64866,56 @@ GeoExt.ux.PrintPreview = Ext.extend(Ext.Container, {
      */
      createMapOverlay: function() {
          var printMapPanel = this.printMapPanel;
+
          printMapPanel.map.getMaxExtent = function() {
-             return new OpenLayers.Bounds(-80150033.36,-80150033.36,80150033.36,80150033.36);
+            return new OpenLayers.Bounds(
+                -128 * 156543.0339, -128 * 156543.0339,
+                128 * 156543.0339, 128 * 156543.0339
+            );
          }
          printMapPanel.map.getMaxResolution = function() {
-             return 626172.135625;
+             return 156543.03390625;
          }
-         printMapPanel.layers.each(function(record) {
+         printMapPanel.map.getNumZoomLevels  = function() {
+             return 31;
+         }
+         printMapPanel.map.getResolutions  = function() {
+             return [
+                 156543.03390625,
+                 78271.516953125,
+                 39135.7584765625,
+                 19567.87923828125,
+                 9783.939619140625,
+                 4891.9698095703125,
+                 2445.9849047851562,
+                 1222.9924523925781,
+                 611.4962261962891,
+                 305.74811309814453,
+                 152.87405654907226,
+                 76.43702827453613,
+                 38.218514137268066,
+                 19.109257068634033,
+                 9.554628534317017,
+                 4.777314267158508,
+                 2.388657133579254,
+                 1.194328566789627,
+                 0.5971642833948135,
+                 0.29858214169740677,
+                 0.14929107084870338,
+                 0.0746455354243517,
+                 0.0373227677121758,
+                 0.0186613838560879,
+                 0.009330691928044,
+                 0.004665345964022,
+                 0.002332672982011,
+                 0.0011663364910055,
+                 0.0005831682455027,
+                 0.0002915841227514,
+                 0.0001457920613757
+             ];
+         }
+
+        printMapPanel.layers.each(function(record) {
              var layer = record.getLayer();
              if (layer) {
                  layer.addOptions({
@@ -64881,11 +64924,13 @@ GeoExt.ux.PrintPreview = Ext.extend(Ext.Container, {
                  });
                  layer.addOptions({
                      maxExtent:printMapPanel.map.getMaxExtent(),
-                     restrictedExtent:printMapPanel.map.getMaxExtent()
-                  });
+                     restrictedExtent:printMapPanel.map.getMaxExtent(),
+                     numZoomLevels:printMapPanel.map.getNumZoomLevels(),
+                     resolutions:printMapPanel.map.getResolutions()
+                 });
              }
-         });
-         var map = printMapPanel.map;
+        });
+        var map = printMapPanel.map;
         var scaleLine = new OpenLayers.Control.ScaleLine({
             geodesic: !(map.getProjectionObject() || new OpenLayers.Projection(map.projection || "EPSG:4326")).equals("EPSG:4326")
         });
@@ -79088,41 +79133,85 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
                  }
              }
 
-            var mapPanel = this.target.mapPanel;
-            mapPanel.map.getMaxExtent = function() {
-                return new OpenLayers.Bounds(-80150033.36,-80150033.36,80150033.36,80150033.36);
-            }
-            mapPanel.map.getMaxResolution = function() {
-                return 626172.135625;
-            }
+             var mapPanel = this.target.mapPanel;
 
-            function getPrintableLayers() {
-                var supported = [];
-                mapPanel.layers.each(function(record) {
-                    var layer = record.getLayer();
-                    if (isPrintable(layer)) {
-                        layer.addOptions({
-                            wrapDateLine:true,
-                            displayOutsideMaxExtent: true
-                        });
-                        layer.addOptions({
-                            maxExtent:mapPanel.map.getMaxExtent(),
-                            restrictedExtent:mapPanel.map.getMaxExtent()
-                         });
-
-                        supported.push(layer);
-                    }
-                });
-                return supported;
-            }
-
-             function isPrintable(layer) {
-                 return layer.getVisibility() === true && (
-                     layer instanceof OpenLayers.Layer.WMS ||
-                     layer instanceof OpenLayers.Layer.OSM ||
-                     layer instanceof OpenLayers.Layer.XYZ
-                 );
+             mapPanel.map.getMaxExtent = function() {
+                return new OpenLayers.Bounds(
+                    -128 * 156543.0339, -128 * 156543.0339,
+                    128 * 156543.0339, 128 * 156543.0339
+                );
              }
+             mapPanel.map.getMaxResolution = function() {
+                 return 156543.03390625;
+             }
+             mapPanel.map.getNumZoomLevels  = function() {
+                 return 31;
+             }
+             mapPanel.map.getResolutions  = function() {
+                 return [
+                     156543.03390625,
+                     78271.516953125,
+                     39135.7584765625,
+                     19567.87923828125,
+                     9783.939619140625,
+                     4891.9698095703125,
+                     2445.9849047851562,
+                     1222.9924523925781,
+                     611.4962261962891,
+                     305.74811309814453,
+                     152.87405654907226,
+                     76.43702827453613,
+                     38.218514137268066,
+                     19.109257068634033,
+                     9.554628534317017,
+                     4.777314267158508,
+                     2.388657133579254,
+                     1.194328566789627,
+                     0.5971642833948135,
+                     0.29858214169740677,
+                     0.14929107084870338,
+                     0.0746455354243517,
+                     0.0373227677121758,
+                     0.0186613838560879,
+                     0.009330691928044,
+                     0.004665345964022,
+                     0.002332672982011,
+                     0.0011663364910055,
+                     0.0005831682455027,
+                     0.0002915841227514,
+                     0.0001457920613757
+                 ];
+             }
+
+             function getPrintableLayers() {
+                 var supported = [];
+                 mapPanel.layers.each(function(record) {
+                     var layer = record.getLayer();
+                     if (isPrintable(layer)) {
+                         layer.addOptions({
+                             wrapDateLine:true,
+                             displayOutsideMaxExtent: true
+                         });
+                         layer.addOptions({
+                             maxExtent:mapPanel.map.getMaxExtent(),
+                             restrictedExtent:mapPanel.map.getMaxExtent(),
+                             numZoomLevels:mapPanel.map.getNumZoomLevels(),
+                             resolutions:mapPanel.map.getResolutions()
+                          });
+
+                         supported.push(layer);
+                     }
+                 });
+                 return supported;
+             }
+
+              function isPrintable(layer) {
+                  return layer.getVisibility() === true && (
+                      layer instanceof OpenLayers.Layer.WMS ||
+                      layer instanceof OpenLayers.Layer.OSM ||
+                      layer instanceof OpenLayers.Layer.XYZ
+                  );
+              }
 
              function createPrintWindow() {
                  var legend = null;
