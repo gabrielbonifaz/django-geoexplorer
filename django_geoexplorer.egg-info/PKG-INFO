@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-geoexplorer
-Version: 4.0.30
+Version: 4.0.32
 Summary: Use GeoExplorer in your django projects
 Home-page: https://github.com/GeoNode/django-geoexplorer
 Author: Ariel Nunez
