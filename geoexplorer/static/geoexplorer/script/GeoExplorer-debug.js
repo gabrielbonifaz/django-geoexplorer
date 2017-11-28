@@ -64869,17 +64869,17 @@ GeoExt.ux.PrintPreview = Ext.extend(Ext.Container, {
 
          printMapPanel.map.getMaxExtent = function() {
             return new OpenLayers.Bounds(
-                -128 * 156543.0339, -128 * 156543.0339,
-                128 * 156543.0339, 128 * 156543.0339
+                -128 * 156543.0339 * 2, -128 * 156543.0339 * 2,
+                128 * 156543.0339 * 2, 128 * 156543.0339 * 2
             );
          }
          printMapPanel.map.getMaxResolution = function() {
-             return 156543.03390625;
+             return 156543.0339 * 2;
          }
          printMapPanel.map.getNumZoomLevels  = function() {
-             return 31;
+             return 28;
          }
-         printMapPanel.map.getResolutions  = function() {
+         /* printMapPanel.map.getResolutions  = function() {
              return [
                  156543.03390625,
                  78271.516953125,
@@ -64913,8 +64913,7 @@ GeoExt.ux.PrintPreview = Ext.extend(Ext.Container, {
                  0.0002915841227514,
                  0.0001457920613757
              ];
-         }
-
+         } */
         printMapPanel.layers.each(function(record) {
              var layer = record.getLayer();
              if (layer) {
@@ -64923,10 +64922,10 @@ GeoExt.ux.PrintPreview = Ext.extend(Ext.Container, {
                      displayOutsideMaxExtent: true
                  });
                  layer.addOptions({
-                     maxExtent:printMapPanel.map.getMaxExtent(),
+                     // maxExtent:printMapPanel.map.getMaxExtent(),
                      restrictedExtent:printMapPanel.map.getMaxExtent(),
-                     numZoomLevels:printMapPanel.map.getNumZoomLevels(),
-                     resolutions:printMapPanel.map.getResolutions()
+                     numZoomLevels:printMapPanel.map.getNumZoomLevels()
+                     // resolutions:printMapPanel.map.getResolutions()
                  });
              }
         });
@@ -79135,19 +79134,19 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
 
              var mapPanel = this.target.mapPanel;
 
-             mapPanel.map.getMaxExtent = function() {
+            mapPanel.map.getMaxExtent = function() {
                 return new OpenLayers.Bounds(
-                    -128 * 156543.0339, -128 * 156543.0339,
-                    128 * 156543.0339, 128 * 156543.0339
+                    -128 * 156543.0339 * 2, -128 * 156543.0339 * 2,
+                    128 * 156543.0339 * 2, 128 * 156543.0339 * 2
                 );
              }
-             mapPanel.map.getMaxResolution = function() {
-                 return 156543.03390625;
-             }
-             mapPanel.map.getNumZoomLevels  = function() {
-                 return 31;
-             }
-             mapPanel.map.getResolutions  = function() {
+            mapPanel.map.getMaxResolution = function() {
+                return 156543.03390625 * 2;
+            }
+            mapPanel.map.getNumZoomLevels  = function() {
+                return 28;
+            }
+            /* mapPanel.map.getResolutions  = function() {
                  return [
                      156543.03390625,
                      78271.516953125,
@@ -79181,8 +79180,7 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
                      0.0002915841227514,
                      0.0001457920613757
                  ];
-             }
-
+             } */
              function getPrintableLayers() {
                  var supported = [];
                  mapPanel.layers.each(function(record) {
@@ -79193,10 +79191,10 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
                              displayOutsideMaxExtent: true
                          });
                          layer.addOptions({
-                             maxExtent:mapPanel.map.getMaxExtent(),
+                             // maxExtent:mapPanel.map.getMaxExtent(),
                              restrictedExtent:mapPanel.map.getMaxExtent(),
-                             numZoomLevels:mapPanel.map.getNumZoomLevels(),
-                             resolutions:mapPanel.map.getResolutions()
+                             numZoomLevels:mapPanel.map.getNumZoomLevels()
+                             // resolutions:mapPanel.map.getResolutions()
                           });
 
                          supported.push(layer);
@@ -79252,6 +79250,7 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
                          }
                      }
                  }
+
                  printWindow = new Ext.Window({
                      title: this.previewText,
                      modal: true,
@@ -79267,7 +79266,7 @@ gxp.plugins.Print = Ext.extend(gxp.plugins.Tool, {
                              printMapPanel: {
                                  autoWidth: true,
                                  height: Math.min(420, Ext.get(document.body).getHeight()-150),
-                                 limitScales: true,
+                                 limitScales: false,
                                  map: Ext.applyIf({
                                      controls: [
                                          new OpenLayers.Control.Navigation({
