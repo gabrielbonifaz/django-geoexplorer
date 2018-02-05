@@ -76722,7 +76722,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         );
         legend.update();
         // mark the style as modified
-        this.selectedStyle.store.afterEdit(this.selectedStyle);
+        this.stylesStore.afterEdit(this.selectedStyle);
         this.updateRuleRemoveButton();
     },
 
@@ -76746,7 +76746,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         );
         legend.update();
         // mark the style as modified
-        this.selectedStyle.store.afterEdit(this.selectedStyle);
+        this.stylesStore.afterEdit(this.selectedStyle);
         this.updateRuleRemoveButton();
     },
 
@@ -76892,7 +76892,7 @@ gxp.WMSStylesDialog = Ext.extend(Ext.Container, {
         var legend = this.getComponent("rulesfieldset").items.get(0);
         this.selectedRule = rule;
         // mark the style as modified
-        this.selectedStyle.store.afterEdit(this.selectedStyle);
+        this.stylesStore.afterEdit(this.selectedStyle);
     },
 
     /** private: method[setRulesFieldSetVisible]
@@ -87954,7 +87954,7 @@ gxp.plugins.WMSRasterStylesDialog = {
             );
             legend.update();
             // mark the style as modified
-            this.selectedStyle.store.afterEdit(this.selectedStyle);
+            this.stylesStore.afterEdit(this.selectedStyle);
         }
         this.updateRuleRemoveButton();
     },
@@ -95916,6 +95916,9 @@ gxp.plugins.Zoom = Ext.extend(gxp.plugins.Tool, {
             menuText: this.zoomInMenuText,
             iconCls: "gxp-icon-zoom-in",
             tooltip: this.zoomInTooltip,
+            toggleGroup: this.toggleGroup,
+            enableToggle: true,
+            allowDepress: true,
             handler: function() {
                 this.target.mapPanel.map.zoomIn();
             },
@@ -95937,7 +95940,7 @@ gxp.plugins.Zoom = Ext.extend(gxp.plugins.Tool, {
                 control: new OpenLayers.Control.ZoomBox(this.controlOptions),
                 map: this.target.mapPanel.map,
                 enableToggle: true,
-                allowDepress: false,
+                allowDepress: true,
                 toggleGroup: this.toggleGroup
             }));
         }
