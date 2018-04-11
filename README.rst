@@ -53,7 +53,7 @@ GeoExplorer Sources
 
 ::
 
-    git clone https://github.com/geosolutions-it/geoexplorer.git
+    git clone https://github.com/GeoNode/geoexplorer.git
     cd geoexplorer
     git checkout geonode-geoexplorer
     ant war
