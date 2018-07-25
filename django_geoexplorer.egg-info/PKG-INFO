@@ -1,10 +1,10 @@
 Metadata-Version: 1.1
 Name: django-geoexplorer
-Version: 4.0.39
+Version: 4.0.41
 Summary: Use GeoExplorer in your django projects
 Home-page: https://github.com/GeoNode/django-geoexplorer
-Author: Ariel Nunez
-Author-email: ingenieroariel@gmail.com
+Author: Alessio Fabiani
+Author-email: alessio.fabiani@gmail.com
 License: LGPL, see LICENSE file.
 Download-URL: http://pypi.python.org/pypi/django-geoexplorer/
 Description: *django-geoexplorer* allows you to use `GeoExplorer <http://opengeo.org>`_
@@ -62,7 +62,7 @@ Description: *django-geoexplorer* allows you to use `GeoExplorer <http://opengeo
         
         ::
         
-            git clone https://github.com/geosolutions-it/geoexplorer.git
+            git clone https://github.com/GeoNode/geoexplorer.git
             cd geoexplorer
             git checkout geonode-geoexplorer
             ant war
