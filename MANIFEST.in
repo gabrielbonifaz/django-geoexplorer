@@ -1,7 +1,7 @@
 include README.rst CHANGES LICENSE
-recursive-include geoexplorer/templates *.html
-recursive-include geoexplorer/static *.js
-recursive-include geoexplorer/static *.css
-recursive-include geoexplorer/static *.png
-recursive-include geoexplorer/static *.gif
-recursive-include geoexplorer/static *.jpg
+recursive-include geoexplorer-worldmap/templates *.html
+recursive-include geoexplorer-worldmap/static *.js
+recursive-include geoexplorer-worldmap/static *.css
+recursive-include geoexplorer-worldmap/static *.png
+recursive-include geoexplorer-worldmap/static *.gif
+recursive-include geoexplorer-worldmap/static *.jpg

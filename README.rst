@@ -11,13 +11,13 @@ INSTALL
 
 ::
 
-    pip install django-geoexplorer
+    pip install django-geoexplorer-worldmap
 
 =====
 USAGE
 =====
 
-* Add ``geoexplorer`` to your ``INSTALLED_APPS``
+* Add ``geoexplorer-worldmap`` to your ``INSTALLED_APPS``
 
 
 =======
@@ -25,6 +25,7 @@ AUTHORS
 =======
 
 * Ariel Núñez <http://ingenieroariel.com>
+* Paolo Corti <http://paolocorti.net>
 
 ==========
 DEVELOPERS

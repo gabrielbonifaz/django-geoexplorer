@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
-    name='django-geoexplorer',
-    version='4.0.40',
-    author='Ariel Nunez',
-    author_email='ingenieroariel@gmail.com',
-    url='https://github.com/GeoNode/django-geoexplorer',
-    download_url = "http://pypi.python.org/pypi/django-geoexplorer/",
-    description="Use GeoExplorer in your django projects",
+    name='django-geoexplorer-worldmap',
+    version='4.0.47',
+    author='Paolo Corti',
+    author_email='pcorti@gmail.com',
+    url='https://github.com/cga-harvard/django-geoexplorer',
+    download_url = "http://pypi.python.org/pypi/django-geoexplorer-worldmap/",
+    description="Use GeoExplorer WorldMap in your django projects",
     long_description=open(os.path.join(here, 'README.rst')).read() + '\n\n' +
                      open(os.path.join(here, 'CHANGES')).read(),
     license='LGPL, see LICENSE file.',
