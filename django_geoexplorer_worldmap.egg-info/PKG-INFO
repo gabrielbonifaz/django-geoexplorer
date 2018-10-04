@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-geoexplorer-worldmap
-Version: 4.0.47
+Version: 4.0.48
 Summary: Use GeoExplorer WorldMap in your django projects
 Home-page: https://github.com/cga-harvard/django-geoexplorer
 Author: Paolo Corti
