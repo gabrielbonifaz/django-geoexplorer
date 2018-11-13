@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+4.0.52 (2018-11-12)
+===================
+
+* Improvements on the gazetteer tool: external services can be set from the template
+* Enable the enter key in the search text field
+* Fixes a problem with icons path
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/tree/04e23d5bbcc59b0db9998b8c5bc0068e7b615015
+
 4.0.51 (2018-11-02)
 ===================
 
