@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+4.0.53 (2018-11-13)
+===================
+
+* Now the "layers list" tab is correctly working in both existing and new maps
+* Layers added from the "layers list" tab are correctly handled as local
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/tree/ed06b5c76250e7649e9ee043b8c200bcb569d1a6
+
 4.0.52 (2018-11-12)
 ===================
 
