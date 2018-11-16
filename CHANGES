@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+4.0.54 (2018-11-16)
+===================
+
+* Identify now works for layers added from the search interface
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/dfc0e66bcdc048db73b3b9c3153aaf7b6a1b4995
+
 4.0.53 (2018-11-13)
 ===================
 
