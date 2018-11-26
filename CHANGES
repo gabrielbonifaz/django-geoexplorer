@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+4.0.57 (2018-11-26)
+===================
+
+* Refactored the service type dropdown list - now these are the possible choices: 1) All layers 2) My Layers 3) WorldMap Layers 4) Remote Service Layers
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/e86e4ae03bfa978fdc304465654fe11f04212d7b
+
 4.0.54 (2018-11-16)
 ===================
 
