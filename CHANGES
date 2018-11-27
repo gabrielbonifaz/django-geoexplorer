@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+4.0.58 (2018-11-27)
+===================
+
+* use correct layer_username fields in Solr search
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/33d474e89a673a81aa72eab12b3a9d5165e6aa68
+
+
 4.0.57 (2018-11-26)
 ===================
 
