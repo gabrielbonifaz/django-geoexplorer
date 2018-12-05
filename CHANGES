@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+4.0.60 (2018-12-05)
+===================
+
+* fix an invalid url in login form in mapcomposer
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/38a6f7fc0afab3d09bf6a5a92506d01c6984d052
+
 4.0.60 (2018-11-27)
 ===================
 
