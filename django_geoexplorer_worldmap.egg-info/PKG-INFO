@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-geoexplorer-worldmap
-Version: 4.0.60
+Version: 4.0.62
 Summary: Use GeoExplorer WorldMap in your django projects
 Home-page: https://github.com/GeoNode/django-geoexplorer/tree/worldmap
 Author: Paolo Corti
@@ -82,13 +82,29 @@ Description: *django-geoexplorer* allows you to use `GeoExplorer <http://opengeo
         CHANGELOG
         =========
         
+        4.0.62 (2019-01-17)
+        ===================
+        
+        * Include key for request to Tianditu map baselayers
+        
+        Source code:
+        https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/56acbf65fe6e929db6e3412eab4e61b16d345c3f
+        
+        4.0.60 (2018-12-05)
+        ===================
+        
+        * fix an invalid url in login form in mapcomposer
+        
+        Source code:
+        https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/38a6f7fc0afab3d09bf6a5a92506d01c6984d052
+        
         4.0.60 (2018-11-27)
         ===================
         
         * include a couple of missing icons
         
         Source code:
-        https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/33d474e89a673a81aa72eab12b3a9d5165e6aa68
+        https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/e1787443ff6d74b4ffeef70740a46cb9e24a7a10
         
         4.0.58 (2018-11-27)
         ===================

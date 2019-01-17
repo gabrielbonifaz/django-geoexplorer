@@ -5,7 +5,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
     name='django-geoexplorer-worldmap',
-    version='4.0.61',
+    version='4.0.62',
     author='Paolo Corti',
     author_email='pcorti@gmail.com',
     url='https://github.com/GeoNode/django-geoexplorer/tree/worldmap',

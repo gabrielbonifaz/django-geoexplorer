@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+4.0.62 (2019-01-17)
+===================
+
+* Include key for request to Tianditu map baselayers
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/56acbf65fe6e929db6e3412eab4e61b16d345c3f
+
 4.0.60 (2018-12-05)
 ===================
 
