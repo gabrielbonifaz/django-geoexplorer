@@ -5,8 +5,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
     name='django-geoexplorer-worldmap',
-    version='4.0.62',
-    author='Paolo Corti',
+    version='4.0.63',
+    author='Matt Bertrand, Paolo Corti',
     author_email='pcorti@gmail.com',
     url='https://github.com/GeoNode/django-geoexplorer/tree/worldmap',
     download_url = "http://pypi.python.org/pypi/django-geoexplorer-worldmap/",

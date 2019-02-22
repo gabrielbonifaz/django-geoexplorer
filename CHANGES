@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+4.0.63 (2019-02-22)
+===================
+
+* Fix a problem with WFS identify which prevented to display feature IDs
+* Remove the style editor from the properties widget as it is redundant
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/2b6692238786f7dd90104e347791f5bad8287a19
+
 4.0.62 (2019-01-17)
 ===================
 
