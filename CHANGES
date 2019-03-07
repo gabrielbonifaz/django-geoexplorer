@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+4.0.64 (2019-03-06)
+===================
+
+* Avoid to use the_geom field in the identify dialog
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/c030e62f60f4356a8d41728f280b436c57cb52ce
+
+
 4.0.63 (2019-02-22)
 ===================
 
