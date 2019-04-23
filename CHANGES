@@ -2,6 +2,19 @@
 CHANGELOG
 =========
 
+4.0.67 (2019-04-23)
+===================
+
+* Includes Alessio Fabiani fixes for style creation by a user not owning a layer
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/5b700501501b87be1978c00af75883a4f7f57b09
+
+4.0.65 (2019-03-08)
+===================
+
+* Fixed an issue with Chinese translations
+
 4.0.64 (2019-03-06)
 ===================
 
