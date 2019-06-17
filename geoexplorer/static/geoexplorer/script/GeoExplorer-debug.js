@@ -88520,689 +88520,6 @@ gxp.plugins.Styler = Ext.extend(gxp.plugins.Tool, {
 
 Ext.preg(gxp.plugins.Styler.prototype.ptype, gxp.plugins.Styler);
 
-/** FILE: plugins/GoogleSource.js **/
-/**
- * Copyright (c) 2008-2011 The Open Planning Project
- * 
- * Published under the GPL license.
- * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
- * of the license.
- */
-
-/**
- * @requires plugins/LayerSource.js
- * @requires OpenLayers/Layer/Google/v3.js
- */
-
-/** api: (define)
- *  module = gxp.plugins
- *  class = GoogleSource
- */
-
-/** api: (extends)
- *  plugins/LayerSource.js
- */
-Ext.namespace("gxp.plugins");
-
-/** api: constructor
- *  .. class:: GoolgeSource(config)
- *
- *    Plugin for using Google layers with :class:`gxp.Viewer` instances. The
- *    plugin uses the GMaps v3 API and also takes care of loading the
- *    required Google resources.
- *
- *    Available layer names for this source are "ROADMAP", "SATELLITE",
- *    "HYBRID" and "TERRAIN"
- */   
-/** api: example
- *  The configuration in the ``sources`` property of the :class:`gxp.Viewer` is
- *  straightforward:
- *
- *  .. code-block:: javascript
- *
- *    "google": {
- *        ptype: "gxp_googlesource"
- *    }
- *
- *  A typical configuration for a layer from this source (in the ``layers``
- *  array of the viewer's ``map`` config option would look like this:
- *
- *  .. code-block:: javascript
- *
- *    {
- *        source: "google",
- *        name: "TERRAIN"
- *    }
- *
- */
-gxp.plugins.GoogleSource = Ext.extend(gxp.plugins.LayerSource, {
-    
-    /** api: ptype = gxp_googlesource */
-    ptype: "gxp_googlesource",
-    
-    /** config: config[timeout]
-     *  ``Number``
-     *  The time (in milliseconds) to wait before giving up on the Google Maps
-     *  script loading.  This layer source will not be availble if the script
-     *  does not load within the given timeout.  Default is 7000 (seven seconds).
-     */
-    timeout: 7000,
-
-    /** api: property[store]
-     *  ``GeoExt.data.LayerStore`` containing records with "ROADMAP",
-     *  "SATELLITE", "HYBRID" and "TERRAIN" name fields.
-     */
-    
-    /** api: config[title]
-     *  ``String``
-     *  A descriptive title for this layer source (i18n).
-     */
-    title: "Google Layers",
-
-    /** api: config[roadmapAbstract]
-     *  ``String``
-     *  Description of the ROADMAP layer (i18n).
-     */
-    roadmapAbstract: "Show street map",
-
-    /** api: config[satelliteAbstract]
-     *  ``String``
-     *  Description of the SATELLITE layer (i18n).
-     */
-    satelliteAbstract: "Show satellite imagery",
-
-    /** api: config[hybridAbstract]
-     *  ``String``
-     *  Description of the HYBRID layer (i18n).
-     */
-    hybridAbstract: "Show imagery with street names",
-
-    /** api: config[terrainAbstract]
-     *  ``String``
-     *  Description of the TERRAIN layer (i18n).
-     */
-    terrainAbstract: "Show street map with terrain",
-
-    /** api: config[otherParams]
-     *  ``String``
-     *  Additional parameters to be sent to Google,
-     *  default is "sensor=false"
-     */
-    otherParams: "sensor=false",
-
-    constructor: function(config) {
-        this.config = config;
-        gxp.plugins.GoogleSource.superclass.constructor.apply(this, arguments);
-    },
-    
-    /** api: method[createStore]
-     *
-     *  Creates a store of layer records.  Fires "ready" when store is loaded.
-     */
-    createStore: function() {
-        gxp.plugins.GoogleSource.loader.onLoad({
-            otherParams: this.otherParams,
-            timeout: this.timeout,
-            callback: this.syncCreateStore,
-            errback: function() {
-                delete this.store;
-                this.fireEvent(
-                    "failure", 
-                    this,
-                    "The Google Maps script failed to load within the provided timeout (" + (this.timeout / 1000) + " s)."
-                );
-            },
-            scope: this
-        });
-    },
-    
-    /** private: method[syncCreateStore]
-     *
-     *  Creates a store of layers.  This requires that the API script has already
-     *  loaded.  Fires the "ready" event when the store is loaded.
-     */
-    syncCreateStore: function() {
-        // TODO: The abstracts ("alt" properties) should be derived from the
-        // MapType objects themselves.  It doesn't look like there is currently
-        // a way to get the default map types before creating a map object.
-        // http://code.google.com/p/gmaps-api-issues/issues/detail?id=2562
-        // TODO: We may also be able to determine the MAX_ZOOM_LEVEL for each
-        // layer type. If not, consider setting them on the OpenLayers level.
-        var mapTypes = {
-            "ROADMAP": {"abstract": this.roadmapAbstract, MAX_ZOOM_LEVEL: 20},
-            "SATELLITE": {"abstract": this.satelliteAbstract},
-            "HYBRID": {"abstract": this.hybridAbstract},
-            "TERRAIN": {"abstract": this.terrainAbstract, MAX_ZOOM_LEVEL: 15}
-        };
-        
-        var layers = [];
-        var name, mapType;
-        for (name in mapTypes) {
-            mapType = google.maps.MapTypeId[name];
-            layers.push(new OpenLayers.Layer.Google(
-                // TODO: get MapType object name
-                // http://code.google.com/p/gmaps-api-issues/issues/detail?id=2562
-                "Google " + mapType.replace(/\w/, function(c) {return c.toUpperCase();}), {
-                    type: mapType,
-                    typeName: name,
-                    MAX_ZOOM_LEVEL: mapTypes[name].MAX_ZOOM_LEVEL,
-                    maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-                    restrictedExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
-                    projection: this.projection
-                }
-            ));
-        }
-        this.store = new GeoExt.data.LayerStore({
-            layers: layers,
-            fields: [
-                {name: "source", type: "string"},
-                {name: "name", type: "string", mapping: "typeName"},
-                {name: "abstract", type: "string"},
-                {name: "group", type: "string", defaultValue: "background"},
-                {name: "fixed", type: "boolean", defaultValue: true},
-                {name: "selected", type: "boolean"}
-            ]
-        });
-        this.store.each(function(l) {
-            l.set("abstract", mapTypes[l.get("name")]["abstract"]);
-        });
-        this.fireEvent("ready", this);
-    },
-    
-    /** api: method[createLayerRecord]
-     *  :arg config:  ``Object``  The application config for this layer.
-     *  :returns: ``GeoExt.data.LayerRecord``
-     *
-     *  Create a layer record given the config.
-     */
-    createLayerRecord: function(config) {
-        var record;
-        var cmp = function(l) {
-            return l.get("name") === config.name;
-        };
-        // only return layer if app does not have it already
-        if (this.target.mapPanel.layers.findBy(cmp) == -1) {
-            // records can be in only one store
-            record = this.store.getAt(this.store.findBy(cmp)).clone();
-            var layer = record.getLayer();
-            // set layer title from config
-            if (config.title) {
-                /**
-                 * Because the layer title data is duplicated, we have
-                 * to set it in both places.  After records have been
-                 * added to the store, the store handles this
-                 * synchronization.
-                 */
-                layer.setName(config.title);
-                record.set("title", config.title);
-            }
-            // set visibility from config
-            if ("visibility" in config) {
-                layer.visibility = config.visibility;
-            }
-            
-            record.set("selected", config.selected || false);
-            record.set("source", config.source);
-            record.set("name", config.name);
-            if ("group" in config) {
-                record.set("group", config.group);
-            }
-            record.commit();
-        }
-        return record;
-    }
-    
-});
-
-/**
- * Create a loader singleton that all plugin instances can use.
- */
-gxp.plugins.GoogleSource.loader = new (Ext.extend(Ext.util.Observable, {
-
-    /** private: property[ready]
-     *  ``Boolean``
-     *  This plugin type is ready to use.
-     */
-    ready: !!(window.google && google.maps),
-
-    /** private: property[loading]
-     *  ``Boolean``
-     *  The resources for this plugin type are loading.
-     */
-    loading: false,
-    
-    constructor: function() {
-        this.addEvents(
-            /** private: event[ready]
-             *  Fires when this plugin type is ready.
-             */
-             "ready",
-
-             /** private: event[failure]
-              *  Fires when script loading fails.
-              */
-              "failure"
-        );
-        return Ext.util.Observable.prototype.constructor.apply(this, arguments);
-    },
-    
-    /** private: method[onScriptLoad]
-     *  Called when all resources required by this plugin type have loaded.
-     */
-    onScriptLoad: function() {
-        // the google loader calls this in the window scope
-        var monitor = gxp.plugins.GoogleSource.loader;
-        if (!monitor.ready) {
-            monitor.ready = true;
-            monitor.loading = false;
-            monitor.fireEvent("ready");
-        }
-    },
-    
-    /** api: method[gxp.plugins.GoogleSource.loader.onLoad]
-     *  :arg options: ``Object``
-     *
-     *  Options:
-     *
-     *  * callback - ``Function`` Called when script loads.
-     *  * errback - ``Function`` Called if loading fails.
-     *  * timeout - ``Number`` Time to wait before deciding that loading failed
-     *      (in milliseconds).
-     *  * scope - ``Object`` The ``this`` object for callbacks.
-     */
-    onLoad: function(options) {
-        if (this.ready) {
-            // call this in the next turn for consistent return before callback
-            window.setTimeout(function() {
-                options.callback.call(options.scope);                
-            }, 0);
-        } else if (!this.loading) {
-            this.loadScript(options);
-        } else {
-            this.on({
-                ready: options.callback,
-                failure: options.errback || Ext.emptyFn,
-                scope: options.scope
-            });
-        }
-    },
-
-    /** private: method[onScriptLoad]
-     *  Called when all resources required by this plugin type have loaded.
-     */
-    loadScript: function(options) {
-
-        var params = {
-            autoload: Ext.encode({
-                modules: [{
-                    name: "maps",
-                    version: 3.3,
-                    nocss: "true",
-                    callback: "gxp.plugins.GoogleSource.loader.onScriptLoad",
-                    other_params: options.otherParams
-                }]
-            })
-        };
-        
-        var script = document.createElement("script");
-        script.src = "//www.google.com/jsapi?" + Ext.urlEncode(params);
-
-        // cancel loading if monitor is not ready within timeout
-        var errback = options.errback || Ext.emptyFn;
-        var timeout = options.timeout || gxp.plugins.GoogleSource.prototype.timeout;
-        window.setTimeout((function() {
-            if (!gxp.plugins.GoogleSource.loader.ready) {
-                this.loading = false;
-                this.ready = false;
-                document.getElementsByTagName("head")[0].removeChild(script);
-                errback.call(options.scope);
-                this.fireEvent("failure");
-                this.purgeListeners();
-            }
-        }).createDelegate(this), timeout);
-        
-        // register callback for ready
-        this.on({
-            ready: options.callback,
-            scope: options.scope
-        });
-
-        this.loading = true;
-
-        // The google loader accesses document.body, so we don't add the loader
-        // script before the document is ready.
-        function append() {
-            document.getElementsByTagName("head")[0].appendChild(script);
-        }
-        if (document.body) {
-            append();
-        } else {
-            Ext.onReady(append);
-        }
-
-    }
-
-}))();
-
-Ext.preg(gxp.plugins.GoogleSource.prototype.ptype, gxp.plugins.GoogleSource);
-
-/** FILE: plugins/GoogleEarth.js **/
-/**
- * Copyright (c) 2008-2011 The Open Planning Project
- *
- * Published under the GPL license.
- * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
- * of the license.
- */
-
-/**
- * @requires plugins/Tool.js
- */
-
-/** api: (define)
- *  module = gxp.plugins
- *  class = GoogleEarth
- */
-
-/** api: (extends)
- *  plugins/Tool.js
- */
-Ext.namespace("gxp.plugins");
-
-/** api: constructor
- *  .. class:: GoogleEarth(config)
- *
- *    Provides an action for switching between normal map view and
- *    Google Earth view.
- */
-/** api: example
- *  This tool can only be used if ``portalItems`` of :class:`gxp.Viewer` is set up
- *  in the following way (or similar, the requirement is to have a panel with a card
- *  layout which has 2 items: the map and the Google Earth panel):
- *
- *  .. code-block:: javascript
- *
- *      portalItems: [{
- *          region: "center",
- *          layout: "border",
- *          border: false,
- *           items: [{
- *               xtype: "panel",
- *               id: "panel",
- *               tbar: [],
- *               layout: "card",
- *               region: "center",
- *               activeItem: 0,
- *               items: [
- *               "map", {
- *                   xtype: 'gxp_googleearthpanel',
- *                   mapPanel: "map"
- *               }
- *           ]
- *      }
- *
- * Then make sure the tools go into the tbar of the panel, instead of the
- * "map.tbar" which is the default, an example is:
- *
- *  .. code-block:: javascript
- *
- *    tools: [
- *        {
- *            actionTarget: "panel.tbar",
- *            ptype: "gxp_googleearth",
- *        }
- *    ]
- */
-gxp.plugins.GoogleEarth = Ext.extend(gxp.plugins.Tool, {
-
-    /** api: ptype = gxp_googleearth */
-    ptype: "gxp_googleearth",
-
-    /** config: config[timeout]
-     *  ``Number``
-     *  The time (in milliseconds) to wait before giving up on the Google API
-     *  script loading.  This layer source will not be availble if the script
-     *  does not load within the given timeout.  Default is 7000 (seven seconds).
-     */
-    timeout: 7000,
-
-    //i18n
-    menuText: "3D Viewer",
-    tooltip: "Switch to 3D Viewer",
-    tooltipMap: "Switch back to normal map view",
-
-    /** private: method[constructor]
-     */
-    constructor: function(config) {
-        gxp.plugins.GoogleEarth.superclass.constructor.apply(this, arguments);
-    },
-
-    /** api: method[addActions]
-     */
-    addActions: function() {
-        var actions = [{
-            menuText: this.menuText,
-            enableToggle: true,
-            iconCls: "gxp-icon-googleearth",
-            tooltip: this.tooltip,
-            toggleHandler: function(button, state) {
-                // we unpress the button so that it will only show pressed
-                // on successful display
-                this.actions[0].each(function(cmp) {
-                    if (cmp.toggle) {
-                        cmp.toggle(false, true);
-                    }
-                });
-                this.togglePanelDisplay(state);
-            },
-            scope: this
-        }];
-
-        return gxp.plugins.GoogleEarth.superclass.addActions.apply(this, [actions]);
-    },
-
-    /** private: method[togglePanelDisplay]
-     *  :arg displayed: ``Boolean`` Display the Google Earth panel.
-     */
-    togglePanelDisplay: function(displayed) {
-        // TODO: this split between the tool and the panel needs work
-        var ownerCt = this.target.mapPanel.ownerCt;
-        var layout = ownerCt && ownerCt.getLayout();
-        if (layout && layout instanceof Ext.layout.CardLayout) {
-            if (displayed === true) {
-                gxp.plugins.GoogleEarth.loader.onLoad({
-                    callback: function() {
-                        // display the panel
-                        layout.setActiveItem(1);
-                        // enable action press any buttons associated with the action
-                        this.actions[0].enable();
-                        this.actions[0].items[0].setTooltip(this.tooltipMap);
-                        this.actions[0].each(function(cmp) {
-                            if (cmp.toggle) {
-                                cmp.toggle(true, true);
-                            }
-                        });
-                    },
-                    // TODO: add errback for handling load failures
-                    scope: this
-                });
-            } else {
-                // hide the panel
-                layout.setActiveItem(0);
-                this.actions[0].items[0].setTooltip(this.tooltip);
-            }
-        }
-    },
-
-    /** private: method[getHost]
-     *  :returns: ``String`` The current host name and port.
-     *
-     *  This method is here mainly for mocking in tests.
-     */
-    getHost: function() {
-        var name = window.location.host.split(":").shift();
-        var port = window.location.port || "80";
-        return name + ":" + port;
-    }
-
-});
-
-
-/**
- * Create a loader singleton that all plugin instances can use.
- */
-gxp.plugins.GoogleEarth.loader = new (Ext.extend(Ext.util.Observable, {
-
-    /** private: property[ready]
-     *  ``Boolean``
-     *  This plugin type is ready to use.
-     */
-    ready: !!(window.google && window.google.maps),
-
-    /** private: property[loading]
-     *  ``Boolean``
-     *  The resources for this plugin type are loading.
-     */
-    loading: false,
-
-    constructor: function() {
-        this.addEvents(
-            /** private: event[ready]
-             *  Fires when this plugin type is ready.
-             */
-             "ready",
-
-             /** private: event[failure]
-              *  Fires when script loading fails.
-              */
-              "failure"
-        );
-        return Ext.util.Observable.prototype.constructor.apply(this, arguments);
-    },
-
-    /** private: method[onScriptLoad]
-     *  Called when all resources required by this plugin type have loaded.
-     */
-    onScriptLoad: function() {
-        // the google loader calls this in the window scope
-        var monitor = gxp.plugins.GoogleEarth.loader;
-        if (!monitor.ready) {
-            monitor.ready = true;
-            monitor.loading = false;
-            monitor.fireEvent("ready");
-        }
-    },
-
-    /** api: method[gxp.plugins.GoogleEarth.loader.onLoad]
-     *  :arg options: ``Object``
-     *
-     *  Options:
-     *
-     *  * callback - ``Function`` Called when script loads.
-     *  * errback - ``Function`` Called if loading fails.
-     *  * timeout - ``Number`` Time to wait before deciding that loading failed
-     *      (in milliseconds).
-     *  * scope - ``Object`` The ``this`` object for callbacks.
-     */
-    onLoad: function(options) {
-        if (this.ready) {
-            // call this in the next turn for consistent return before callback
-            window.setTimeout(function() {
-                options.callback.call(options.scope);
-            }, 0);
-        } else if (!this.loading) {
-            this.loadScript(options);
-        } else {
-            this.on({
-                ready: options.callback,
-                failure: options.errback || Ext.emptyFn,
-                scope: options.scope
-            });
-        }
-    },
-
-    /** private: method[onScriptLoad]
-     *  Called when all resources required by this plugin type have loaded.
-     */
-    loadScript: function(options) {
-
-        // remove any previous loader to ensure that the key is applied
-        if (window.google) {
-            delete google.loader;
-        }
-
-        var params = {
-            autoload: Ext.encode({
-                /* modules: [{
-                    name: "earth",
-                    version: "1",
-                    callback: "gxp.plugins.GoogleEarth.loader.onScriptLoad"
-                }] */
-                modules: [{
-                    name: "maps",
-                    version: 3,
-                    other_params: "sensor=false",
-                    callback: "gxp.plugins.GoogleEarth.loader.onScriptLoad"
-                }]
-            })
-        };
-
-        var script = document.createElement("script");
-        script.src = "//www.google.com/jsapi?" + Ext.urlEncode(params);
-
-        // cancel loading if monitor is not ready within timeout
-        var errback = options.errback || Ext.emptyFn;
-        var timeout = options.timeout || gxp.plugins.GoogleSource.prototype.timeout;
-        window.setTimeout((function() {
-            if (!gxp.plugins.GoogleEarth.loader.ready) {
-                this.fireEvent("failure");
-                this.unload();
-            }
-        }).createDelegate(this), timeout);
-
-        // register callback for ready
-        this.on({
-            ready: options.callback,
-            failure: options.errback || Ext.emptyFn,
-            scope: options.scope
-        });
-
-        this.loading = true;
-
-        // The google loader accesses document.body, so we don't add the loader
-        // script before the document is ready.
-        function append() {
-            document.getElementsByTagName("head")[0].appendChild(script);
-        }
-        if (document.body) {
-            append();
-        } else {
-            Ext.onReady(append);
-        }
-
-        this.script = script;
-
-    },
-
-    /** api: method[unload]
-     *  Clean up resources created by loading.
-     */
-    unload: function() {
-        this.purgeListeners();
-        if (this.script) {
-            document.getElementsByTagName("head")[0].removeChild(this.script);
-            delete this.script;
-        }
-        this.loading = false;
-        this.ready = false;
-        delete google.loader;
-        delete google.maps;
-    }
-
-}))();
-
-Ext.preg(gxp.plugins.GoogleEarth.prototype.ptype, gxp.plugins.GoogleEarth);
-
 /** FILE: plugins/OLSource.js **/
 /**
  * Copyright (c) 2008-2011 The Open Planning Project
@@ -94259,6 +93576,1224 @@ gxp.plugins.FeatureGrid = Ext.extend(gxp.plugins.ClickableFeatures, {
 });
 
 Ext.preg(gxp.plugins.FeatureGrid.prototype.ptype, gxp.plugins.FeatureGrid);
+
+/** FILE: OpenLayers/Layer/Bing.js **/
+/* Copyright (c) 2006-2013 by OpenLayers Contributors (see authors.txt for
+ * full list of contributors). Published under the 2-clause BSD license.
+ * See license.txt in the OpenLayers distribution or repository for the
+ * full text of the license. */
+
+/**
+ * 
+ */
+
+/** 
+ * Class: OpenLayers.Layer.Bing
+ * Bing layer using direct tile access as provided by Bing Maps REST Services.
+ * See http://msdn.microsoft.com/en-us/library/ff701713.aspx for more
+ * information. Note: Terms of Service compliant use requires the map to be
+ * configured with an <OpenLayers.Control.Attribution> control and the
+ * attribution placed on or near the map.
+ * 
+ * Inherits from:
+ *  - <OpenLayers.Layer.XYZ>
+ */
+OpenLayers.Layer.Bing = OpenLayers.Class(OpenLayers.Layer.XYZ, {
+
+    /**
+     * Property: key
+     * {String} API key for Bing maps, get your own key 
+     *     at http://bingmapsportal.com/ .
+     */
+    key: null,
+
+    /**
+     * Property: serverResolutions
+     * {Array} the resolutions provided by the Bing servers.
+     */
+    serverResolutions: [
+        156543.03390625, 78271.516953125, 39135.7584765625,
+        19567.87923828125, 9783.939619140625, 4891.9698095703125,
+        2445.9849047851562, 1222.9924523925781, 611.4962261962891,
+        305.74811309814453, 152.87405654907226, 76.43702827453613,
+        38.218514137268066, 19.109257068634033, 9.554628534317017,
+        4.777314267158508, 2.388657133579254, 1.194328566789627,
+        0.5971642833948135, 0.29858214169740677, 0.14929107084870338,
+        0.07464553542435169
+    ],
+    
+    /**
+     * Property: attributionTemplate
+     * {String}
+     */
+    attributionTemplate: '<span class="olBingAttribution ${type}">' +
+         '<div><a target="_blank" href="http://www.bing.com/maps/">' +
+         '<img src="${logo}" /></a></div>${copyrights}' +
+         '<a style="white-space: nowrap" target="_blank" '+
+         'href="http://www.microsoft.com/maps/product/terms.html">' +
+         'Terms of Use</a></span>',
+
+    /**
+     * Property: metadata
+     * {Object} Metadata for this layer, as returned by the callback script
+     */
+    metadata: null,
+
+    /**
+     * Property: protocolRegex
+     * {RegExp} Regular expression to match and replace http: in bing urls
+     */
+    protocolRegex: /^http:/i,
+    
+    /**
+     * APIProperty: type
+     * {String} The layer identifier.  Any non-birdseye imageryType
+     *     from http://msdn.microsoft.com/en-us/library/ff701716.aspx can be
+     *     used.  Default is "Road".
+     */
+    type: "Road",
+    
+    /**
+     * APIProperty: culture
+     * {String} The culture identifier.  See http://msdn.microsoft.com/en-us/library/ff701709.aspx
+     * for the definition and the possible values.  Default is "en-US".
+     */
+    culture: "en-US",
+    
+    /**
+     * APIProperty: metadataParams
+     * {Object} Optional url parameters for the Get Imagery Metadata request
+     * as described here: http://msdn.microsoft.com/en-us/library/ff701716.aspx
+     */
+    metadataParams: null,
+
+    /** APIProperty: tileOptions
+     *  {Object} optional configuration options for <OpenLayers.Tile> instances
+     *  created by this Layer. Default is
+     *
+     *  (code)
+     *  {crossOriginKeyword: 'anonymous'}
+     *  (end)
+     */
+    tileOptions: null,
+
+    /** APIProperty: protocol
+     *  {String} Protocol to use to fetch Imagery Metadata, tiles and bing logo
+     *  Can be 'http:' 'https:' or ''
+     *
+     *  Warning: tiles may not be available under both HTTP and HTTPS protocols.
+     *  Microsoft approved use of both HTTP and HTTPS urls for tiles. However
+     *  this is undocumented and the Imagery Metadata API always returns HTTP
+     *  urls.
+     *
+     *  Default is '', unless when executed from a file:/// uri, in which case
+     *  it is 'http:'.
+     */
+    protocol: ~window.location.href.indexOf('http') ? '' : 'http:',
+
+    /**
+     * Constructor: OpenLayers.Layer.Bing
+     * Create a new Bing layer.
+     *
+     * Example:
+     * (code)
+     * var road = new OpenLayers.Layer.Bing({
+     *     name: "My Bing Aerial Layer",
+     *     type: "Aerial",
+     *     key: "my-api-key-here",
+     * });
+     * (end)
+     *
+     * Parameters:
+     * options - {Object} Configuration properties for the layer.
+     *
+     * Required configuration properties:
+     * key - {String} Bing Maps API key for your application. Get one at
+     *     http://bingmapsportal.com/.
+     * type - {String} The layer identifier.  Any non-birdseye imageryType
+     *     from http://msdn.microsoft.com/en-us/library/ff701716.aspx can be
+     *     used.
+     *
+     * Any other documented layer properties can be provided in the config object.
+     */
+    initialize: function(options) {
+        options = OpenLayers.Util.applyDefaults({
+            sphericalMercator: true
+        }, options);
+        var name = options.name || "Bing " + (options.type || this.type);
+        
+        var newArgs = [name, null, options];
+        OpenLayers.Layer.XYZ.prototype.initialize.apply(this, newArgs);
+        this.tileOptions = OpenLayers.Util.extend({
+            crossOriginKeyword: 'anonymous'
+        }, this.options.tileOptions);
+        this.loadMetadata(); 
+    },
+
+    /**
+     * Method: loadMetadata
+     */
+    loadMetadata: function() {
+        this._callbackId = "_callback_" + this.id.replace(/\./g, "_");
+        // link the processMetadata method to the global scope and bind it
+        // to this instance
+        window[this._callbackId] = OpenLayers.Function.bind(
+            OpenLayers.Layer.Bing.processMetadata, this
+        );
+        var params = OpenLayers.Util.applyDefaults({
+            key: this.key,
+            jsonp: this._callbackId,
+            include: "ImageryProviders"
+        }, this.metadataParams);
+        var url = this.protocol + "//dev.virtualearth.net/REST/v1/Imagery/Metadata/" +
+            this.type + "?" + OpenLayers.Util.getParameterString(params);
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = url;
+        script.id = this._callbackId;
+        document.getElementsByTagName("head")[0].appendChild(script);
+    },
+    
+    /**
+     * Method: initLayer
+     *
+     * Sets layer properties according to the metadata provided by the API
+     */
+    initLayer: function() {
+        var res = this.metadata.resourceSets[0].resources[0];
+        var url = res.imageUrl.replace("{quadkey}", "${quadkey}");
+        url = url.replace("{culture}", this.culture);
+        url = url.replace(this.protocolRegex, this.protocol);
+        this.url = [];
+        for (var i=0; i<res.imageUrlSubdomains.length; ++i) {
+            this.url.push(url.replace("{subdomain}", res.imageUrlSubdomains[i]));
+        }
+        this.addOptions({
+            maxResolution: Math.min(
+                this.serverResolutions[res.zoomMin],
+                this.maxResolution || Number.POSITIVE_INFINITY
+            ),
+            numZoomLevels: Math.min(
+                res.zoomMax + 1 - res.zoomMin, this.numZoomLevels
+            )
+        }, true);
+        if (!this.isBaseLayer) {
+            this.redraw();
+        }
+        this.updateAttribution();
+    },
+    
+    /**
+     * Method: getURL
+     *
+     * Paramters:
+     * bounds - {<OpenLayers.Bounds>}
+     */
+    getURL: function(bounds) {
+        if (!this.url) {
+            return;
+        }
+        var xyz = this.getXYZ(bounds), x = xyz.x, y = xyz.y, z = xyz.z;
+        var quadDigits = [];
+        for (var i = z; i > 0; --i) {
+            var digit = '0';
+            var mask = 1 << (i - 1);
+            if ((x & mask) != 0) {
+                digit++;
+            }
+            if ((y & mask) != 0) {
+                digit++;
+                digit++;
+            }
+            quadDigits.push(digit);
+        }
+        var quadKey = quadDigits.join("");
+        var url = this.selectUrl('' + x + y + z, this.url);
+
+        return OpenLayers.String.format(url, {'quadkey': quadKey});
+    },
+    
+    /**
+     * Method: updateAttribution
+     * Updates the attribution according to the requirements outlined in
+     * http://gis.638310.n2.nabble.com/Bing-imagery-td5789168.html
+     */
+    updateAttribution: function() {
+        var metadata = this.metadata;
+        if (!metadata.resourceSets || !metadata.resourceSets.length || !this.map || !this.map.center) {
+            return;
+        }
+        var res = metadata.resourceSets[0].resources[0];
+        var extent = this.map.getExtent().transform(
+            this.map.getProjectionObject(),
+            new OpenLayers.Projection("EPSG:4326")
+        );
+        var providers = res.imageryProviders || [],
+            zoom = OpenLayers.Util.indexOf(this.serverResolutions,
+                                           this.getServerResolution()),
+            copyrights = "", provider, i, ii, j, jj, bbox, coverage;
+        for (i=0,ii=providers.length; i<ii; ++i) {
+            provider = providers[i];
+            for (j=0,jj=provider.coverageAreas.length; j<jj; ++j) {
+                coverage = provider.coverageAreas[j];
+                // axis order provided is Y,X
+                bbox = OpenLayers.Bounds.fromArray(coverage.bbox, true);
+                if (extent.intersectsBounds(bbox) &&
+                        zoom <= coverage.zoomMax && zoom >= coverage.zoomMin) {
+                    copyrights += provider.attribution + " ";
+                }
+            }
+        }
+        var logo = metadata.brandLogoUri.replace(this.protocolRegex, this.protocol);
+        this.attribution = OpenLayers.String.format(this.attributionTemplate, {
+            type: this.type.toLowerCase(),
+            logo: logo,
+            copyrights: copyrights
+        });
+        this.map && this.map.events.triggerEvent("changelayer", {
+            layer: this,
+            property: "attribution"
+        });
+    },
+    
+    /**
+     * Method: setMap
+     */
+    setMap: function() {
+        OpenLayers.Layer.XYZ.prototype.setMap.apply(this, arguments);
+        this.map.events.register("moveend", this, this.updateAttribution);
+    },
+    
+    /**
+     * APIMethod: clone
+     * 
+     * Parameters:
+     * obj - {Object}
+     * 
+     * Returns:
+     * {<OpenLayers.Layer.Bing>} An exact clone of this <OpenLayers.Layer.Bing>
+     */
+    clone: function(obj) {
+        if (obj == null) {
+            obj = new OpenLayers.Layer.Bing(this.options);
+        }
+        //get all additions from superclasses
+        obj = OpenLayers.Layer.XYZ.prototype.clone.apply(this, [obj]);
+        // copy/set any non-init, non-simple values here
+        return obj;
+    },
+    
+    /**
+     * Method: destroy
+     */
+    destroy: function() {
+        this.map &&
+            this.map.events.unregister("moveend", this, this.updateAttribution);
+        OpenLayers.Layer.XYZ.prototype.destroy.apply(this, arguments);
+    },
+    
+    CLASS_NAME: "OpenLayers.Layer.Bing"
+});
+
+/**
+ * Function: OpenLayers.Layer.Bing.processMetadata
+ * This function will be bound to an instance, linked to the global scope with
+ * an id, and called by the JSONP script returned by the API.
+ *
+ * Parameters:
+ * metadata - {Object} metadata as returned by the API
+ */
+OpenLayers.Layer.Bing.processMetadata = function(metadata) {
+    this.metadata = metadata;
+    if(this.metadata && this.metadata.resourceSets && this.metadata.resourceSets.length != 0){
+        this.initLayer();
+    }
+    var script = document.getElementById(this._callbackId);
+    script.parentNode.removeChild(script);
+    window[this._callbackId] = undefined; // cannot delete from window in IE
+    delete this._callbackId;
+};
+
+/** FILE: plugins/BingSource.js **/
+/**
+ * Copyright (c) 2008-2011 The Open Planning Project
+ * 
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/**
+ * @requires plugins/LayerSource.js
+ * @requires OpenLayers/Layer/Bing.js
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = BingSource
+ */
+
+/** api: (extends)
+ *  plugins/LayerSource.js
+ */
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: BingSource(config)
+ *
+ *    Plugin for using Bing layers with :class:`gxp.Viewer` instances.
+ *
+ *    Available layer names are "Road", "Aerial" and "AerialWithLabels"
+ */
+/** api: example
+ *  The configuration in the ``sources`` property of the :class:`gxp.Viewer` is
+ *  straightforward:
+ *
+ *  .. code-block:: javascript
+ *
+ *    "bing": {
+ *        ptype: "gxp_bingsource"
+ *    }
+ *
+ *  A typical configuration for a layer from this source (in the ``layers``
+ *  array of the viewer's ``map`` config option would look like this:
+ *
+ *  .. code-block:: javascript
+ *
+ *    {
+ *        source: "bing",
+ *        title: "Bing Road Map",
+ *        name: "Road"
+ *    }
+ *
+ */
+gxp.plugins.BingSource = Ext.extend(gxp.plugins.LayerSource, {
+    
+    /** api: ptype = gxp_bingsource */
+    ptype: "gxp_bingsource",
+
+    /** api: property[store]
+     *  ``GeoExt.data.LayerStore``. Will contain records with "Road" and
+     *  "Aerial" as name field values.
+     */
+    
+    /** api: config[title]
+     *  ``String``
+     *  A descriptive title for this layer source (i18n).
+     */
+    title: "Bing Layers",
+    
+    /** api: config[roadTitle]
+     *  ``String``
+     *  A descriptive title for the Road layer (i18n).
+     */
+    roadTitle: "Bing Roads",
+
+    /** api: config[aerialTitle]
+     *  ``String``
+     *  A descriptive title for the Aerial layer (i18n).
+     */
+    aerialTitle: "Bing Aerial",
+
+    /** api: config[labeledAerialTitle]
+     *  ``String``
+     *  A descriptive title for the AerialWithLabels layer (i18n).
+     */
+    labeledAerialTitle: "Bing Aerial With Labels",
+    
+    /** api: config[apiKey]
+     *  ``String``
+     *  API key generated from http://bingmapsportal.com/ for your domain.
+     */
+    apiKey: null,
+    
+    /** api: method[createStore]
+     *
+     *  Creates a store of layer records.  Fires "ready" when store is loaded.
+     */
+    createStore: function() {
+
+        if (!this.apiKey) {
+          this.fireEvent(
+            "failure",
+            this,
+            "No apiKey configured for the Bing source."
+          );
+          throw new Error("You need to provide an apiKey for the Bing source to work.");
+        }
+        
+        var layers = [
+            new OpenLayers.Layer.Bing({
+                key: this.apiKey,
+                name: this.roadTitle,
+                type: "Road",
+                buffer: 1,
+                transitionEffect: "resize"
+            }),
+            new OpenLayers.Layer.Bing({
+                key: this.apiKey,
+                name: this.aerialTitle,
+                type: "Aerial",
+                buffer: 1,
+                transitionEffect: "resize"
+            }),
+            new OpenLayers.Layer.Bing({
+                key: this.apiKey,
+                name: this.labeledAerialTitle,
+                type: "AerialWithLabels",
+                buffer: 1,
+                transitionEffect: "resize"
+            })
+        ];
+        
+        this.store = new GeoExt.data.LayerStore({
+            layers: layers,
+            fields: [
+                {name: "source", type: "string"},
+                {name: "name", type: "string", mapping: "type"},
+                {name: "abstract", type: "string", mapping: "attribution"},
+                {name: "group", type: "string", defaultValue: "background"},
+                {name: "fixed", type: "boolean", defaultValue: true},
+                {name: "selected", type: "boolean"}
+            ]
+        });
+        this.store.each(function(l) {
+            l.set("group", "background");
+        });
+        this.fireEvent("ready", this);
+
+    },
+    
+    /** api: method[createLayerRecord]
+     *  :arg config:  ``Object``  The application config for this layer.
+     *  :returns: ``GeoExt.data.LayerRecord``
+     *
+     *  Create a layer record given the config.
+     */
+    createLayerRecord: function(config) {
+        var record;
+        var index = this.store.findExact("name", config.name);
+        if (index > -1) {
+
+            record = this.store.getAt(index).copy(Ext.data.Record.id({}));
+            var layer = record.getLayer().clone();
+ 
+            // set layer title from config
+            if (config.title) {
+                /**
+                 * Because the layer title data is duplicated, we have
+                 * to set it in both places.  After records have been
+                 * added to the store, the store handles this
+                 * synchronization.
+                 */
+                layer.setName(config.title);
+                record.set("title", config.title);
+            }
+
+            // set visibility from config
+            if ("visibility" in config) {
+                layer.visibility = config.visibility;
+            }
+            
+            record.set("selected", config.selected || false);
+            record.set("source", config.source);
+            record.set("name", config.name);
+            if ("group" in config) {
+                record.set("group", config.group);
+            }
+
+            record.data.layer = layer;
+            record.commit();
+        }
+        return record;
+    }
+
+});
+
+Ext.preg(gxp.plugins.BingSource.prototype.ptype, gxp.plugins.BingSource);
+
+/** FILE: plugins/GoogleSource.js **/
+/**
+ * Copyright (c) 2008-2011 The Open Planning Project
+ * 
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/**
+ * @requires plugins/LayerSource.js
+ * @requires OpenLayers/Layer/Google/v3.js
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = GoogleSource
+ */
+
+/** api: (extends)
+ *  plugins/LayerSource.js
+ */
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: GoolgeSource(config)
+ *
+ *    Plugin for using Google layers with :class:`gxp.Viewer` instances. The
+ *    plugin uses the GMaps v3 API and also takes care of loading the
+ *    required Google resources.
+ *
+ *    Available layer names for this source are "ROADMAP", "SATELLITE",
+ *    "HYBRID" and "TERRAIN"
+ */   
+/** api: example
+ *  The configuration in the ``sources`` property of the :class:`gxp.Viewer` is
+ *  straightforward:
+ *
+ *  .. code-block:: javascript
+ *
+ *    "google": {
+ *        ptype: "gxp_googlesource"
+ *    }
+ *
+ *  A typical configuration for a layer from this source (in the ``layers``
+ *  array of the viewer's ``map`` config option would look like this:
+ *
+ *  .. code-block:: javascript
+ *
+ *    {
+ *        source: "google",
+ *        name: "TERRAIN"
+ *    }
+ *
+ */
+gxp.plugins.GoogleSource = Ext.extend(gxp.plugins.LayerSource, {
+    
+    /** api: ptype = gxp_googlesource */
+    ptype: "gxp_googlesource",
+    
+    /** config: config[timeout]
+     *  ``Number``
+     *  The time (in milliseconds) to wait before giving up on the Google Maps
+     *  script loading.  This layer source will not be availble if the script
+     *  does not load within the given timeout.  Default is 7000 (seven seconds).
+     */
+    timeout: 7000,
+
+    /** api: property[store]
+     *  ``GeoExt.data.LayerStore`` containing records with "ROADMAP",
+     *  "SATELLITE", "HYBRID" and "TERRAIN" name fields.
+     */
+    
+    /** api: config[title]
+     *  ``String``
+     *  A descriptive title for this layer source (i18n).
+     */
+    title: "Google Layers",
+
+    /** api: config[roadmapAbstract]
+     *  ``String``
+     *  Description of the ROADMAP layer (i18n).
+     */
+    roadmapAbstract: "Show street map",
+
+    /** api: config[satelliteAbstract]
+     *  ``String``
+     *  Description of the SATELLITE layer (i18n).
+     */
+    satelliteAbstract: "Show satellite imagery",
+
+    /** api: config[hybridAbstract]
+     *  ``String``
+     *  Description of the HYBRID layer (i18n).
+     */
+    hybridAbstract: "Show imagery with street names",
+
+    /** api: config[terrainAbstract]
+     *  ``String``
+     *  Description of the TERRAIN layer (i18n).
+     */
+    terrainAbstract: "Show street map with terrain",
+
+    /** api: config[otherParams]
+     *  ``String``
+     *  Additional parameters to be sent to Google,
+     *  default is "sensor=false"
+     */
+    otherParams: "sensor=false",
+
+    constructor: function(config) {
+        this.config = config;
+        gxp.plugins.GoogleSource.superclass.constructor.apply(this, arguments);
+    },
+    
+    /** api: method[createStore]
+     *
+     *  Creates a store of layer records.  Fires "ready" when store is loaded.
+     */
+    createStore: function() {
+        gxp.plugins.GoogleSource.loader.onLoad({
+            otherParams: this.otherParams,
+            timeout: this.timeout,
+            callback: this.syncCreateStore,
+            errback: function() {
+                delete this.store;
+                this.fireEvent(
+                    "failure", 
+                    this,
+                    "The Google Maps script failed to load within the provided timeout (" + (this.timeout / 1000) + " s)."
+                );
+            },
+            scope: this
+        });
+    },
+    
+    /** private: method[syncCreateStore]
+     *
+     *  Creates a store of layers.  This requires that the API script has already
+     *  loaded.  Fires the "ready" event when the store is loaded.
+     */
+    syncCreateStore: function() {
+        // TODO: The abstracts ("alt" properties) should be derived from the
+        // MapType objects themselves.  It doesn't look like there is currently
+        // a way to get the default map types before creating a map object.
+        // http://code.google.com/p/gmaps-api-issues/issues/detail?id=2562
+        // TODO: We may also be able to determine the MAX_ZOOM_LEVEL for each
+        // layer type. If not, consider setting them on the OpenLayers level.
+        var mapTypes = {
+            "ROADMAP": {"abstract": this.roadmapAbstract, MAX_ZOOM_LEVEL: 20},
+            "SATELLITE": {"abstract": this.satelliteAbstract},
+            "HYBRID": {"abstract": this.hybridAbstract},
+            "TERRAIN": {"abstract": this.terrainAbstract, MAX_ZOOM_LEVEL: 15}
+        };
+        
+        var layers = [];
+        var name, mapType;
+        for (name in mapTypes) {
+            mapType = google.maps.MapTypeId[name];
+            layers.push(new OpenLayers.Layer.Google(
+                // TODO: get MapType object name
+                // http://code.google.com/p/gmaps-api-issues/issues/detail?id=2562
+                "Google " + mapType.replace(/\w/, function(c) {return c.toUpperCase();}), {
+                    type: mapType,
+                    typeName: name,
+                    MAX_ZOOM_LEVEL: mapTypes[name].MAX_ZOOM_LEVEL,
+                    maxExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+                    restrictedExtent: new OpenLayers.Bounds(-20037508.34,-20037508.34,20037508.34,20037508.34),
+                    projection: this.projection
+                }
+            ));
+        }
+        this.store = new GeoExt.data.LayerStore({
+            layers: layers,
+            fields: [
+                {name: "source", type: "string"},
+                {name: "name", type: "string", mapping: "typeName"},
+                {name: "abstract", type: "string"},
+                {name: "group", type: "string", defaultValue: "background"},
+                {name: "fixed", type: "boolean", defaultValue: true},
+                {name: "selected", type: "boolean"}
+            ]
+        });
+        this.store.each(function(l) {
+            l.set("abstract", mapTypes[l.get("name")]["abstract"]);
+        });
+        this.fireEvent("ready", this);
+    },
+    
+    /** api: method[createLayerRecord]
+     *  :arg config:  ``Object``  The application config for this layer.
+     *  :returns: ``GeoExt.data.LayerRecord``
+     *
+     *  Create a layer record given the config.
+     */
+    createLayerRecord: function(config) {
+        var record;
+        var cmp = function(l) {
+            return l.get("name") === config.name;
+        };
+        // only return layer if app does not have it already
+        if (this.target.mapPanel.layers.findBy(cmp) == -1) {
+            // records can be in only one store
+            record = this.store.getAt(this.store.findBy(cmp)).clone();
+            var layer = record.getLayer();
+            // set layer title from config
+            if (config.title) {
+                /**
+                 * Because the layer title data is duplicated, we have
+                 * to set it in both places.  After records have been
+                 * added to the store, the store handles this
+                 * synchronization.
+                 */
+                layer.setName(config.title);
+                record.set("title", config.title);
+            }
+            // set visibility from config
+            if ("visibility" in config) {
+                layer.visibility = config.visibility;
+            }
+            
+            record.set("selected", config.selected || false);
+            record.set("source", config.source);
+            record.set("name", config.name);
+            if ("group" in config) {
+                record.set("group", config.group);
+            }
+            record.commit();
+        }
+        return record;
+    }
+    
+});
+
+/**
+ * Create a loader singleton that all plugin instances can use.
+ */
+gxp.plugins.GoogleSource.loader = new (Ext.extend(Ext.util.Observable, {
+
+    /** private: property[ready]
+     *  ``Boolean``
+     *  This plugin type is ready to use.
+     */
+    ready: !!(window.google && google.maps),
+
+    /** private: property[loading]
+     *  ``Boolean``
+     *  The resources for this plugin type are loading.
+     */
+    loading: false,
+    
+    constructor: function() {
+        this.addEvents(
+            /** private: event[ready]
+             *  Fires when this plugin type is ready.
+             */
+             "ready",
+
+             /** private: event[failure]
+              *  Fires when script loading fails.
+              */
+              "failure"
+        );
+        return Ext.util.Observable.prototype.constructor.apply(this, arguments);
+    },
+    
+    /** private: method[onScriptLoad]
+     *  Called when all resources required by this plugin type have loaded.
+     */
+    onScriptLoad: function() {
+        // the google loader calls this in the window scope
+        var monitor = gxp.plugins.GoogleSource.loader;
+        if (!monitor.ready) {
+            monitor.ready = true;
+            monitor.loading = false;
+            monitor.fireEvent("ready");
+        }
+    },
+    
+    /** api: method[gxp.plugins.GoogleSource.loader.onLoad]
+     *  :arg options: ``Object``
+     *
+     *  Options:
+     *
+     *  * callback - ``Function`` Called when script loads.
+     *  * errback - ``Function`` Called if loading fails.
+     *  * timeout - ``Number`` Time to wait before deciding that loading failed
+     *      (in milliseconds).
+     *  * scope - ``Object`` The ``this`` object for callbacks.
+     */
+    onLoad: function(options) {
+        if (this.ready) {
+            // call this in the next turn for consistent return before callback
+            window.setTimeout(function() {
+                options.callback.call(options.scope);                
+            }, 0);
+        } else if (!this.loading) {
+            this.loadScript(options);
+        } else {
+            this.on({
+                ready: options.callback,
+                failure: options.errback || Ext.emptyFn,
+                scope: options.scope
+            });
+        }
+    },
+
+    /** private: method[onScriptLoad]
+     *  Called when all resources required by this plugin type have loaded.
+     */
+    loadScript: function(options) {
+
+        var params = {
+            autoload: Ext.encode({
+                modules: [{
+                    name: "maps",
+                    version: 3.3,
+                    nocss: "true",
+                    callback: "gxp.plugins.GoogleSource.loader.onScriptLoad",
+                    other_params: options.otherParams
+                }]
+            })
+        };
+        
+        var script = document.createElement("script");
+        script.src = "//www.google.com/jsapi?" + Ext.urlEncode(params);
+
+        // cancel loading if monitor is not ready within timeout
+        var errback = options.errback || Ext.emptyFn;
+        var timeout = options.timeout || gxp.plugins.GoogleSource.prototype.timeout;
+        window.setTimeout((function() {
+            if (!gxp.plugins.GoogleSource.loader.ready) {
+                this.loading = false;
+                this.ready = false;
+                document.getElementsByTagName("head")[0].removeChild(script);
+                errback.call(options.scope);
+                this.fireEvent("failure");
+                this.purgeListeners();
+            }
+        }).createDelegate(this), timeout);
+        
+        // register callback for ready
+        this.on({
+            ready: options.callback,
+            scope: options.scope
+        });
+
+        this.loading = true;
+
+        // The google loader accesses document.body, so we don't add the loader
+        // script before the document is ready.
+        function append() {
+            document.getElementsByTagName("head")[0].appendChild(script);
+        }
+        if (document.body) {
+            append();
+        } else {
+            Ext.onReady(append);
+        }
+
+    }
+
+}))();
+
+Ext.preg(gxp.plugins.GoogleSource.prototype.ptype, gxp.plugins.GoogleSource);
+
+/** FILE: plugins/GoogleEarth.js **/
+/**
+ * Copyright (c) 2008-2011 The Open Planning Project
+ *
+ * Published under the GPL license.
+ * See https://github.com/opengeo/gxp/raw/master/license.txt for the full text
+ * of the license.
+ */
+
+/**
+ * @requires plugins/Tool.js
+ */
+
+/** api: (define)
+ *  module = gxp.plugins
+ *  class = GoogleEarth
+ */
+
+/** api: (extends)
+ *  plugins/Tool.js
+ */
+Ext.namespace("gxp.plugins");
+
+/** api: constructor
+ *  .. class:: GoogleEarth(config)
+ *
+ *    Provides an action for switching between normal map view and
+ *    Google Earth view.
+ */
+/** api: example
+ *  This tool can only be used if ``portalItems`` of :class:`gxp.Viewer` is set up
+ *  in the following way (or similar, the requirement is to have a panel with a card
+ *  layout which has 2 items: the map and the Google Earth panel):
+ *
+ *  .. code-block:: javascript
+ *
+ *      portalItems: [{
+ *          region: "center",
+ *          layout: "border",
+ *          border: false,
+ *           items: [{
+ *               xtype: "panel",
+ *               id: "panel",
+ *               tbar: [],
+ *               layout: "card",
+ *               region: "center",
+ *               activeItem: 0,
+ *               items: [
+ *               "map", {
+ *                   xtype: 'gxp_googleearthpanel',
+ *                   mapPanel: "map"
+ *               }
+ *           ]
+ *      }
+ *
+ * Then make sure the tools go into the tbar of the panel, instead of the
+ * "map.tbar" which is the default, an example is:
+ *
+ *  .. code-block:: javascript
+ *
+ *    tools: [
+ *        {
+ *            actionTarget: "panel.tbar",
+ *            ptype: "gxp_googleearth",
+ *        }
+ *    ]
+ */
+gxp.plugins.GoogleEarth = Ext.extend(gxp.plugins.Tool, {
+
+    /** api: ptype = gxp_googleearth */
+    ptype: "gxp_googleearth",
+
+    /** config: config[timeout]
+     *  ``Number``
+     *  The time (in milliseconds) to wait before giving up on the Google API
+     *  script loading.  This layer source will not be availble if the script
+     *  does not load within the given timeout.  Default is 7000 (seven seconds).
+     */
+    timeout: 7000,
+
+    //i18n
+    menuText: "3D Viewer",
+    tooltip: "Switch to 3D Viewer",
+    tooltipMap: "Switch back to normal map view",
+
+    /** private: method[constructor]
+     */
+    constructor: function(config) {
+        gxp.plugins.GoogleEarth.superclass.constructor.apply(this, arguments);
+    },
+
+    /** api: method[addActions]
+     */
+    addActions: function() {
+        var actions = [{
+            menuText: this.menuText,
+            enableToggle: true,
+            iconCls: "gxp-icon-googleearth",
+            tooltip: this.tooltip,
+            toggleHandler: function(button, state) {
+                // we unpress the button so that it will only show pressed
+                // on successful display
+                this.actions[0].each(function(cmp) {
+                    if (cmp.toggle) {
+                        cmp.toggle(false, true);
+                    }
+                });
+                this.togglePanelDisplay(state);
+            },
+            scope: this
+        }];
+
+        return gxp.plugins.GoogleEarth.superclass.addActions.apply(this, [actions]);
+    },
+
+    /** private: method[togglePanelDisplay]
+     *  :arg displayed: ``Boolean`` Display the Google Earth panel.
+     */
+    togglePanelDisplay: function(displayed) {
+        // TODO: this split between the tool and the panel needs work
+        var ownerCt = this.target.mapPanel.ownerCt;
+        var layout = ownerCt && ownerCt.getLayout();
+        if (layout && layout instanceof Ext.layout.CardLayout) {
+            if (displayed === true) {
+                gxp.plugins.GoogleEarth.loader.onLoad({
+                    callback: function() {
+                        // display the panel
+                        layout.setActiveItem(1);
+                        // enable action press any buttons associated with the action
+                        this.actions[0].enable();
+                        this.actions[0].items[0].setTooltip(this.tooltipMap);
+                        this.actions[0].each(function(cmp) {
+                            if (cmp.toggle) {
+                                cmp.toggle(true, true);
+                            }
+                        });
+                    },
+                    // TODO: add errback for handling load failures
+                    scope: this
+                });
+            } else {
+                // hide the panel
+                layout.setActiveItem(0);
+                this.actions[0].items[0].setTooltip(this.tooltip);
+            }
+        }
+    },
+
+    /** private: method[getHost]
+     *  :returns: ``String`` The current host name and port.
+     *
+     *  This method is here mainly for mocking in tests.
+     */
+    getHost: function() {
+        var name = window.location.host.split(":").shift();
+        var port = window.location.port || "80";
+        return name + ":" + port;
+    }
+
+});
+
+
+/**
+ * Create a loader singleton that all plugin instances can use.
+ */
+gxp.plugins.GoogleEarth.loader = new (Ext.extend(Ext.util.Observable, {
+
+    /** private: property[ready]
+     *  ``Boolean``
+     *  This plugin type is ready to use.
+     */
+    ready: !!(window.google && window.google.maps),
+
+    /** private: property[loading]
+     *  ``Boolean``
+     *  The resources for this plugin type are loading.
+     */
+    loading: false,
+
+    constructor: function() {
+        this.addEvents(
+            /** private: event[ready]
+             *  Fires when this plugin type is ready.
+             */
+             "ready",
+
+             /** private: event[failure]
+              *  Fires when script loading fails.
+              */
+              "failure"
+        );
+        return Ext.util.Observable.prototype.constructor.apply(this, arguments);
+    },
+
+    /** private: method[onScriptLoad]
+     *  Called when all resources required by this plugin type have loaded.
+     */
+    onScriptLoad: function() {
+        // the google loader calls this in the window scope
+        var monitor = gxp.plugins.GoogleEarth.loader;
+        if (!monitor.ready) {
+            monitor.ready = true;
+            monitor.loading = false;
+            monitor.fireEvent("ready");
+        }
+    },
+
+    /** api: method[gxp.plugins.GoogleEarth.loader.onLoad]
+     *  :arg options: ``Object``
+     *
+     *  Options:
+     *
+     *  * callback - ``Function`` Called when script loads.
+     *  * errback - ``Function`` Called if loading fails.
+     *  * timeout - ``Number`` Time to wait before deciding that loading failed
+     *      (in milliseconds).
+     *  * scope - ``Object`` The ``this`` object for callbacks.
+     */
+    onLoad: function(options) {
+        if (this.ready) {
+            // call this in the next turn for consistent return before callback
+            window.setTimeout(function() {
+                options.callback.call(options.scope);
+            }, 0);
+        } else if (!this.loading) {
+            this.loadScript(options);
+        } else {
+            this.on({
+                ready: options.callback,
+                failure: options.errback || Ext.emptyFn,
+                scope: options.scope
+            });
+        }
+    },
+
+    /** private: method[onScriptLoad]
+     *  Called when all resources required by this plugin type have loaded.
+     */
+    loadScript: function(options) {
+
+        // remove any previous loader to ensure that the key is applied
+        if (window.google) {
+            delete google.loader;
+        }
+
+        var params = {
+            autoload: Ext.encode({
+                /* modules: [{
+                    name: "earth",
+                    version: "1",
+                    callback: "gxp.plugins.GoogleEarth.loader.onScriptLoad"
+                }] */
+                modules: [{
+                    name: "maps",
+                    version: 3,
+                    other_params: "sensor=false",
+                    callback: "gxp.plugins.GoogleEarth.loader.onScriptLoad"
+                }]
+            })
+        };
+
+        var script = document.createElement("script");
+        script.src = "//www.google.com/jsapi?" + Ext.urlEncode(params);
+
+        // cancel loading if monitor is not ready within timeout
+        var errback = options.errback || Ext.emptyFn;
+        var timeout = options.timeout || gxp.plugins.GoogleSource.prototype.timeout;
+        window.setTimeout((function() {
+            if (!gxp.plugins.GoogleEarth.loader.ready) {
+                this.fireEvent("failure");
+                this.unload();
+            }
+        }).createDelegate(this), timeout);
+
+        // register callback for ready
+        this.on({
+            ready: options.callback,
+            failure: options.errback || Ext.emptyFn,
+            scope: options.scope
+        });
+
+        this.loading = true;
+
+        // The google loader accesses document.body, so we don't add the loader
+        // script before the document is ready.
+        function append() {
+            document.getElementsByTagName("head")[0].appendChild(script);
+        }
+        if (document.body) {
+            append();
+        } else {
+            Ext.onReady(append);
+        }
+
+        this.script = script;
+
+    },
+
+    /** api: method[unload]
+     *  Clean up resources created by loading.
+     */
+    unload: function() {
+        this.purgeListeners();
+        if (this.script) {
+            document.getElementsByTagName("head")[0].removeChild(this.script);
+            delete this.script;
+        }
+        this.loading = false;
+        this.ready = false;
+        delete google.loader;
+        delete google.maps;
+    }
+
+}))();
+
+Ext.preg(gxp.plugins.GoogleEarth.prototype.ptype, gxp.plugins.GoogleEarth);
 
 /** FILE: plugins/OSMSource.js **/
 /**
