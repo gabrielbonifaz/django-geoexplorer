@@ -5,32 +5,26 @@ This is just packaging work for the boundless suite client sdk.
 
 The releases will be done loosely based on the suite releases but the minor version numbers may not match.
 
-=======
 INSTALL
 =======
 
-::
-
     pip install django-geoexplorer
 
-=====
+
 USAGE
 =====
 
 * Add ``geoexplorer`` to your ``INSTALLED_APPS``
 
-
-=======
 AUTHORS
 =======
 
 * Ariel Núñez <http://ingenieroariel.com>
 
-==========
+* Alessio Fabiani <http://www.geo-solutions.it>
+
 DEVELOPERS
 ==========
-
-::
 
     git clone http://github.com/GeoNode/suite.git
     cd suite
@@ -47,22 +41,20 @@ DEVELOPERS
     python setup.py sdist upload
 
 
-===================
 GeoExplorer Sources
 ===================
-
-::
 
     git clone https://github.com/GeoNode/geoexplorer.git
     cd geoexplorer
     git checkout geonode-geoexplorer
     ant war
-    cp -R suite/geoexplorer/target/geoexplorer/WEB-INF/app/static/* django-geoexplorer/geoexplorer/static/
+    cp -R suite/geoexplorer/target/geoexplorer/WEB-INF/app static/* django-geoexplorer/geoexplorer/static/
 
 
-=======
 LICENSE
 =======
 
 * Lesser GNU Public License
+
 * OpenGeo Suite License - GPL
+

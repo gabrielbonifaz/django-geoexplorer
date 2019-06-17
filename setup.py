@@ -11,8 +11,7 @@ setup(
     url='https://github.com/GeoNode/django-geoexplorer',
     download_url = "http://pypi.python.org/pypi/django-geoexplorer/",
     description="Use GeoExplorer in your django projects",
-    long_description=open(os.path.join(here, 'README.rst')).read() + '\n\n' +
-                     open(os.path.join(here, 'CHANGES')).read(),
+    long_description=open(os.path.join(here, 'README.md')).read(),
     license='LGPL, see LICENSE file.',
     install_requires=[],
     packages=find_packages(),

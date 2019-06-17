@@ -1,7 +1,7 @@
 CHANGES
 LICENSE
 MANIFEST.in
-README.rst
+README.md
 setup.py
 django_geoexplorer.egg-info/PKG-INFO
 django_geoexplorer.egg-info/SOURCES.txt
