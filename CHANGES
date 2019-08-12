@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+4.0.69 (2019-04-23)
+===================
+
+* Fixes the problem which prevented to add a WM layer form solr interface
+* For now we always use WMS identify vs WFS identify until GeoNode bug #4713 is fixed
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/21b273bdbe0629df802c5dd9aa1901402269f2dc
+
 4.0.67 (2019-04-23)
 ===================
 

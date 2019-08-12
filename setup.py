@@ -5,14 +5,14 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
     name='django-geoexplorer-worldmap',
-    version='4.0.67',
+    version='4.0.69',
     author='Matt Bertrand, Paolo Corti',
     author_email='pcorti@gmail.com',
     url='https://github.com/GeoNode/django-geoexplorer/tree/worldmap',
     download_url = "http://pypi.python.org/pypi/django-geoexplorer-worldmap/",
     description="Use GeoExplorer WorldMap in your django projects",
-    long_description=open(os.path.join(here, 'README.rst')).read() + '\n\n' +
-                     open(os.path.join(here, 'CHANGES')).read(),
+    #long_description=open(os.path.join(here, 'README.rst')).read() + '\n\n' +
+    #                 open(os.path.join(here, 'CHANGES')).read(),
     license='LGPL, see LICENSE file.',
     install_requires=[],
     packages=find_packages(),
