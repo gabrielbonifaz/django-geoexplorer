@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+4.0.72 (2019-10-10)
+===================
+
+* Enabled WMTS layers with a WMTSSource
+
+Source code:
+https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/381ea29be35015dfe2ba31d7204f4edf21b39ae1
+
 4.0.71 (2019-09-17)
 ===================
 
@@ -9,7 +17,6 @@ CHANGELOG
 
 Source code:
 https://github.com/cga-harvard/geoexplorer-worldmap-client/commit/974cee18f4c392579fec250668ec9726d7b56ffc
-
 
 4.0.69 (2019-04-23)
 ===================
