@@ -92462,7 +92462,7 @@ gxp.plugins.FeatureEditor = Ext.extend(gxp.plugins.ClickableFeatures, {
      *  ``String`` Optional id of the :class:`gxp.plugins.SnappingAgent` to use
      *  with this tool.
      */
-    snappingAgent: null,
+    snappingAgent: "gxp.plugins.SnappingAgent",
     
     /** api: config[readOnly]
      *  ``Boolean`` Set to true to use the FeatureEditor merely as a feature
