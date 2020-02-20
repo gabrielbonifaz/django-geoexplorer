@@ -5,10 +5,10 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 setup(
     name='django-geoexplorer',
-    version='4.0.43',
+    version='4.0.44',
     author='Alessio Fabiani',
     author_email='alessio.fabiani@gmail.com',
-    url='https://github.com/GeoNode/django-geoexplorer',
+    url='https://github.com/gabrielbonifaz/django-geoexplorer',
     download_url = "http://pypi.python.org/pypi/django-geoexplorer/",
     description="Use GeoExplorer in your django projects",
     long_description=open(os.path.join(here, 'README.md')).read(),
