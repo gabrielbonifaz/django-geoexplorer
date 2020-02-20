@@ -9,7 +9,7 @@ setup(
     author='Alessio Fabiani',
     author_email='alessio.fabiani@gmail.com',
     url='https://github.com/gabrielbonifaz/django-geoexplorer',
-    download_url = "http://pypi.python.org/pypi/django-geoexplorer/",
+    download_url = "https://github.com/gabrielbonifaz/django-geoexplorer/archive/4.0.46.tar.gz",
     description="Use GeoExplorer in your django projects",
     long_description=open(os.path.join(here, 'README.md')).read(),
     license='LGPL, see LICENSE file.',
